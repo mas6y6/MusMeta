@@ -52,6 +52,21 @@ public class Main {
             }
         }
 
+        /* Tray catch block for applying Outfit-VariableFont_wght globally.
+        * - Batista 8/22/2026  */
+        try {
+            InputStream is = Main.class.getResourceAsStream("/font/Outfit-VariableFont_wght.ttf");
+            if (is != null) {
+                Font customFont = Font.createFont(Font.TRUETYPE_FONT, is);
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(customFont);
+                UIManager.put("defaultFont", new Font(customFont.getFamily(), Font.BOLD, 14));
+            } else {
+                System.err.println("Outfit font resource not found.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         JFrame.setDefaultLookAndFeelDecorated(true);
 
         if (OsThemeDetector.isSupported()) {

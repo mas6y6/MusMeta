@@ -83,6 +83,12 @@ tasks.named('shadowJar') {
     }
 }
 
+tasks.register('fatJar') {
+    group = 'distribution'
+    description = 'Builds the self-contained MusMeta JAR.'
+    dependsOn tasks.named('shadowJar')
+}
+
 
 // ============================================================
 // Resources
@@ -112,12 +118,43 @@ runtime {
             '--no-man-pages'
     ])
 
+
     modules.set([
+            // Core
             'java.base',
+
+            // Swing / AWT
             'java.desktop',
+
+            // Logging
             'java.logging',
+
+            // Networking / HTTP
+            'java.net.http',
             'java.naming',
-            'java.xml'
+
+            // XML
+            'java.xml',
+
+            // SQL / JDBC
+            'java.sql',
+
+            // Cryptography / TLS
+            'jdk.crypto.ec',
+            'jdk.crypto.cryptoki',
+
+            // ZIP / compression
+            'jdk.zipfs',
+
+            // Preferences
+            'java.prefs',
+
+            // Management / monitoring
+            'java.management',
+
+            // Instrumentation / service loading
+            'java.instrument',
+            'java.management'
     ])
 
     // --------------------------------------------------------
@@ -248,30 +285,36 @@ tasks.named('jpackageImage') {
 // Portable application
 // ============================================================
 
-tasks.register('copyJpackage', Copy) {
-    dependsOn tasks.named('jpackage')
-
-    from(layout.buildDirectory.dir('jpackage/MusMeta')) {
-        include '**/*'
-    }
-
-    into(layout.buildDirectory.dir('portable/MusMeta'))
-}
+def hostOsName = System.getProperty('os.name').toLowerCase()
+def hostPlatform = hostOsName.contains('windows') ? 'windows' :
+        hostOsName.contains('mac') ? 'macos' :
+                hostOsName.contains('linux') ? 'linux' : 'portable'
+def nativeInstallerSupported = hostOsName.contains('windows') || hostOsName.contains('mac') || hostOsName.contains('linux')
 
 // ============================================================
 // Portable ZIP
 // ============================================================
 
-tasks.register('createPortableApplication', Zip) {
-    dependsOn tasks.named('copyJpackage')
+tasks.register('portableZip', Zip) {
+    group = 'distribution'
+    description = 'Creates an install-free application archive with its bundled runtime.'
+    // jpackage owns the application-image output directory as well as the
+    // platform installer, so depend on it to keep Gradle's task validation
+    // and archive contents deterministic.
+    dependsOn tasks.named('jpackage')
 
-    archiveFileName = "MusMeta-${project.version}-portable.zip"
+    archiveFileName = "MusMeta-${project.version}-${hostPlatform}-portable.zip"
+    destinationDirectory = layout.buildDirectory.dir('dist')
 
-    destinationDirectory = layout.buildDirectory.dir('artifacts')
-
-    from(layout.buildDirectory.dir('portable/MusMeta')) {
-        include '**/*'
+    from(layout.buildDirectory.dir('jpackage/MusMeta')) {
+        into('MusMeta')
     }
+}
+
+tasks.register('createPortableApplication') {
+    group = 'distribution'
+    description = 'Compatibility alias for portableZip.'
+    dependsOn tasks.named('portableZip')
 }
 
 
@@ -282,8 +325,10 @@ tasks.register('createPortableApplication', Zip) {
 tasks.register('collectDistributions', Copy) {
 
     dependsOn tasks.named('shadowJar')
-    dependsOn tasks.named('jpackage')
-    dependsOn tasks.named('createPortableApplication')
+    dependsOn tasks.named('portableZip')
+    if (nativeInstallerSupported) {
+        dependsOn tasks.named('jpackage')
+    }
 
     into(layout.buildDirectory.dir('dist'))
 
@@ -301,14 +346,7 @@ tasks.register('collectDistributions', Copy) {
         include '*.msi'
         include '*.dmg'
         include '*.deb'
-    }
-
-    // --------------------------------------------------------
-    // Portable ZIP
-    // --------------------------------------------------------
-
-    from(layout.buildDirectory.dir('artifacts')) {
-        include "MusMeta-${project.version}-portable.zip"
+        include '*.rpm'
     }
 }
 

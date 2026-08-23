@@ -11,9 +11,12 @@ version = '1.0.0'
 repositories {
     mavenCentral()
     maven { url = 'https://jitpack.io' }
+    maven { url = 'https://repo.spongepowered.org/repository/maven-public/'}
 }
 
 dependencies {
+    implementation("com.google.guava:guava:$guava")
+    implementation("org.spongepowered:mixin:$mixin")
     implementation("com.formdev:flatlaf:$flatlaf")
     implementation("com.formdev:flatlaf-extras:$flatlaf")
     implementation("org.apache.commons:commons-lang3:$commonslang3")

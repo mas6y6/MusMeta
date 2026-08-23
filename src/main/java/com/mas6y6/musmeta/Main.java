@@ -12,6 +12,7 @@ import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.settings.Updates;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.prompts.PostInstallationPrompt;
+import org.spongepowered.asm.launch.MixinBootstrap;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
@@ -27,6 +28,7 @@ public class Main {
     public static final Path appDir = Paths.get(System.getProperty("user.home"), ".musmeta");
 
     public void main(String[] args) throws IOException {
+        //MixinBootstrap.init();
         System.out.println("com.mas6y6.musmeta.Main.main()");
 
         if (!Files.exists(appDir)) {

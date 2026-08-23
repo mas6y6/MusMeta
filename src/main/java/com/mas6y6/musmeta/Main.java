@@ -29,6 +29,9 @@ public class Main {
 
     public void main(String[] args) throws IOException {
         //MixinBootstrap.init();
+
+
+
         System.out.println("com.mas6y6.musmeta.Main.main()");
 
         if (!Files.exists(appDir)) {

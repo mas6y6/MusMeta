@@ -60,6 +60,15 @@ public class ConfigContainer<T> {
         if (!Objects.equals(oldValue, value)) {
             notifyListeners(value);
         }
+        ConfigManager.getInstance().saveQuietly();
+    }
+
+    public void set(T value) {
+        setValue(value);
+    }
+
+    public T get() {
+        return getValue();
     }
 
     public void reset() {

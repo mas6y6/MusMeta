@@ -7,9 +7,12 @@ import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import com.jthemedetecor.OsThemeDetector;
 import com.mas6y6.musmeta.config.ConfigManager;
 import com.mas6y6.musmeta.config.SubConfig;
+import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.settings.Updates;
+import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.prompts.PostInstallationPrompt;
+import org.spongepowered.asm.launch.MixinBootstrap;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
@@ -63,7 +66,7 @@ public class Main {
             if (isMedium != null && isExtraBold != null) {
                 outfitMedium = Font.createFont(Font.TRUETYPE_FONT, isMedium);
                 outfitExtraBold = Font.createFont(Font.TRUETYPE_FONT, isExtraBold);
-                
+
                 GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(outfitMedium);
                 GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(outfitExtraBold);
 
@@ -122,37 +125,7 @@ public class Main {
         if (!isSetupCompleted) {
             SwingUtilities.invokeLater(PostInstallationPrompt::new);
         } else {
-            SwingUtilities.invokeLater(() -> {
-                // Main application window launch
-            });
+            SwingUtilities.invokeLater(() -> MainWindow.INSTANCE.setVisible(true));
         }
-    }
-
-    public static void registerConfigs() {
-        var manager = ConfigManager.getInstance();
-        var appConfig = manager.registerConfig("app");
-        appConfig.register("setup_completed", false);
-        appConfig.register("auto_ffmpeg_install", true);
-        appConfig.register("ffmpeg_installation_path", "");
-        appConfig.register("updates", Updates.ENABLED);
-        appConfig.register("preferred_theme", Theme.SYSTEM);
-
-        ConfigManager.getInstance().getConfig("app").getContainer("preferred_theme").addListener((value) -> {
-            try {
-                if (value == Theme.DARK) {
-                    FlatAnimatedLafChange.showSnapshot();
-                    UIManager.setLookAndFeel(new FlatDarkLaf());
-                    FlatLaf.updateUI();
-                    FlatAnimatedLafChange.hideSnapshotWithAnimation();
-                } else if (value == Theme.LIGHT) {
-                    FlatAnimatedLafChange.showSnapshot();
-                    UIManager.setLookAndFeel(new FlatLightLaf());
-                    FlatLaf.updateUI();
-                    FlatAnimatedLafChange.hideSnapshotWithAnimation();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
     }
 }

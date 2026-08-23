@@ -3,6 +3,7 @@ package com.mas6y6.musmeta;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mas6y6.musmeta.config.ConfigManager;
 import org.apache.commons.lang3.SystemUtils;
 
 import java.io.File;
@@ -993,4 +994,5 @@ public class Utils {
                 GithubRelease.class
         );
     }
+
 }

@@ -137,6 +137,8 @@ public final class CrashHandler {
             }
         } catch (Exception exception) {
             exception.printStackTrace();
+        } finally {
+            System.exit(1);
         }
     }
 }

@@ -51,17 +51,17 @@ public class Main {
 
         Settings.registerConfigs();
 
-        try {
-            configManager.save();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to save config: " + e.getMessage());
-        }
-
         if (Files.exists(configPath)) {
             try {
                 configManager.load();
             } catch (IOException e) {
                 throw new RuntimeException("Failed to load config: " + e.getMessage());
+            }
+        } else {
+            try {
+                configManager.save();
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to create config: " + e.getMessage(), e);
             }
         }
 
@@ -129,11 +129,11 @@ public class Main {
         SubConfig appConfig = configManager.getConfig("app");
         boolean isSetupCompleted = appConfig != null && Boolean.TRUE.equals(appConfig.getValue("setup_completed"));
 
-        throw new RuntimeException("testing crash detector");
-        /* if (!isSetupCompleted) {
+
+        if (!isSetupCompleted) {
             SwingUtilities.invokeLater(PostInstallationPrompt::new);
         } else {
             SwingUtilities.invokeLater(() -> MainWindow.INSTANCE.setVisible(true));
-        } */
+        }
     }
 }

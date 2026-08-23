@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+
+    runs-on: ${{ matrix.os }}
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set version
+        shell: bash
+        run: |
+          CURRENT_VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2)
+          VERSION="${CURRENT_VERSION}-${GITHUB_SHA::7}"
+
+          sed -i "s/^version=.*/version=$VERSION/" gradle.properties
+
+          echo "Building version: $VERSION"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        shell: bash
+        run: ./gradlew build
+
+      - name: Package
+        shell: bash
+        run: ./gradlew jpackage
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: musmeta-${{ matrix.os }}
+          path: build/**

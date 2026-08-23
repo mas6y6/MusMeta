@@ -31,6 +31,9 @@ public class Bootstrap implements Runnable {
 
     @Override
     public void run() {
+        System.out.println("java.home = " + System.getProperty("java.home"));
+        System.out.println("java.version = " + System.getProperty("java.version"));
+        System.out.println("java.vendor = " + System.getProperty("java.vendor"));
         LOGGER.info("MusMeta - {}", Version.get());
         if (debug) {
             LOGGER.info("Running in debug mode");
@@ -48,7 +51,7 @@ public class Bootstrap implements Runnable {
 
         CommandLine commandLine = new CommandLine(new Bootstrap());
 
-        int exitCode = commandLine
+        commandLine
                 .setExecutionExceptionHandler((ex, cmd, parseResult) -> {
                     CrashHandler.handle(
                             Thread.currentThread(),
@@ -58,10 +61,6 @@ public class Bootstrap implements Runnable {
                     return 1;
                 })
                 .execute(args);
-
-        if (exitCode != 0) {
-            System.exit(exitCode);
-        }
     }
 
     public static class VersionProvider

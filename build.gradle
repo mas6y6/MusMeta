@@ -2,7 +2,8 @@ plugins {
     id 'java'
     id 'application'
     id 'org.beryx.runtime' version '2.0.1'
-    id "org.jetbrains.gradle.plugin.idea-ext" version '1.4.1'
+    id 'org.jetbrains.gradle.plugin.idea-ext' version '1.4.1'
+    id 'com.gradleup.shadow' version '9.6.1'
 }
 
 import org.jetbrains.gradle.ext.Application
@@ -35,23 +36,20 @@ idea.project.settings.runConfigurations {
 repositories {
     mavenCentral()
     maven { url = 'https://jitpack.io' }
-    maven { url = 'https://repo.spongepowered.org/repository/maven-public/'}
-}
-
-tasks.named('processResources') {
-    filesMatching('musmeta.properties') {
-        expand(version: project.version)
-    }
+    maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
 }
 
 dependencies {
     implementation("com.google.guava:guava:$guava")
     implementation("org.spongepowered:mixin:$mixin")
+
     implementation("com.formdev:flatlaf:$flatlaf")
     implementation("com.formdev:flatlaf-extras:$flatlaf")
+
     implementation("org.apache.commons:commons-lang3:$commonslang3")
     implementation("com.fasterxml.jackson.core:jackson-databind:$jackson")
     implementation("com.google.code.gson:gson:$json")
+
     implementation("com.github.Dansoftowner:jSystemThemeDetector:$jSystemThemeDetector")
     implementation("org.jetbrains:annotations:$annotations")
     implementation("info.picocli:picocli:$picocli")
@@ -68,10 +66,44 @@ test {
     useJUnitPlatform()
 }
 
+
+// ============================================================
+// Shadow JAR
+// ============================================================
+
+tasks.named('shadowJar') {
+    archiveBaseName = 'MusMeta'
+    archiveVersion = project.version
+    archiveClassifier = 'all'
+
+    manifest {
+        attributes(
+                'Main-Class': application.mainClass.get()
+        )
+    }
+}
+
+
+// ============================================================
+// Resources
+// ============================================================
+
+tasks.named('processResources') {
+    filesMatching('musmeta.properties') {
+        expand(version: project.version)
+    }
+}
+
+
+// ============================================================
+// Runtime / jlink / jpackage
+// ============================================================
+
 runtime {
-    // ------------------------------------------------------------
+
+    // --------------------------------------------------------
     // jlink
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
 
     options.set([
             '--strip-debug',
@@ -88,37 +120,48 @@ runtime {
             'java.xml'
     ])
 
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
     // Application launcher
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
 
     launcher {
         noConsole = true
     }
 
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
     // jpackage
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
 
     jpackage {
         imageName = 'MusMeta'
         installerName = 'MusMeta'
+
+        mainJar = "MusMeta-${project.version}-all.jar"
+        mainClass = 'com.mas6y6.musmeta.Bootstrap'
+
         appVersion = project.version.toString()
 
+        outputDir = 'jpackage'
+
         def osName = System.getProperty('os.name').toLowerCase()
+
         def isWindows = osName.contains('windows')
         def isMac = osName.contains('mac')
         def isLinux = osName.contains('linux')
 
-        // --------------------------------------------------------
+        // ----------------------------------------------------
         // Windows
-        // --------------------------------------------------------
+        // ----------------------------------------------------
 
         if (isWindows) {
-            imageOptions.addAll([
-                    '--icon',
-                    file('src/main/resources/icon.ico').absolutePath
-            ])
+            def icon = file('src/main/resources/icon.ico')
+
+            if (icon.exists()) {
+                imageOptions.addAll([
+                        '--icon',
+                        icon.absolutePath
+                ])
+            }
 
             installerType = 'msi'
 
@@ -133,22 +176,17 @@ runtime {
             ])
         }
 
-        // --------------------------------------------------------
+        // ----------------------------------------------------
         // macOS
-        // --------------------------------------------------------
+        // ----------------------------------------------------
 
         else if (isMac) {
-            def icnsIcon = file('src/main/resources/icon.icns')
+            def icon = file('src/main/resources/icon.icns')
 
-            if (icnsIcon.exists()) {
+            if (icon.exists()) {
                 imageOptions.addAll([
                         '--icon',
-                        icnsIcon.absolutePath
-                ])
-            } else {
-                imageOptions.addAll([
-                        '--icon',
-                        file('src/main/resources/icon.png').absolutePath
+                        icon.absolutePath
                 ])
             }
 
@@ -157,39 +195,128 @@ runtime {
             installerOptions.addAll([
                     '--mac-package-name',
                     'MusMeta',
-
                     '--mac-package-identifier',
                     group.toString()
             ])
         }
 
-        // --------------------------------------------------------
+        // ----------------------------------------------------
         // Linux
-        // --------------------------------------------------------
+        // ----------------------------------------------------
 
         else if (isLinux) {
-            imageOptions.addAll([
-                    '--icon',
-                    file('src/main/resources/icon.png').absolutePath
-            ])
+            def icon = file('src/main/resources/icon.png')
+
+            if (icon.exists()) {
+                imageOptions.addAll([
+                        '--icon',
+                        icon.absolutePath
+                ])
+            }
 
             installerType = 'deb'
 
             installerOptions.addAll([
                     '--linux-menu-group',
                     'Development',
-
                     '--linux-shortcut'
             ])
         }
 
-        // --------------------------------------------------------
-        // Common installer options
-        // --------------------------------------------------------
+        // ----------------------------------------------------
+        // Common
+        // ----------------------------------------------------
 
         installerOptions.addAll([
                 '--vendor',
                 'mas6y6'
         ])
     }
+}
+
+
+// ============================================================
+// jpackage dependencies
+// ============================================================
+
+// Shadow JAR → jpackage image
+tasks.named('jpackageImage') {
+    dependsOn tasks.named('shadowJar')
+}
+
+// ============================================================
+// Portable application
+// ============================================================
+
+tasks.register('copyJpackage', Copy) {
+    dependsOn tasks.named('jpackage')
+
+    from(layout.buildDirectory.dir('jpackage/MusMeta')) {
+        include '**/*'
+    }
+
+    into(layout.buildDirectory.dir('portable/MusMeta'))
+}
+
+// ============================================================
+// Portable ZIP
+// ============================================================
+
+tasks.register('createPortableApplication', Zip) {
+    dependsOn tasks.named('copyJpackage')
+
+    archiveFileName = "MusMeta-${project.version}-portable.zip"
+
+    destinationDirectory = layout.buildDirectory.dir('artifacts')
+
+    from(layout.buildDirectory.dir('portable/MusMeta')) {
+        include '**/*'
+    }
+}
+
+
+// ============================================================
+// Collect final distributions
+// ============================================================
+
+tasks.register('collectDistributions', Copy) {
+
+    dependsOn tasks.named('shadowJar')
+    dependsOn tasks.named('jpackage')
+    dependsOn tasks.named('createPortableApplication')
+
+    into(layout.buildDirectory.dir('dist'))
+
+    // --------------------------------------------------------
+    // Fat JAR
+    // --------------------------------------------------------
+
+    from(tasks.named('shadowJar'))
+
+    // --------------------------------------------------------
+    // Installer
+    // --------------------------------------------------------
+
+    from(layout.buildDirectory.dir('jpackage')) {
+        include '*.msi'
+        include '*.dmg'
+        include '*.deb'
+    }
+
+    // --------------------------------------------------------
+    // Portable ZIP
+    // --------------------------------------------------------
+
+    from(layout.buildDirectory.dir('artifacts')) {
+        include "MusMeta-${project.version}-portable.zip"
+    }
+}
+
+
+// ============================================================
+// Build lifecycle
+// ============================================================
+
+tasks.named('build') {
+    dependsOn tasks.named('collectDistributions')
 }

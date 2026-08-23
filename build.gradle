@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'org.beryx.runtime' version '2.0.1'
+    id "org.jetbrains.gradle.plugin.idea-ext" version '1.4.1'
 }
 
 group = 'com.mas6y6'
@@ -161,5 +162,14 @@ runtime {
                 '--vendor',
                 'mas6y6'
         ])
+    }
+}
+
+idea.project.settings.runConfigurations {
+    'App'(org.jetbrains.gradle.ext.Application) {
+        mainClass = 'com.example.myapp.App'
+        moduleName = project.idea.module.name + '.main'
+        programParameters = '--some-option some-argument'
+        jvmArgs = '-Xmx1G'
     }
 }

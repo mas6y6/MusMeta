@@ -12,10 +12,14 @@ import com.mas6y6.musmeta.settings.Updates;
 import com.mas6y6.musmeta.ui.prompts.PostInstallationPrompt;
 
 import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
+import java.awt.*;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 public class Main {
     public static final Path appDir = Paths.get(System.getProperty("user.home"), ".musmeta");

@@ -266,8 +266,13 @@ public class PostInstallationPrompt extends MusMetaFrame {
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 
         JLabel title = new JLabel("Welcome to MusMeta");
-        title.setFont(title.getFont().deriveFont(Font.PLAIN, 28f));
+        if (com.mas6y6.musmeta.Main.outfitExtraBold != null) {
+            title.setFont(com.mas6y6.musmeta.Main.outfitExtraBold.deriveFont(28f));
+        } else {
+            title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
+        }
 
+        // YOU CAN USE HTML?! -Batista
         JLabel description = new JLabel("""
 <html>
     Before you can start using MusMeta, we need to configure a few things.
@@ -293,7 +298,11 @@ public class PostInstallationPrompt extends MusMetaFrame {
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 
         JLabel title = new JLabel("Installation Completed!");
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
+        if (com.mas6y6.musmeta.Main.outfitExtraBold != null) {
+            title.setFont(com.mas6y6.musmeta.Main.outfitExtraBold.deriveFont(28f));
+        } else {
+            title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
+        }
 
         JLabel description = new JLabel("""
 <html>
@@ -319,7 +328,11 @@ public class PostInstallationPrompt extends MusMetaFrame {
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 
         JLabel title = new JLabel("Enable Automatic Updates?");
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
+        if (com.mas6y6.musmeta.Main.outfitExtraBold != null) {
+            title.setFont(com.mas6y6.musmeta.Main.outfitExtraBold.deriveFont(28f));
+        } else {
+            title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
+        }
 
         JLabel description = new JLabel("""
 <html>
@@ -388,7 +401,11 @@ public class PostInstallationPrompt extends MusMetaFrame {
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 
         JLabel title = new JLabel("Choose a Theme");
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
+        if (com.mas6y6.musmeta.Main.outfitExtraBold != null) {
+            title.setFont(com.mas6y6.musmeta.Main.outfitExtraBold.deriveFont(28f));
+        } else {
+            title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
+        }
 
         JLabel description = new JLabel("""
 <html>
@@ -461,7 +478,11 @@ public class PostInstallationPrompt extends MusMetaFrame {
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 
         JLabel title = new JLabel("FFmpeg Installation");
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
+        if (com.mas6y6.musmeta.Main.outfitExtraBold != null) {
+            title.setFont(com.mas6y6.musmeta.Main.outfitExtraBold.deriveFont(28f));
+        } else {
+            title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
+        }
 
         JLabel description = new JLabel("""
         <html>

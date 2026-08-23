@@ -24,6 +24,9 @@ import java.util.Objects;
 public class Main {
 
     public static final Path appDir = Paths.get(System.getProperty("user.home"), ".musmeta");
+    public static Font outfitMedium;
+    public static Font outfitExtraBold;
+
     /* Updated this to be Public Static main because
      * most JDKs will have issues running the project if Main is declared as
      * a private package. Changed tit to Public Static void for compatability. sake. - Batista */
@@ -55,13 +58,18 @@ public class Main {
         /* Tray catch block for applying Outfit-VariableFont_wght globally.
         * - Batista 8/22/2026  */
         try {
-            InputStream is = Main.class.getResourceAsStream("/font/Outfit-VariableFont_wght.ttf");
-            if (is != null) {
-                Font customFont = Font.createFont(Font.TRUETYPE_FONT, is);
-                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(customFont);
-                UIManager.put("defaultFont", new Font(customFont.getFamily(), Font.BOLD, 14));
+            InputStream isMedium = Main.class.getResourceAsStream("/font/Outfit-Medium.ttf");
+            InputStream isExtraBold = Main.class.getResourceAsStream("/font/Outfit-ExtraBold.ttf");
+            if (isMedium != null && isExtraBold != null) {
+                outfitMedium = Font.createFont(Font.TRUETYPE_FONT, isMedium);
+                outfitExtraBold = Font.createFont(Font.TRUETYPE_FONT, isExtraBold);
+                
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(outfitMedium);
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(outfitExtraBold);
+                
+                UIManager.put("defaultFont", outfitMedium.deriveFont(14f));
             } else {
-                System.err.println("Outfit font resource not found.");
+                System.err.println("Outfit static font resources not found.");
             }
         } catch (Exception e) {
             e.printStackTrace();

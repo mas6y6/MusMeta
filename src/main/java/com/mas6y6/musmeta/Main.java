@@ -66,8 +66,9 @@ public class Main {
                 
                 GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(outfitMedium);
                 GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(outfitExtraBold);
-                
-                UIManager.put("defaultFont", outfitMedium.deriveFont(14f));
+
+                // Registered with FontUIResource -Batista
+                UIManager.put("defaultFont", new javax.swing.plaf.FontUIResource(outfitMedium.deriveFont(14f)));
             } else {
                 System.err.println("Outfit static font resources not found.");
             }

@@ -19,11 +19,12 @@ import java.nio.file.Paths;
 
 public class PostInstallationPrompt extends MusMetaFrame {
 
+    // Set window size.
     private static final Dimension SIZE = new Dimension(800, 600);
 
     private boolean completed = false;
 
-    private final JTabbedPane tabs = new JTabbedPane(JTabbedPane.LEFT);
+    private final JTabbedPane tabs = new JTabbedPane(JTabbedPane.LEFT); // Object
 
     private final JButton backButton = new JButton("Back");
     private final JButton nextButton = new JButton("Next");
@@ -37,7 +38,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
     public PostInstallationPrompt() {
         setSubTitle("Post Installation");
 
-        initWindow();
+        initWindow(); // initialize window function
         initFailsafe();
 
         setLocationRelativeTo(null);

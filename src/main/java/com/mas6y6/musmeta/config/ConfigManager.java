@@ -28,6 +28,7 @@ public class ConfigManager {
     private Path customConfigPath;
     private final Map<String, SubConfig> configs = new LinkedHashMap<>();
     private final Map<String, JsonObject> unmappedConfigs = new LinkedHashMap<>();
+    private boolean loading = false;
 
     private ConfigManager() {
 
@@ -59,7 +60,13 @@ public class ConfigManager {
             config = new SubConfig(name);
             if (unmappedConfigs.containsKey(name)) {
                 JsonObject jsonObject = unmappedConfigs.remove(name);
-                config.fromJson(jsonObject, GSON);
+                boolean wasLoading = loading;
+                loading = true;
+                try {
+                    config.fromJson(jsonObject, GSON);
+                } finally {
+                    loading = wasLoading;
+                }
             }
             configs.put(name, config);
         }
@@ -82,12 +89,33 @@ public class ConfigManager {
         return Collections.unmodifiableMap(configs);
     }
 
+    public synchronized boolean isLoading() {
+        return loading;
+    }
+
+    public synchronized void setLoading(boolean loading) {
+        this.loading = loading;
+    }
+
+    public synchronized void saveQuietly() {
+        if (loading) {
+            return;
+        }
+        try {
+            save();
+        } catch (Exception e) {
+            System.err.println("Failed to auto-save config: " + e.getMessage());
+        }
+    }
+
     public synchronized void save() throws IOException {
         save(getConfigPath());
     }
 
     public synchronized void save(Path path) throws IOException {
-        Objects.requireNonNull(path, "Path cannot be null");
+        if (path == null) {
+            return;
+        }
         Path parent = path.getParent();
         if (parent != null && !Files.exists(parent)) {
             Files.createDirectories(parent);
@@ -118,6 +146,8 @@ public class ConfigManager {
             return;
         }
 
+        boolean wasLoading = loading;
+        loading = true;
         try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             JsonElement rootElement = JsonParser.parseReader(reader);
             if (rootElement != null && rootElement.isJsonObject()) {
@@ -136,6 +166,8 @@ public class ConfigManager {
                     }
                 }
             }
+        } finally {
+            loading = wasLoading;
         }
     }
 

@@ -1,22 +1,26 @@
 package com.mas6y6.musmeta.ui;
 
-import com.mas6y6.musmeta.ui.components.MusMetaFrame;
+import com.mas6y6.musmeta.ui.components.MainAppFrame;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class MainWindow extends MusMetaFrame {
+public class MainWindow extends MainAppFrame {
     public static final MainWindow INSTANCE = new MainWindow();
 
     private MainWindow() {
         initWindow();
 
         setLocationRelativeTo(null);
-        setVisible(true);
+    }
+
+    @Override
+    public boolean onClose() {
+        return false;
     }
 
     private void initWindow() {
-        setMinimumSize(new Dimension(1000, 600));
-        setSize(1000, 600);
+        JPanel panel = new JPanel();
+        add(panel);
     }
 }

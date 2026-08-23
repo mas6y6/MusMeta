@@ -61,7 +61,14 @@ public class SubConfig {
             JsonElement jsonElement = unmappedJson.remove(key);
             try {
                 T deserialized = ConfigManager.GSON.fromJson(jsonElement, container.getType());
-                container.setValue(deserialized);
+                ConfigManager configManager = ConfigManager.getInstance();
+                boolean wasLoading = configManager.isLoading();
+                configManager.setLoading(true);
+                try {
+                    container.setValue(deserialized);
+                } finally {
+                    configManager.setLoading(wasLoading);
+                }
             } catch (Exception e) {
                 System.err.println("Failed to deserialize property '" + key + "' in subconfig '" + name + "': " + e.getMessage());
             }
@@ -133,6 +140,7 @@ public class SubConfig {
             container.setValue(value);
         } else {
             unmappedJson.put(name, ConfigManager.GSON.toJsonTree(value));
+            ConfigManager.getInstance().saveQuietly();
         }
     }
 
@@ -184,6 +192,7 @@ public class SubConfig {
                 unmappedJson.put(key, valueElement);
             }
         }
+        ConfigManager.getInstance().saveQuietly();
     }
 
     @SuppressWarnings("unchecked")

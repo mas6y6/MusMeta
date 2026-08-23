@@ -7,8 +7,10 @@ import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import com.jthemedetecor.OsThemeDetector;
 import com.mas6y6.musmeta.config.ConfigManager;
 import com.mas6y6.musmeta.config.SubConfig;
+import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.settings.Updates;
+import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.prompts.PostInstallationPrompt;
 
 import javax.swing.*;
@@ -38,14 +40,19 @@ public class Main {
         ConfigManager configManager = ConfigManager.getInstance();
         Path configPath = configManager.getConfigPath();
 
-        registerConfigs();
-        configManager.save();
+        Settings.registerConfigs();
 
         if (Files.exists(configPath)) {
             try {
                 configManager.load();
             } catch (IOException e) {
                 System.err.println("Failed to load config: " + e.getMessage());
+            }
+        } else {
+            try {
+                configManager.save();
+            } catch (IOException e) {
+                System.err.println("Failed to save config: " + e.getMessage());
             }
         }
 
@@ -95,37 +102,7 @@ public class Main {
         if (!isSetupCompleted) {
             SwingUtilities.invokeLater(PostInstallationPrompt::new);
         } else {
-            SwingUtilities.invokeLater(() -> {
-                // Main application window launch
-            });
+            SwingUtilities.invokeLater(() -> MainWindow.INSTANCE.setVisible(true));
         }
-    }
-
-    public static void registerConfigs() {
-        var manager = ConfigManager.getInstance();
-        var appConfig = manager.registerConfig("app");
-        appConfig.register("setup_completed", false);
-        appConfig.register("auto_ffmpeg_install", true);
-        appConfig.register("ffmpeg_installation_path", "");
-        appConfig.register("updates", Updates.ENABLED);
-        appConfig.register("preferred_theme", Theme.SYSTEM);
-
-        ConfigManager.getInstance().getConfig("app").getContainer("preferred_theme").addListener((value) -> {
-            try {
-                if (value == Theme.DARK) {
-                    FlatAnimatedLafChange.showSnapshot();
-                    UIManager.setLookAndFeel(new FlatDarkLaf());
-                    FlatLaf.updateUI();
-                    FlatAnimatedLafChange.hideSnapshotWithAnimation();
-                } else if (value == Theme.LIGHT) {
-                    FlatAnimatedLafChange.showSnapshot();
-                    UIManager.setLookAndFeel(new FlatLightLaf());
-                    FlatLaf.updateUI();
-                    FlatAnimatedLafChange.hideSnapshotWithAnimation();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
     }
 }

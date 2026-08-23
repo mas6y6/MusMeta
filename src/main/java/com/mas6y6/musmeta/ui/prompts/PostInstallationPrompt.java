@@ -3,8 +3,10 @@ package com.mas6y6.musmeta.ui.prompts;
 import com.mas6y6.musmeta.Main;
 import com.mas6y6.musmeta.Utils;
 import com.mas6y6.musmeta.config.ConfigManager;
+import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.settings.Updates;
+import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.MusMetaFrame;
 import com.mas6y6.musmeta.ui.dialogs.FFmpegDownloadDialog;
 
@@ -165,9 +167,9 @@ public class PostInstallationPrompt extends MusMetaFrame {
      * Called when the user finishes all installation / setup steps.
      */
     public void completeInstallation() {
-        ConfigManager.getInstance().getConfig("app").setValue("auto_ffmpeg_install", isffmpegAutoInstall);
+        Settings.AUTO_FFMPEG_INSTALL.set(isffmpegAutoInstall);
         if (isffmpegAutoInstall) {
-            ConfigManager.getInstance().getConfig("app").setValue("ffmpeg_installation_path", "");
+            Settings.FFMPEG_INSTALLATION_PATH.set("");
             Path targetDir = Paths.get(Main.appDir.toString(), "bins");
             FFmpegDownloadDialog downloadDialog = new FFmpegDownloadDialog(this, targetDir);
             boolean success = downloadDialog.startAndShow();
@@ -176,18 +178,14 @@ public class PostInstallationPrompt extends MusMetaFrame {
             }
         } else {
             if (Utils.validateFFmpegExecutable(Path.of(ffmpegBinPath))) {
-                ConfigManager.getInstance().getConfig("app").setValue("ffmpeg_installation_path", ffmpegBinPath);
+                Settings.FFMPEG_INSTALLATION_PATH.set(ffmpegBinPath);
             }
         }
 
         try {
             ConfigManager configManager = ConfigManager.getInstance();
 
-            var appConfig = configManager.getConfig("app");
-
-            if (appConfig != null) {
-                appConfig.setValue("setup_completed", true);
-            }
+            Settings.SETUP_COMPLETED.set(true);
 
             configManager.save();
 
@@ -195,7 +193,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
 
             dispose();
 
-            // Launch main application UI here
+            MainWindow.INSTANCE.setVisible(true);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(
                     this,
@@ -349,19 +347,19 @@ public class PostInstallationPrompt extends MusMetaFrame {
 
         enableUpdatesBtn.addActionListener(
                 e -> {
-                    ConfigManager.getInstance().getConfig("app").setValue("updates", Updates.ENABLED);
+                    Settings.UPDATES.set(Updates.ENABLED);
                 }
         );
 
         promptOnlyUpdateBtn.addActionListener(
                 e -> {
-                    ConfigManager.getInstance().getConfig("app").setValue("updates", Updates.PROMPT_ONLY);
+                    Settings.UPDATES.set(Updates.PROMPT_ONLY);
                 }
         );
 
         disableUpdatesBtn.addActionListener(
                 e -> {
-                    ConfigManager.getInstance().getConfig("app").setValue("updates", Updates.DISABLED);
+                    Settings.UPDATES.set(Updates.DISABLED);
                 }
         );
 
@@ -418,19 +416,19 @@ public class PostInstallationPrompt extends MusMetaFrame {
 
         systemDefaultBtn.addActionListener(
                 e -> {
-                    ConfigManager.getInstance().getConfig("app").setValue("preferred_theme", Theme.SYSTEM);
+                    Settings.PREFERRED_THEME.set(Theme.SYSTEM);
                 }
         );
 
         lightBtn.addActionListener(
                 e -> {
-                    ConfigManager.getInstance().getConfig("app").setValue("preferred_theme", Theme.LIGHT);
+                    Settings.PREFERRED_THEME.set(Theme.LIGHT);
                 }
         );
 
         darkBtn.addActionListener(
                 e -> {
-                    ConfigManager.getInstance().getConfig("app").setValue("preferred_theme", Theme.DARK);
+                    Settings.PREFERRED_THEME.set(Theme.DARK);
                 }
         );
 

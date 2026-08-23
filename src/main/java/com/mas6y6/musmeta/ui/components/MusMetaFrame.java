@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-import static com.mas6y6.musmeta.MusMetaConstants.APP_NAME;
+import static com.mas6y6.musmeta.Constants.APP_NAME;
 
 public class MusMetaFrame extends JFrame {
 

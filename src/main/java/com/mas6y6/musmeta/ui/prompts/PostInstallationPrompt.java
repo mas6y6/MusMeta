@@ -266,7 +266,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 
         JLabel title = new JLabel("Welcome to MusMeta");
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
+        title.setFont(new Font("resources/font/Outfit-VariableFont_wght.ttf", Font.BOLD, 28));
 
         JLabel description = new JLabel("""
 <html>

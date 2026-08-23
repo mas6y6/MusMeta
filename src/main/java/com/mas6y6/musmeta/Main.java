@@ -22,9 +22,12 @@ import java.nio.file.Paths;
 import java.util.Objects;
 
 public class Main {
-    public static final Path appDir = Paths.get(System.getProperty("user.home"), ".musmeta");
 
-    static void main(String[] args) throws IOException {
+    public static final Path appDir = Paths.get(System.getProperty("user.home"), ".musmeta");
+    /* Updated this to be Public Static main because
+     * most JDKs will have issues running the project if Main is declared as
+     * a private package. Changed tit to Public Static void for compatability. sake. - Batista */
+    public static void main(String[] args) throws IOException {
         System.out.println("com.mas6y6.musmeta.Main.main()");
 
         if (!Files.exists(appDir)) {

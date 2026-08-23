@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
 
 public class Main {
 
@@ -47,7 +46,7 @@ public class Main {
         ConfigManager configManager = ConfigManager.getInstance();
         Path configPath = configManager.getConfigPath();
 
-        registerConfigs();
+        Settings.registerConfigs();
         configManager.save();
 
         if (Files.exists(configPath)) {

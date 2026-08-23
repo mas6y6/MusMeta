@@ -1,10 +1,10 @@
 package com.mas6y6.musmeta;
 
+import com.mas6y6.musmeta.utils.FFmpegUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,9 +42,9 @@ public class ZipExtractionTest {
             zos.closeEntry();
         }
 
-        assertEquals("ffmpeg-7.1-essentials_build/", Utils.getSingleRootDirectoryPrefix(zipFile));
+        assertEquals("ffmpeg-7.1-essentials_build/", FFmpegUtils.getSingleRootDirectoryPrefix(zipFile));
 
-        Utils.extractZip(zipFile, destDir);
+        FFmpegUtils.extractZip(zipFile, destDir);
 
         // Verify root folder was stripped
         assertFalse(Files.exists(destDir.resolve("ffmpeg-7.1-essentials_build")));
@@ -71,9 +71,9 @@ public class ZipExtractionTest {
             zos.closeEntry();
         }
 
-        assertNull(Utils.getSingleRootDirectoryPrefix(zipFile));
+        assertNull(FFmpegUtils.getSingleRootDirectoryPrefix(zipFile));
 
-        Utils.extractZip(zipFile, destDir);
+        FFmpegUtils.extractZip(zipFile, destDir);
 
         assertTrue(Files.exists(destDir.resolve("bin").resolve("ffmpeg.exe")));
         assertTrue(Files.exists(destDir.resolve("doc").resolve("manual.txt")));
@@ -91,9 +91,9 @@ public class ZipExtractionTest {
             zos.closeEntry();
         }
 
-        assertNull(Utils.getSingleRootDirectoryPrefix(zipFile));
+        assertNull(FFmpegUtils.getSingleRootDirectoryPrefix(zipFile));
 
-        Utils.extractZip(zipFile, destDir);
+        FFmpegUtils.extractZip(zipFile, destDir);
 
         assertTrue(Files.exists(destDir.resolve("ffmpeg")));
         assertEquals("mac-ffmpeg-binary", Files.readString(destDir.resolve("ffmpeg")));
@@ -110,7 +110,7 @@ public class ZipExtractionTest {
             zos.closeEntry();
         }
 
-        assertThrows(IOException.class, () -> Utils.extractZip(zipFile, destDir));
+        assertThrows(IOException.class, () -> FFmpegUtils.extractZip(zipFile, destDir));
     }
 
     @Test
@@ -124,7 +124,7 @@ public class ZipExtractionTest {
             zos.closeEntry();
         }
 
-        assertThrows(IOException.class, () -> Utils.extractZip(zipFile, destDir));
+        assertThrows(IOException.class, () -> FFmpegUtils.extractZip(zipFile, destDir));
     }
 
     @Test
@@ -138,9 +138,9 @@ public class ZipExtractionTest {
             zos.closeEntry();
         }
 
-        assertEquals("ffmpeg-root/", Utils.getSingleRootDirectoryPrefix(zipFile));
+        assertEquals("ffmpeg-root/", FFmpegUtils.getSingleRootDirectoryPrefix(zipFile));
 
-        Utils.extractZip(zipFile, destDir);
+        FFmpegUtils.extractZip(zipFile, destDir);
 
         assertTrue(Files.exists(destDir.resolve("bin").resolve("ffmpeg.exe")));
         assertEquals("win-binary", Files.readString(destDir.resolve("bin").resolve("ffmpeg.exe")));

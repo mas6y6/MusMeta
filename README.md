@@ -18,6 +18,10 @@ The user-friendly interface makes it easy for users to edit music file metadata 
 
 # Libraries used
 
+**Thanks to the open source community for making the libraries that make this project is possible.**
+
+## Java libraries
+
 [FlatLaf](https://www.formdev.com/flatlaf/)
 
 [FlatLaf Extras](https://www.formdev.com/flatlaf/)
@@ -33,3 +37,13 @@ The user-friendly interface makes it easy for users to edit music file metadata 
 [JetBrains Annotations](https://github.com/JetBrains/java-annotations)
 
 [JUnit](https://junit.org/junit5/)
+
+[SpongePowered mixin](https://github.com/SpongePowered/Mixin)
+
+[SLF4J](https://github.com/qos-ch/slf4j)
+
+[picocli](https://picocli.info/)
+
+## Executeables
+
+[FFmpeg](https://www.ffmpeg.org/)

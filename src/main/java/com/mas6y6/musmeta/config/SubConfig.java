@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import org.slf4j.Logger;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -12,6 +13,8 @@ import java.util.Map;
 import java.util.Objects;
 
 public class SubConfig {
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(SubConfig.class);
+
     private final String name;
     private final Map<String, ConfigContainer<?>> containers = new LinkedHashMap<>();
     private final Map<String, JsonElement> unmappedJson = new LinkedHashMap<>();
@@ -70,7 +73,7 @@ public class SubConfig {
                     configManager.setLoading(wasLoading);
                 }
             } catch (Exception e) {
-                System.err.println("Failed to deserialize property '" + key + "' in subconfig '" + name + "': " + e.getMessage());
+                LOGGER.error("Failed to deserialize property '" + key + "' in subconfig '" + name + "': " + e.getMessage());
             }
         }
         return container;
@@ -186,7 +189,7 @@ public class SubConfig {
                     Object value = gson.fromJson(valueElement, container.getType());
                     setContainerRawValue(container, value);
                 } catch (Exception e) {
-                    System.err.println("Failed to deserialize property '" + key + "' in subconfig '" + name + "': " + e.getMessage());
+                    LOGGER.error("Failed to deserialize property '" + key + "' in subconfig '" + name + "': " + e.getMessage());
                 }
             } else {
                 unmappedJson.put(key, valueElement);

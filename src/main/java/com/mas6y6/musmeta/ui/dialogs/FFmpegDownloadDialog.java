@@ -1,7 +1,7 @@
 package com.mas6y6.musmeta.ui.dialogs;
 
 import com.mas6y6.musmeta.Constants;
-import com.mas6y6.musmeta.Utils;
+import com.mas6y6.musmeta.utils.FFmpegUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -125,7 +125,7 @@ public class FFmpegDownloadDialog extends JDialog {
     }
 
     private void runInstallation() {
-        Utils.InstallProgressListener progressListener = new Utils.InstallProgressListener() {
+        FFmpegUtils.InstallProgressListener progressListener = new FFmpegUtils.InstallProgressListener() {
             @Override
             public void onProgress(String status, int percentage, String details) {
                 if (isCancelled) return;
@@ -140,7 +140,7 @@ public class FFmpegDownloadDialog extends JDialog {
 
         boolean result = false;
         try {
-            result = Utils.installFFmpeg(installationDir, progressListener);
+            result = FFmpegUtils.installFFmpeg(installationDir, progressListener);
         } catch (Exception e) {
             errorMessage = e.getMessage() != null ? e.getMessage() : e.toString();
             result = false;

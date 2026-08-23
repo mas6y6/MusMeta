@@ -2,6 +2,7 @@ package com.mas6y6.musmeta;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mas6y6.musmeta.utils.FFmpegUtils;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -74,7 +75,7 @@ public class FFmpegReleaseDeserializationTest {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        Utils.GithubRelease release = mapper.readValue(json, Utils.GithubRelease.class);
+        FFmpegUtils.GithubRelease release = mapper.readValue(json, FFmpegUtils.GithubRelease.class);
 
         assertNotNull(release);
         assertEquals("7.1", release.tag_name());
@@ -82,7 +83,7 @@ public class FFmpegReleaseDeserializationTest {
         assertNotNull(release.assets());
         assertEquals(2, release.assets().length);
 
-        Utils.GithubAsset essentials = Arrays.stream(release.assets())
+        FFmpegUtils.GithubAsset essentials = Arrays.stream(release.assets())
                 .filter(a -> a.name().endsWith("essentials_build.zip"))
                 .findFirst()
                 .orElse(null);

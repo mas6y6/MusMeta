@@ -1,5 +1,7 @@
 package com.mas6y6.musmeta;
 
+import com.mas6y6.musmeta.utils.FFmpegUtils;
+import com.mas6y6.musmeta.utils.Utils;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -10,12 +12,12 @@ public class LinuxFFmpegSupportTest {
 
     @Test
     public void testGetSupportedLinuxPackageManagers() {
-        List<Utils.LinuxPackageManager> managers = Utils.getSupportedLinuxPackageManagers();
+        List<FFmpegUtils.LinuxPackageManager> managers = FFmpegUtils.getSupportedLinuxPackageManagers();
         assertNotNull(managers);
         assertFalse(managers.isEmpty());
 
         List<String> names = managers.stream()
-                .map(Utils.LinuxPackageManager::commandName)
+                .map(FFmpegUtils.LinuxPackageManager::commandName)
                 .toList();
 
         assertTrue(names.contains("apt-get"), "Should support apt-get");
@@ -35,9 +37,9 @@ public class LinuxFFmpegSupportTest {
 
     @Test
     public void testLinuxPackageManagersInstallCommandsContainFfmpeg() {
-        List<Utils.LinuxPackageManager> managers = Utils.getSupportedLinuxPackageManagers();
+        List<FFmpegUtils.LinuxPackageManager> managers = FFmpegUtils.getSupportedLinuxPackageManagers();
 
-        for (Utils.LinuxPackageManager pm : managers) {
+        for (FFmpegUtils.LinuxPackageManager pm : managers) {
             assertNotNull(pm.commandName());
             assertFalse(pm.commandName().isBlank());
             assertNotNull(pm.installCommands());
@@ -51,18 +53,18 @@ public class LinuxFFmpegSupportTest {
 
     @Test
     public void testIsCommandAvailableHandlesInvalidInput() {
-        assertFalse(Utils.isCommandAvailable(null));
-        assertFalse(Utils.isCommandAvailable(""));
-        assertFalse(Utils.isCommandAvailable("   "));
-        assertFalse(Utils.isCommandAvailable("definitely_non_existent_command_123456789"));
+        assertFalse(FFmpegUtils.isCommandAvailable(null));
+        assertFalse(FFmpegUtils.isCommandAvailable(""));
+        assertFalse(FFmpegUtils.isCommandAvailable("   "));
+        assertFalse(FFmpegUtils.isCommandAvailable("definitely_non_existent_command_123456789"));
     }
 
     @Test
     public void testFindSystemExecutableHandlesInvalidInput() {
-        assertNull(Utils.findSystemExecutable(null));
-        assertNull(Utils.findSystemExecutable(""));
-        assertNull(Utils.findSystemExecutable("   "));
-        assertNull(Utils.findSystemExecutable("definitely_non_existent_command_123456789"));
+        assertNull(FFmpegUtils.findSystemExecutable(null));
+        assertNull(FFmpegUtils.findSystemExecutable(""));
+        assertNull(FFmpegUtils.findSystemExecutable("   "));
+        assertNull(FFmpegUtils.findSystemExecutable("definitely_non_existent_command_123456789"));
     }
 
     @Test

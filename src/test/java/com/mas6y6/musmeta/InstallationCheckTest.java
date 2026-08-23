@@ -2,6 +2,7 @@ package com.mas6y6.musmeta;
 
 import com.mas6y6.musmeta.config.ConfigManager;
 import com.mas6y6.musmeta.config.SubConfig;
+import com.mas6y6.musmeta.settings.Settings;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ public class InstallationCheckTest {
 
     @Test
     public void testFirstInstallationDefaultState() {
-        Main.registerConfigs();
+        Settings.registerConfigs();
 
         SubConfig appConfig = configManager.getConfig("app");
         assertNotNull(appConfig);
@@ -49,7 +50,7 @@ public class InstallationCheckTest {
 
     @Test
     public void testInstallationCompletionPersists() throws IOException {
-        Main.registerConfigs();
+        Settings.registerConfigs();
 
         SubConfig appConfig = configManager.getConfig("app");
         assertNotNull(appConfig);
@@ -59,7 +60,7 @@ public class InstallationCheckTest {
         assertTrue(Files.exists(tempConfigPath));
 
         configManager.clear();
-        Main.registerConfigs();
+        Settings.registerConfigs();
         configManager.load();
 
         SubConfig reloadedConfig = configManager.getConfig("app");
@@ -69,7 +70,7 @@ public class InstallationCheckTest {
 
     @Test
     public void testFailsafeResetAndCleanup() throws IOException {
-        Main.registerConfigs();
+        Settings.registerConfigs();
 
         SubConfig appConfig = configManager.getConfig("app");
         assertNotNull(appConfig);

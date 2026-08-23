@@ -1,35 +1,100 @@
-package com.mas6y6.musmeta;
+package com.mas6y6.musmeta.utils;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mas6y6.musmeta.config.ConfigManager;
+import com.mas6y6.musmeta.settings.Settings;
 import org.apache.commons.lang3.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
-public class Utils {
+public class FFmpegUtils {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegUtils.class);
+
+    private static final String GITHUB_API =
+            "https://api.github.com/repos/GyanD/codexffmpeg/releases/latest";
+    private static final String MACOS_URL =
+            "https://evermeet.cx/ffmpeg/getrelease/zip";
+
+    /**
+     * Returns the Path to the FFmpeg executable.
+     * Checks configured settings path first, followed by default app bins and system PATH.
+     *
+     * @return Path to the FFmpeg executable, or null if not found.
+     */
+    public static Path getFFmpegExecutable() {
+        try {
+            if (Settings.FFMPEG_INSTALLATION_PATH != null) {
+                String configuredPath = Settings.FFMPEG_INSTALLATION_PATH.get();
+                if (configuredPath != null && !configuredPath.isBlank()) {
+                    Path path = Paths.get(configuredPath);
+                    Path exec = findFFmpegExecutable(path);
+                    if (exec != null && Files.isRegularFile(exec)) {
+                        return exec;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+
+        try {
+            Path defaultAppBins = Paths.get(System.getProperty("user.home"), ".musmeta", "bins");
+            Path exec = findFFmpegExecutable(defaultAppBins);
+            if (exec != null && Files.isRegularFile(exec)) {
+                return exec;
+            }
+        } catch (Exception ignored) {
+        }
+
+        String os = System.getProperty("os.name", "").toLowerCase();
+        boolean isWindows = os.contains("win");
+
+        List<String> candidateNames = isWindows
+                ? List.of("ffmpeg.exe", "ffmpeg")
+                : List.of("ffmpeg", "ffmpeg.exe");
+
+        for (String candidate : candidateNames) {
+            Path sysExec = findSystemExecutable(candidate);
+            if (sysExec != null && Files.isRegularFile(sysExec)) {
+                return sysExec;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the Path to the FFmpeg executable.
+     *
+     * @return Path to the FFmpeg executable, or null if not found.
+     */
+    public static Path getFFmpegPath() {
+        return getFFmpegExecutable();
+    }
+
+    /**
+     * Finds and returns the Path to the FFmpeg executable.
+     *
+     * @return Path to the FFmpeg executable, or null if not found.
+     */
+    public static Path findFFmpegExecutable() {
+        return getFFmpegExecutable();
+    }
+
     /**
      * Finds the FFmpeg executable within the specified bin directory (or directory containing a bin folder).
      */
@@ -60,7 +125,7 @@ public class Utils {
         for (String candidate : candidateNames) {
             Path execPath = binDir.resolve(candidate);
             if (Files.isRegularFile(execPath)) {
-                System.out.println(execPath);
+                LOGGER.info(String.valueOf(execPath));
                 return execPath;
             }
         }
@@ -71,13 +136,13 @@ public class Utils {
             for (String candidate : candidateNames) {
                 Path execPath = subBin.resolve(candidate);
                 if (Files.isRegularFile(execPath)) {
-                    System.out.println(execPath);
+                    LOGGER.info(String.valueOf(execPath));
                     return execPath;
                 }
             }
         }
 
-        System.out.println("FFmpeg executable not found");
+        LOGGER.error("FFmpeg executable not found");
         return null;
     }
 
@@ -124,20 +189,6 @@ public class Utils {
         return validateFFmpegExecutable(executable);
     }
 
-    private static final String GITHUB_API =
-            "https://api.github.com/repos/GyanD/codexffmpeg/releases/latest";
-
-    private static final String MACOS_URL =
-            "https://evermeet.cx/ffmpeg/getrelease/zip";
-
-
-    public interface InstallProgressListener {
-        void onProgress(String status, int percentage, String details);
-
-        default void onError(String errorMessage, Throwable throwable) {
-        }
-    }
-
     public static boolean installFFmpeg(Path installationDir) {
         return installFFmpeg(installationDir, null);
     }
@@ -179,11 +230,11 @@ public class Utils {
         if (listener != null) {
             listener.onProgress("Checking latest FFmpeg release...", -1, "Querying GitHub API");
         }
-        System.out.println("Getting latest FFmpeg release...");
+        LOGGER.info("Getting latest FFmpeg release...");
 
         GithubRelease release = getLatestFFmpegRelease();
 
-        System.out.println(
+        LOGGER.info(
                 "Latest FFmpeg: " + release.tag_name()
         );
 
@@ -198,13 +249,13 @@ public class Utils {
                         )
                 );
 
-        System.out.println(
+        LOGGER.info(
                 "Downloading: " + asset.name()
         );
 
         Path zip = installationDir.resolve(asset.name());
 
-        download(
+        downloadFFmpeg(
                 asset.browser_download_url(),
                 zip,
                 listener
@@ -213,18 +264,18 @@ public class Utils {
         // Verify GitHub's SHA-256 digest if available
         if (asset.digest() != null && !asset.digest().isBlank()) {
             if (listener != null) {
-                listener.onProgress("Verifying download checksum...", -1, "SHA-256 integrity check");
+                listener.onProgress("Verifying downloadFFmpeg checksum...", -1, "SHA-256 integrity check");
             }
 
             if (!verifyDigest(zip, asset.digest())) {
                 Files.deleteIfExists(zip);
 
                 throw new IOException(
-                        "FFmpeg download failed SHA-256 verification."
+                        "FFmpeg downloadFFmpeg failed SHA-256 verification."
                 );
             }
 
-            System.out.println("Download verified.");
+            LOGGER.info("Download verified.");
         }
 
         Path extractionDir = installationDir.resolve("ffmpeg");
@@ -233,6 +284,7 @@ public class Utils {
         Files.createDirectories(extractionDir);
 
         if (listener != null) {
+            LOGGER.info("Extracting FFmpeg...");
             listener.onProgress("Extracting FFmpeg...", -1, "Unpacking archive");
         }
 
@@ -241,6 +293,7 @@ public class Utils {
         Files.deleteIfExists(zip);
 
         if (listener != null) {
+            LOGGER.info("Validating FFmpeg binary...");
             listener.onProgress("Validating FFmpeg binary...", -1, "Checking executable");
         }
 
@@ -255,7 +308,7 @@ public class Utils {
             );
         }
 
-        System.out.println(
+        LOGGER.info(
                 "FFmpeg executable: " + executable
         );
 
@@ -265,7 +318,8 @@ public class Utils {
             );
         }
 
-        System.out.println("FFmpeg installation successful.");
+        LOGGER.info("FFmpeg installation successful.");
+        Settings.FFMPEG_INSTALLATION_PATH.set(String.valueOf(executable));
 
         if (listener != null) {
             listener.onProgress("FFmpeg installation complete!", 100, "");
@@ -282,13 +336,13 @@ public class Utils {
         if (listener != null) {
             listener.onProgress("Downloading latest macOS FFmpeg...", -1, "Fetching from evermeet.cx");
         }
-        System.out.println(
+        LOGGER.info(
                 "Downloading latest macOS FFmpeg..."
         );
 
         Path zip = installationDir.resolve("ffmpeg.zip");
 
-        download(
+        downloadFFmpeg(
                 MACOS_URL,
                 zip,
                 listener
@@ -319,7 +373,7 @@ public class Utils {
             );
         }
 
-        System.out.println(
+        LOGGER.info(
                 "FFmpeg executable: " + executable
         );
 
@@ -348,9 +402,10 @@ public class Utils {
             );
         }
 
-        System.out.println(
+        LOGGER.info(
                 "FFmpeg installation successful."
         );
+        Settings.FFMPEG_INSTALLATION_PATH.set(String.valueOf(executable));
 
         if (listener != null) {
             listener.onProgress("FFmpeg installation complete!", 100, "");
@@ -358,12 +413,6 @@ public class Utils {
 
         return true;
     }
-
-    public record LinuxPackageManager(
-            String commandName,
-            boolean requiresRoot,
-            List<List<String>> installCommands
-    ) {}
 
     public static List<LinuxPackageManager> getSupportedLinuxPackageManagers() {
         return List.of(
@@ -480,28 +529,6 @@ public class Utils {
         return null;
     }
 
-    public static boolean isRunningAsRoot() {
-        String user = System.getProperty("user.name");
-        if ("root".equalsIgnoreCase(user)) {
-            return true;
-        }
-        String uid = System.getenv("UID");
-        if ("0".equals(uid)) {
-            return true;
-        }
-        try {
-            Process process = new ProcessBuilder("id", "-u")
-                    .redirectErrorStream(true)
-                    .start();
-            String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
-            if (process.waitFor() == 0 && "0".equals(output)) {
-                return true;
-            }
-        } catch (Exception ignored) {
-        }
-        return false;
-    }
-
     private static boolean installLinuxFFmpeg(
             Path installationDir,
             InstallProgressListener listener
@@ -509,18 +536,18 @@ public class Utils {
         if (listener != null) {
             listener.onProgress("Checking for existing FFmpeg...", -1, "");
         }
-        System.out.println("Checking for existing FFmpeg on Linux...");
+        LOGGER.info("Checking for existing FFmpeg on Linux...");
 
         Path existingExec = findSystemExecutable("ffmpeg");
         if (existingExec != null && validateFFmpeg(existingExec)) {
-            System.out.println("Found existing system FFmpeg: " + existingExec);
+            LOGGER.info("Found existing system FFmpeg: " + existingExec);
             if (listener != null) {
                 listener.onProgress("Existing FFmpeg found on system.", 100, existingExec.toString());
             }
             return setupLinuxInstallationDir(installationDir, existingExec);
         }
 
-        System.out.println("FFmpeg not found. Attempting to install via package manager...");
+        LOGGER.warn("FFmpeg not found. Attempting to install via package manager...");
 
         List<LinuxPackageManager> packageManagers = getSupportedLinuxPackageManagers();
         LinuxPackageManager selectedManager = null;
@@ -538,9 +565,9 @@ public class Utils {
             );
         }
 
-        System.out.println("Detected package manager: " + selectedManager.commandName());
+        LOGGER.info("Detected package manager: " + selectedManager.commandName());
 
-        boolean isRoot = isRunningAsRoot();
+        boolean isRoot = Utils.isRunningAsRoot();
         boolean hasPkexec = isCommandAvailable("pkexec");
         boolean hasSudo = isCommandAvailable("sudo");
 
@@ -559,7 +586,7 @@ public class Utils {
             if (listener != null) {
                 listener.onProgress("Installing FFmpeg via " + selectedManager.commandName() + "...", -1, cmdDisplay);
             }
-            System.out.println("Executing command: " + cmdDisplay);
+            LOGGER.info("Executing command: " + cmdDisplay);
 
             Process process = new ProcessBuilder(fullCommand)
                     .redirectErrorStream(true)
@@ -571,12 +598,12 @@ public class Utils {
             );
 
             int exitCode = process.waitFor();
-            System.out.println("Command output:\n" + output);
+            LOGGER.info("Command output:\n" + output);
 
             if (exitCode != 0) {
                 boolean isUpdateCommand = commandArgs.stream().anyMatch(arg -> arg.equalsIgnoreCase("update"));
                 if (isUpdateCommand) {
-                    System.err.println("Preparation update step failed (non-critical), proceeding with installation...");
+                    LOGGER.warn("Preparation update step failed (non-critical), proceeding with installation...");
                 } else {
                     throw new IOException(
                             "Package manager command failed with exit code " + exitCode + ": " + String.join(" ", fullCommand) + "\nOutput: " + output
@@ -608,7 +635,7 @@ public class Utils {
             throw new IOException("Installed FFmpeg failed validation: " + installedExec);
         }
 
-        System.out.println("FFmpeg installation successful.");
+        LOGGER.info("FFmpeg installation successful.");
         if (listener != null) {
             listener.onProgress("FFmpeg installation complete!", 100, "");
         }
@@ -632,14 +659,14 @@ public class Utils {
                 } catch (Exception ignored) {
                 }
             } catch (Exception copyEx) {
-                System.err.println("Could not create symlink or copy to " + linkOrCopy + ": " + copyEx.getMessage());
+                LOGGER.error("Could not create symlink or copy to " + linkOrCopy + ": " + copyEx.getMessage());
             }
         }
 
         return true;
     }
 
-    private static Path download(
+    private static Path downloadFFmpeg(
             String url,
             Path destination,
             InstallProgressListener listener
@@ -656,7 +683,7 @@ public class Utils {
                 .build();
 
         if (listener != null) {
-            listener.onProgress("Connecting to download server...", -1, "");
+            listener.onProgress("Connecting to downloadFFmpeg server...", -1, "");
         }
 
         HttpResponse<InputStream> response = client.send(
@@ -713,6 +740,7 @@ public class Utils {
                     } else {
                         detail = String.format(Locale.US, "%.1f MB downloaded", totalBytesRead / (1024.0 * 1024.0));
                     }
+                    LOGGER.info("Downloading FFmpeg...", percent, detail);
                     listener.onProgress("Downloading FFmpeg...", percent, detail);
                 }
             }
@@ -872,7 +900,7 @@ public class Utils {
                 .findFirst()
                 .orElse("Unknown version");
 
-        System.out.println(
+        LOGGER.info(
                 "Detected: " + version
         );
 
@@ -945,21 +973,6 @@ public class Utils {
         }
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public record GithubAsset(
-            String name,
-            String browser_download_url,
-            long size,
-            String digest
-    ) {}
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public record GithubRelease(
-            String tag_name,
-            String name,
-            GithubAsset[] assets
-    ) {}
-
     private static GithubRelease getLatestFFmpegRelease()
             throws IOException, InterruptedException {
 
@@ -995,4 +1008,31 @@ public class Utils {
         );
     }
 
+    public interface InstallProgressListener {
+        void onProgress(String status, int percentage, String details);
+
+        default void onError(String errorMessage, Throwable throwable) {
+        }
+    }
+
+    public record LinuxPackageManager(
+            String commandName,
+            boolean requiresRoot,
+            List<List<String>> installCommands
+    ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record GithubAsset(
+            String name,
+            String browser_download_url,
+            long size,
+            String digest
+    ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record GithubRelease(
+            String tag_name,
+            String name,
+            GithubAsset[] assets
+    ) {}
 }

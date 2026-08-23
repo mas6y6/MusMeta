@@ -12,6 +12,7 @@ import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.settings.Updates;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.prompts.PostInstallationPrompt;
+import org.slf4j.Logger;
 import org.spongepowered.asm.launch.MixinBootstrap;
 
 import javax.swing.*;
@@ -29,11 +30,13 @@ public class Main {
     public static Font outfitMedium;
     public static Font outfitExtraBold;
 
+    public static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Main.class);
+
     /* Updated this to be Public Static main because
      * most JDKs will have issues running the project if Main is declared as
      * a private package. Changed tit to Public Static void for compatability. sake. - Batista */
-    public static void main(String[] args) throws IOException {
-        System.out.println("com.mas6y6.musmeta.Main.main()");
+    public static void main() {
+        LOGGER.info("com.mas6y6.musmeta.Main.main()");
 
         if (!Files.exists(appDir)) {
             try {
@@ -47,13 +50,18 @@ public class Main {
         Path configPath = configManager.getConfigPath();
 
         Settings.registerConfigs();
-        configManager.save();
+
+        try {
+            configManager.save();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save config: " + e.getMessage());
+        }
 
         if (Files.exists(configPath)) {
             try {
                 configManager.load();
             } catch (IOException e) {
-                System.err.println("Failed to load config: " + e.getMessage());
+                throw new RuntimeException("Failed to load config: " + e.getMessage());
             }
         }
 
@@ -72,7 +80,7 @@ public class Main {
                 // Registered with FontUIResource -Batista
                 UIManager.put("defaultFont", new javax.swing.plaf.FontUIResource(outfitMedium.deriveFont(14f)));
             } else {
-                System.err.println("Outfit static font resources not found.");
+                LOGGER.error("Outfit static font resources not found.");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -121,10 +129,11 @@ public class Main {
         SubConfig appConfig = configManager.getConfig("app");
         boolean isSetupCompleted = appConfig != null && Boolean.TRUE.equals(appConfig.getValue("setup_completed"));
 
-        if (!isSetupCompleted) {
+        throw new RuntimeException("testing crash detector");
+        /* if (!isSetupCompleted) {
             SwingUtilities.invokeLater(PostInstallationPrompt::new);
         } else {
             SwingUtilities.invokeLater(() -> MainWindow.INSTANCE.setVisible(true));
-        }
+        } */
     }
 }

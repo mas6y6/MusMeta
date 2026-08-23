@@ -1,11 +1,11 @@
 package com.mas6y6.musmeta;
 
 import com.mas6y6.musmeta.ui.dialogs.FFmpegDownloadDialog;
+import com.mas6y6.musmeta.utils.FFmpegUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javax.swing.*;
-import java.awt.*;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -65,7 +65,7 @@ public class FFmpegDownloadDialogTest {
         AtomicReference<String> lastDetails = new AtomicReference<>();
         AtomicBoolean errorCalled = new AtomicBoolean(false);
 
-        Utils.InstallProgressListener listener = new Utils.InstallProgressListener() {
+        FFmpegUtils.InstallProgressListener listener = new FFmpegUtils.InstallProgressListener() {
             @Override
             public void onProgress(String status, int percentage, String details) {
                 lastStatus.set(status);

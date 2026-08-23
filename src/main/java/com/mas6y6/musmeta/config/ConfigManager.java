@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.slf4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -19,6 +20,8 @@ import java.util.Map;
 import java.util.Objects;
 
 public class ConfigManager {
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(ConfigManager.class);
+
     public static Gson GSON = createGson();
     private static ConfigManager instance;
     private static final Path CONFIG_PATH = Paths.get(System.getProperty("user.home"), ".musmeta", "config.json");
@@ -104,7 +107,7 @@ public class ConfigManager {
         try {
             save();
         } catch (Exception e) {
-            System.err.println("Failed to auto-save config: " + e.getMessage());
+            LOGGER.error("Failed to auto-save config: {}", e.getMessage());
         }
     }
 

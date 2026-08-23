@@ -1,5 +1,8 @@
 package com.mas6y6.musmeta;
 
+import com.mas6y6.musmeta.settings.Settings;
+import com.mas6y6.musmeta.utils.FFmpegUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -14,6 +17,46 @@ public class FFmpegValidationTest {
     @TempDir
     Path tempDir;
 
+    @AfterEach
+    public void tearDown() {
+        if (Settings.FFMPEG_INSTALLATION_PATH != null) {
+            Settings.FFMPEG_INSTALLATION_PATH.set("");
+        }
+    }
+
+    @Test
+    public void testGetFFmpegExecutableFromSettingsFile() throws IOException {
+        String os = System.getProperty("os.name", "").toLowerCase();
+        String execName = os.contains("win") ? "ffmpeg.exe" : "ffmpeg";
+        Path dummyExec = tempDir.resolve(execName);
+        Files.createFile(dummyExec);
+
+        Settings.FFMPEG_INSTALLATION_PATH.set(dummyExec.toAbsolutePath().toString());
+
+        Path found = FFmpegUtils.getFFmpegExecutable();
+        assertNotNull(found);
+        assertEquals(dummyExec.toAbsolutePath(), found.toAbsolutePath());
+        assertEquals(found, FFmpegUtils.getFFmpegPath());
+        assertEquals(found, FFmpegUtils.findFFmpegExecutable());
+    }
+
+    @Test
+    public void testGetFFmpegExecutableFromSettingsDirectory() throws IOException {
+        Path binDir = tempDir.resolve("bin");
+        Files.createDirectories(binDir);
+
+        String os = System.getProperty("os.name", "").toLowerCase();
+        String execName = os.contains("win") ? "ffmpeg.exe" : "ffmpeg";
+        Path dummyExec = binDir.resolve(execName);
+        Files.createFile(dummyExec);
+
+        Settings.FFMPEG_INSTALLATION_PATH.set(binDir.toAbsolutePath().toString());
+
+        Path found = FFmpegUtils.getFFmpegExecutable();
+        assertNotNull(found);
+        assertEquals(dummyExec.toAbsolutePath(), found.toAbsolutePath());
+    }
+
     @Test
     public void testFindFFmpegExecutableInBinDirectory() throws IOException {
         Path binDir = tempDir.resolve("bin");
@@ -24,7 +67,7 @@ public class FFmpegValidationTest {
         Path dummyExec = binDir.resolve(execName);
         Files.createFile(dummyExec);
 
-        Path found = Utils.findFFmpegExecutable(binDir);
+        Path found = FFmpegUtils.findFFmpegExecutable(binDir);
         assertNotNull(found);
         assertEquals(dummyExec.toAbsolutePath(), found.toAbsolutePath());
     }
@@ -40,7 +83,7 @@ public class FFmpegValidationTest {
         Path dummyExec = subBinDir.resolve(execName);
         Files.createFile(dummyExec);
 
-        Path found = Utils.findFFmpegExecutable(rootDir);
+        Path found = FFmpegUtils.findFFmpegExecutable(rootDir);
         assertNotNull(found);
         assertEquals(dummyExec.toAbsolutePath(), found.toAbsolutePath());
     }
@@ -50,14 +93,14 @@ public class FFmpegValidationTest {
         Path emptyDir = tempDir.resolve("empty");
         Files.createDirectories(emptyDir);
 
-        Path found = Utils.findFFmpegExecutable(emptyDir);
+        Path found = FFmpegUtils.findFFmpegExecutable(emptyDir);
         assertNull(found);
     }
 
     @Test
     public void testFindFFmpegExecutableNullOrNonExistent() {
-        assertNull(Utils.findFFmpegExecutable(null));
-        assertNull(Utils.findFFmpegExecutable(tempDir.resolve("non_existent_folder")));
+        assertNull(FFmpegUtils.findFFmpegExecutable(null));
+        assertNull(FFmpegUtils.findFFmpegExecutable(tempDir.resolve("non_existent_folder")));
     }
 
     @Test
@@ -65,7 +108,7 @@ public class FFmpegValidationTest {
         Path invalidExec = tempDir.resolve("fake_ffmpeg.exe");
         Files.writeString(invalidExec, "not a real binary");
 
-        assertFalse(Utils.validateFFmpegExecutable(invalidExec));
-        assertFalse(Utils.validateFFmpegExecutable(null));
+        assertFalse(FFmpegUtils.validateFFmpegExecutable(invalidExec));
+        assertFalse(FFmpegUtils.validateFFmpegExecutable(null));
     }
 }

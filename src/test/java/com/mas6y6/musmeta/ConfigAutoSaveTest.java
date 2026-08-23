@@ -5,6 +5,7 @@ import com.mas6y6.musmeta.config.ConfigBuilder;
 import com.mas6y6.musmeta.config.ConfigContainer;
 import com.mas6y6.musmeta.config.ConfigManager;
 import com.mas6y6.musmeta.config.SubConfig;
+import com.mas6y6.musmeta.settings.Settings;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -164,7 +165,7 @@ public class ConfigAutoSaveTest {
                 """;
         Files.writeString(tempConfigPath, initialJson);
 
-        Main.registerConfigs();
+        Settings.registerConfigs();
         configManager.load();
 
         SubConfig appConfig = configManager.getConfig("app");
@@ -179,7 +180,7 @@ public class ConfigAutoSaveTest {
     @Test
     public void testConfigPersistsAcrossProgramRerun() throws IOException {
         // Run 1: Initial setup
-        Main.registerConfigs();
+        Settings.registerConfigs();
         SubConfig appConfig = configManager.getConfig("app");
         appConfig.setValue("setup_completed", true);
         appConfig.setValue("ffmpeg_installation_path", "/custom/ffmpeg/path");
@@ -191,7 +192,7 @@ public class ConfigAutoSaveTest {
         assertNull(configManager.getConfig("app"));
 
         // Run 2: Restart behavior matching Main.java
-        Main.registerConfigs();
+        Settings.registerConfigs();
         if (Files.exists(tempConfigPath)) {
             configManager.load();
         } else {

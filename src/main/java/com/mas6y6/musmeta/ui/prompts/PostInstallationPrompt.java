@@ -1,7 +1,12 @@
 package com.mas6y6.musmeta.ui.prompts;
 
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
+import com.jthemedetecor.OsThemeDetector;
 import com.mas6y6.musmeta.Main;
-import com.mas6y6.musmeta.Utils;
+import com.mas6y6.musmeta.utils.FFmpegUtils;
 import com.mas6y6.musmeta.config.ConfigManager;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
@@ -9,6 +14,7 @@ import com.mas6y6.musmeta.settings.Updates;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.MusMetaFrame;
 import com.mas6y6.musmeta.ui.dialogs.FFmpegDownloadDialog;
+import org.slf4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class PostInstallationPrompt extends MusMetaFrame {
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(PostInstallationPrompt.class);
 
     // Set window size.
     private static final Dimension SIZE = new Dimension(800, 600);
@@ -170,7 +177,6 @@ public class PostInstallationPrompt extends MusMetaFrame {
     public void completeInstallation() {
         Settings.AUTO_FFMPEG_INSTALL.set(isffmpegAutoInstall);
         if (isffmpegAutoInstall) {
-            Settings.FFMPEG_INSTALLATION_PATH.set("");
             Path targetDir = Paths.get(Main.appDir.toString(), "bins");
             FFmpegDownloadDialog downloadDialog = new FFmpegDownloadDialog(this, targetDir);
             boolean success = downloadDialog.startAndShow();
@@ -178,7 +184,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
                 return;
             }
         } else {
-            if (Utils.validateFFmpegExecutable(Path.of(ffmpegBinPath))) {
+            if (FFmpegUtils.validateFFmpegExecutable(Path.of(ffmpegBinPath))) {
                 Settings.FFMPEG_INSTALLATION_PATH.set(ffmpegBinPath);
             }
         }
@@ -237,7 +243,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
             Files.deleteIfExists(configPath);
 
         } catch (IOException ex) {
-            System.err.println(
+            LOGGER.error(
                     "Failed to delete config during reset: "
                             + ex.getMessage()
             );
@@ -435,6 +441,21 @@ public class PostInstallationPrompt extends MusMetaFrame {
         systemDefaultBtn.addActionListener(
                 e -> {
                     Settings.PREFERRED_THEME.set(Theme.SYSTEM);
+                    try {
+                        if (OsThemeDetector.getDetector().isDark()) {
+                            FlatAnimatedLafChange.showSnapshot();
+                            UIManager.setLookAndFeel(new FlatDarkLaf());
+                            FlatLaf.updateUI();
+                            FlatAnimatedLafChange.hideSnapshotWithAnimation();
+                        } else {
+                            FlatAnimatedLafChange.showSnapshot();
+                            UIManager.setLookAndFeel(new FlatLightLaf());
+                            FlatLaf.updateUI();
+                            FlatAnimatedLafChange.hideSnapshotWithAnimation();
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                 }
         );
 
@@ -609,7 +630,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
             return false;
         }
 
-        Path executable = Utils.findFFmpegExecutable(binDir);
+        Path executable = FFmpegUtils.findFFmpegExecutable(binDir);
         if (executable == null) {
             JOptionPane.showMessageDialog(
                     this,
@@ -620,7 +641,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
             return false;
         }
 
-        if (!Utils.validateFFmpegExecutable(executable)) {
+        if (!FFmpegUtils.validateFFmpegExecutable(executable)) {
             JOptionPane.showMessageDialog(
                     this,
                     "The FFmpeg executable in the selected directory is invalid or failed to run.",

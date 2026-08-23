@@ -1,6 +1,7 @@
 package com.mas6y6.musmeta.config;
 
 import com.google.gson.reflect.TypeToken;
+import org.slf4j.Logger;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -9,6 +10,8 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 public class ConfigContainer<T> {
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(ConfigContainer.class);
+
     private final String name;
     private final T defaultValue;
     private T value;
@@ -94,7 +97,7 @@ public class ConfigContainer<T> {
             try {
                 listener.accept(newValue);
             } catch (Exception e) {
-                System.err.println("Error notifying config listener for '" + name + "': " + e.getMessage());
+                LOGGER.error("Error notifying config listener for '" + name + "': " + e.getMessage());
             }
         }
     }

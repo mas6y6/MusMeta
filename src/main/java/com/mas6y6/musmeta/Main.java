@@ -24,7 +24,7 @@ import java.util.Objects;
 public class Main {
     public static final Path appDir = Paths.get(System.getProperty("user.home"), ".musmeta");
 
-    static void main(String[] args) throws IOException {
+    public void main(String[] args) throws IOException {
         System.out.println("com.mas6y6.musmeta.Main.main()");
 
         if (!Files.exists(appDir)) {

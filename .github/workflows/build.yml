@@ -7,6 +7,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-latest
@@ -25,7 +26,15 @@ jobs:
           CURRENT_VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2)
           VERSION="${CURRENT_VERSION}-${GITHUB_SHA::7}"
 
-          sed -i "s/^version=.*/version=$VERSION/" gradle.properties
+          awk -v version="$VERSION" '
+            /^version=/ {
+              print "version=" version
+              next
+            }
+            { print }
+          ' gradle.properties > gradle.properties.tmp
+
+          mv gradle.properties.tmp gradle.properties
 
           echo "Building version: $VERSION"
           grep "^version=" gradle.properties
@@ -47,8 +56,11 @@ jobs:
         shell: bash
         run: ./gradlew jpackage
 
-      - name: Upload artifact
+      - name: Upload build
         uses: actions/upload-artifact@v4
         with:
-          name: app
-          path: build/install/app
+          name: musmeta-${{ matrix.os }}
+          path: |
+            build/libs/**
+            build/jpackage/**
+            build/jpackageImage/**

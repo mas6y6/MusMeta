@@ -35,10 +35,6 @@ test {
     useJUnitPlatform()
 }
 
-tasks.named('run') {
-    systemProperty 'debug', 'true'
-}
-
 runtime {
     // ------------------------------------------------------------
     // jlink
@@ -167,9 +163,9 @@ runtime {
 
 idea.project.settings.runConfigurations {
     'App'(org.jetbrains.gradle.ext.Application) {
-        mainClass = 'com.example.myapp.App'
+        mainClass = 'com.mas6y6.musmeta.Main'
         moduleName = project.idea.module.name + '.main'
-        programParameters = '--some-option some-argument'
+        programParameters = '--debug'
         jvmArgs = '-Xmx1G'
     }
 }

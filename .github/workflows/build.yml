@@ -23,8 +23,12 @@ jobs:
       - name: Set version
         shell: bash
         run: |
-          CURRENT_VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2)
-          VERSION="${CURRENT_VERSION}-${GITHUB_SHA::7}"
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            CURRENT_VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2)
+            VERSION="${CURRENT_VERSION}-${GITHUB_SHA::7}"
+          fi
 
           awk -v version="$VERSION" '
             /^version=/ {

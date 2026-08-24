@@ -2,13 +2,19 @@ package com.mas6y6.musmeta.ui;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.mas6y6.musmeta.ui.components.MainAppFrame;
+import com.mas6y6.musmeta.ui.album.AlbumPaneUI;
 import com.mas6y6.musmeta.utils.ColorWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class MainWindow extends MainAppFrame {
+    public static final Logger LOGGER = LoggerFactory.getLogger(MainWindow.class.getName());
     public static final MainWindow INSTANCE = new MainWindow();
+
+    private final JTabbedPane tabs = new JTabbedPane(JTabbedPane.NORTH);
 
     private MainWindow() {
         initWindow();
@@ -17,8 +23,15 @@ public class MainWindow extends MainAppFrame {
     }
 
     @Override
-    public boolean onClose() {
-        return false;
+    public boolean onClose(JFrame frame) {
+        LOGGER.debug("Closing main window");
+
+        return JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
+                frame,
+                "Do you want to close MusMeta?",
+                "Confirmation",
+                JOptionPane.YES_NO_OPTION
+        );
     }
 
     private void initWindow() {
@@ -38,7 +51,19 @@ public class MainWindow extends MainAppFrame {
         ));
         add(titlebar,BorderLayout.NORTH);
 
-        JLabel title = new JLabel("MusMeta");
-        titlebar.add(title,BorderLayout.WEST);
+        tabs.putClientProperty( FlatClientProperties.TABBED_PANE_TAB_CLOSABLE, true );
+        tabs.putClientProperty( "JTabbedPane.tabCloseToolTipText", "Close" );
+        tabs.putClientProperty( "JTabbedPane.tabCloseCallback",
+            (java.util.function.BiConsumer<JTabbedPane, Integer>) (tabbedPane, tabIndex) -> {
+                if (tabIndex == 0) {
+                    closeThisWindow();
+                } else {
+                    tabbedPane.removeTabAt( tabIndex );
+                }
+            }
+        );
+        add(tabs);
+
+        tabs.addTab("Library", new AlbumPaneUI());
     }
 }

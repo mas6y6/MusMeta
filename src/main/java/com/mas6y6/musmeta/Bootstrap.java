@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
+import java.util.logging.Level;
+
 @Command(
         name = "musmeta",
         mixinStandardHelpOptions = true,
@@ -37,11 +39,21 @@ public class Bootstrap implements Runnable {
         LOGGER.info("MusMeta - {}", Version.get());
         if (debug) {
             LOGGER.info("Running in debug mode");
+            System.setProperty(
+                    "org.slf4j.simpleLogger.defaultLogLevel",
+                    "debug"
+            );
         }
 
         if (!skipbootstrap) {
             LOGGER.info("Running MusMeta bootstrap...");
         }
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LOGGER.info("MusMeta shutdown in progress...");
+            // TODO: when plugin implementation is completed add shutdown hook here
+            LOGGER.info("MusMeta is shutdown completed.");
+        }));
 
         Main.main();
     }

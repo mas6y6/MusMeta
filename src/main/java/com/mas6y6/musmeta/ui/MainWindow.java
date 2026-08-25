@@ -1,8 +1,10 @@
 package com.mas6y6.musmeta.ui;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.util.SystemInfo;
 import com.mas6y6.musmeta.ui.components.MainAppFrame;
 import com.mas6y6.musmeta.ui.album.AlbumLibraryUI;
+import com.mas6y6.musmeta.ui.dialogs.EXTDialog;
 import com.mas6y6.musmeta.utils.ColorWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,15 @@ public class MainWindow extends MainAppFrame {
             new JTabbedPane(SwingConstants.TOP);
 
     private MainWindow() {
+        if (SystemInfo.isMacOS) {
+            if( SystemInfo.isMacFullWindowContentSupported ) {
+                getRootPane().putClientProperty( "apple.awt.fullWindowContent", true );
+                getRootPane().putClientProperty( "apple.awt.transparentTitleBar", true );
+                getRootPane().putClientProperty( "apple.awt.windowTitleVisible", false );
+                getRootPane().putClientProperty( FlatClientProperties.MACOS_WINDOW_BUTTONS_SPACING,
+                        FlatClientProperties.MACOS_WINDOW_BUTTONS_SPACING_LARGE );
+            }
+        }
         initWindow();
 
         setLocationRelativeTo(null);
@@ -38,8 +49,7 @@ public class MainWindow extends MainAppFrame {
     public boolean onClose(JFrame frame) {
         LOGGER.debug("Closing main window");
 
-        Toolkit.getDefaultToolkit().beep();
-        return JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
+        return JOptionPane.YES_OPTION == EXTDialog.showConfirmDialog(
                 frame,
                 "Do you want to close MusMeta?",
                 "Confirmation",
@@ -82,6 +92,13 @@ public class MainWindow extends MainAppFrame {
 
         JMenuBar menuBar = new JMenuBar();
 
+        if (SystemInfo.isMacOS) {
+            Dimension dim = menuBar.getPreferredSize();
+            dim.height = 50;
+            menuBar.setPreferredSize(dim);
+
+            menuBar.add(Box.createHorizontalStrut( 100 ), 0);
+        }
         menuBar.setOpaque(false);
         menuBar.setBorder(
                 BorderFactory.createEmptyBorder()

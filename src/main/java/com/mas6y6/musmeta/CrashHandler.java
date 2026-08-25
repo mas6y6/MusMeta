@@ -1,6 +1,7 @@
 package com.mas6y6.musmeta;
 
 import javax.swing.*;
+import com.mas6y6.musmeta.ui.dialogs.EXTDialog;
 import java.awt.*;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -9,16 +10,33 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class CrashHandler {
 
     private static final DateTimeFormatter FORMAT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
 
+    /** Prevents the application from continuing after its first fatal error. */
+    private static final AtomicBoolean CRASHING = new AtomicBoolean();
+    private static final CountDownLatch CRASH_DIALOG_CLOSED = new CountDownLatch(1);
+
     private CrashHandler() {
     }
 
     public static void handle(Thread thread, Throwable throwable) {
+        if (!CRASHING.compareAndSet(false, true)) {
+            // Do not block the EDT: it is responsible for processing the
+            // already-open modal dialog's close event.
+            if (!SwingUtilities.isEventDispatchThread()) {
+                waitForTermination();
+            }
+            return;
+        }
+
+        freezeApplicationWindows();
+
         Path crashFile = null;
 
         try {
@@ -121,7 +139,6 @@ public final class CrashHandler {
             panel.add(messageLabel, BorderLayout.NORTH);
             panel.add(scrollPane, BorderLayout.CENTER);
 
-            Toolkit.getDefaultToolkit().beep();
             JOptionPane.showMessageDialog(
                     null,
                     panel,
@@ -140,7 +157,42 @@ public final class CrashHandler {
         } catch (Exception exception) {
             exception.printStackTrace();
         } finally {
+            CRASH_DIALOG_CLOSED.countDown();
             System.exit(1);
+        }
+    }
+
+    /**
+     * Immediately prevents further interaction with the application while the
+     * fatal-error dialog is prepared and displayed.
+     */
+    private static void freezeApplicationWindows() {
+        Runnable freeze = () -> {
+            for (Window window : Window.getWindows()) {
+                if (window.isDisplayable()) {
+                    window.setEnabled(false);
+                }
+            }
+        };
+
+        try {
+            if (SwingUtilities.isEventDispatchThread()) {
+                freeze.run();
+            } else {
+                SwingUtilities.invokeAndWait(freeze);
+            }
+        } catch (Exception exception) {
+            System.err.println("Failed to freeze application windows.");
+            exception.printStackTrace();
+        }
+    }
+
+    /** Subsequent fatal errors wait for the first dialog to close and exit. */
+    private static void waitForTermination() {
+        try {
+            CRASH_DIALOG_CLOSED.await();
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
         }
     }
 }

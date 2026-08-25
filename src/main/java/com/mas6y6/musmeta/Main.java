@@ -4,6 +4,7 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
+import com.formdev.flatlaf.util.SystemInfo;
 import com.jthemedetecor.OsThemeDetector;
 import com.mas6y6.musmeta.config.ConfigManager;
 import com.mas6y6.musmeta.config.SubConfig;
@@ -37,6 +38,10 @@ public class Main {
      * a private package. Changed tit to Public Static void for compatability. sake. - Batista */
     public static void main() {
         LOGGER.info("com.mas6y6.musmeta.Main.main()");
+
+        if (SystemInfo.isMacOS) {
+            System.setProperty( "apple.awt.application.name", "MusMeta" );
+        }
 
         if (!Files.exists(appDir)) {
             try {

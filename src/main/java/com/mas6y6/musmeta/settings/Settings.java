@@ -8,6 +8,8 @@ import com.mas6y6.musmeta.config.ConfigContainer;
 import com.mas6y6.musmeta.config.ConfigManager;
 
 import javax.swing.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Settings {
     static {
@@ -29,6 +31,9 @@ public class Settings {
 
     public static ConfigContainer<Theme> PREFERRED_THEME =
             ConfigManager.getInstance().getConfig("app").register("preferred_theme", Theme.SYSTEM);
+
+    public static ConfigContainer<Path> MUSIC_DIRECTORY_PATH =
+            ConfigManager.getInstance().getConfig("app").register("music_directory_path", Paths.get(System.getProperty("user.home"),"music"));
 
     private Settings() {}
 

@@ -17,6 +17,7 @@ import com.mas6y6.musmeta.ui.dialogs.FFmpegDownloadDialog;
 import org.slf4j.Logger;
 
 import javax.swing.*;
+import com.mas6y6.musmeta.ui.dialogs.EXTDialog;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -45,6 +46,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
     private JTextField pathField;
 
     public PostInstallationPrompt() {
+        super();
         setSubTitle("Post Installation");
 
         initWindow(); // initialize window function
@@ -202,7 +204,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
 
             MainWindow.INSTANCE.setVisible(true);
         } catch (IOException ex) {
-            JOptionPane.showMessageDialog(
+            EXTDialog.showMessageDialog(
                     this,
                     "Failed to save configuration: " + ex.getMessage(),
                     "Error",
@@ -215,7 +217,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
      * Resets and deletes incomplete config if the user closes the window prematurely.
      */
     public void handleAbortInstallation() {
-        int choice = JOptionPane.showConfirmDialog(
+        int choice = EXTDialog.showConfirmDialog(
                 this,
                 "Setup is not complete. Are you sure you want to exit? Your changes will be reset.",
                 "Exit Setup",
@@ -610,7 +612,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
                 : (ffmpegBinPath != null ? ffmpegBinPath.trim() : "");
 
         if (rawPath.isEmpty()) {
-            JOptionPane.showMessageDialog(
+            EXTDialog.showMessageDialog(
                     this,
                     "Please select or enter the path to the FFmpeg bin directory.",
                     "FFmpeg Validation",
@@ -621,7 +623,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
 
         Path binDir = Paths.get(rawPath);
         if (!Files.exists(binDir)) {
-            JOptionPane.showMessageDialog(
+            EXTDialog.showMessageDialog(
                     this,
                     "The selected FFmpeg bin directory does not exist.",
                     "FFmpeg Validation",
@@ -632,7 +634,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
 
         Path executable = FFmpegUtils.findFFmpegExecutable(binDir);
         if (executable == null) {
-            JOptionPane.showMessageDialog(
+            EXTDialog.showMessageDialog(
                     this,
                     "FFmpeg executable not found in the selected directory.\nPlease ensure the directory contains the 'ffmpeg' binary.",
                     "FFmpeg Validation",
@@ -642,7 +644,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
         }
 
         if (!FFmpegUtils.validateFFmpegExecutable(executable)) {
-            JOptionPane.showMessageDialog(
+            EXTDialog.showMessageDialog(
                     this,
                     "The FFmpeg executable in the selected directory is invalid or failed to run.",
                     "FFmpeg Validation",

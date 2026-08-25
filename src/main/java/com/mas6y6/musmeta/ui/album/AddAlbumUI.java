@@ -2,6 +2,7 @@ package com.mas6y6.musmeta.ui.album;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
+import com.mas6y6.musmeta.ui.dialogs.EXTDialog;
 import com.mas6y6.musmeta.utils.ColorWrapper;
 
 import javax.swing.*;
@@ -64,6 +65,13 @@ public class AddAlbumUI extends JPanel {
             public void mouseClicked(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     // TODO: newAlbum();
+
+                    EXTDialog.showMessageDialog(
+                            e.getComponent(),
+                            "In Development",
+                            "In Development",
+                            JOptionPane.INFORMATION_MESSAGE
+                        );
                 }
             }
         };

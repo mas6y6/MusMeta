@@ -198,7 +198,7 @@ public class FFmpegDownloadDialog extends JDialog {
             actionButton.setText("Close");
             actionButton.setEnabled(true);
 
-            JOptionPane.showMessageDialog(
+            EXTDialog.showMessageDialog(
                     this,
                     "Failed to install FFmpeg:\n" + (errorMessage != null ? errorMessage : "Unknown error occurred."),
                     "Installation Error",
@@ -213,7 +213,7 @@ public class FFmpegDownloadDialog extends JDialog {
             return;
         }
 
-        int choice = JOptionPane.showConfirmDialog(
+        int choice = EXTDialog.showConfirmDialog(
                 this,
                 "FFmpeg installation is in progress. Are you sure you want to cancel?",
                 "Cancel Installation",

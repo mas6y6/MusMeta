@@ -121,6 +121,7 @@ public final class CrashHandler {
             panel.add(messageLabel, BorderLayout.NORTH);
             panel.add(scrollPane, BorderLayout.CENTER);
 
+            Toolkit.getDefaultToolkit().beep();
             JOptionPane.showMessageDialog(
                     null,
                     panel,
@@ -130,6 +131,7 @@ public final class CrashHandler {
         };
 
         try {
+
             if (SwingUtilities.isEventDispatchThread()) {
                 showDialog.run();
             } else {

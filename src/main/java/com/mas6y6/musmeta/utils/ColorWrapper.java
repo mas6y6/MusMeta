@@ -6,12 +6,15 @@ public class ColorWrapper extends Color {
     public ColorWrapper(Color color) {
         super(color.getRGB());
     }
+    public ColorWrapper(int r, int g, int b, int a) {
+        super(r,g,b,a);
+    }
 
     public static ColorWrapper addWrapper(Color color) {
         return new ColorWrapper(color);
     }
 
-    public Color brighter(float factor) {
+    public ColorWrapper brighter(float factor) {
         int r = getRed();
         int g = getGreen();
         int b = getBlue();
@@ -19,7 +22,7 @@ public class ColorWrapper extends Color {
 
         int i = (int)(1.0/(1.0-factor));
         if ( r == 0 && g == 0 && b == 0) {
-            return new Color(i, i, i, alpha);
+            return new ColorWrapper(i, i, i, alpha);
         }
         if ( r > 0 && r < i ) r = i;
         if ( g > 0 && g < i ) g = i;
@@ -31,7 +34,7 @@ public class ColorWrapper extends Color {
                 alpha));
     }
 
-    public Color darker(float factor) {
+    public ColorWrapper darker(float factor) {
         return addWrapper(new Color(Math.max((int)(getRed()  *factor), 0),
                 Math.max((int)(getGreen()*factor), 0),
                 Math.max((int)(getBlue() *factor), 0),

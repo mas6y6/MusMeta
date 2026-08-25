@@ -3,11 +3,11 @@ package com.mas6y6.musmeta.ui.album;
 import javax.swing.*;
 import java.awt.*;
 
-public class AlbumPaneUI extends JPanel {
+public class AlbumLibraryUI extends JPanel {
     private static final int GAP = 15;
     private static final int PADDING = 10;
 
-    public AlbumPaneUI() {
+    public AlbumLibraryUI() {
         setLayout(new FlowLayout(
                 FlowLayout.LEFT,
                 GAP,
@@ -21,6 +21,7 @@ public class AlbumPaneUI extends JPanel {
                 PADDING
         ));
 
+        add(new AddAlbumUI());
         add(new AlbumUI("test","test"));
     }
 }

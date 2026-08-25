@@ -2,7 +2,7 @@ package com.mas6y6.musmeta.ui;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.mas6y6.musmeta.ui.components.MainAppFrame;
-import com.mas6y6.musmeta.ui.album.AlbumPaneUI;
+import com.mas6y6.musmeta.ui.album.AlbumLibraryUI;
 import com.mas6y6.musmeta.utils.ColorWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,11 +10,23 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.awt.*;
 
+import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.ui.FlatRootPaneUI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.function.BiConsumer;
+
 public class MainWindow extends MainAppFrame {
-    public static final Logger LOGGER = LoggerFactory.getLogger(MainWindow.class.getName());
+    public static final Logger LOGGER =
+            LoggerFactory.getLogger(MainWindow.class.getName());
+
     public static final MainWindow INSTANCE = new MainWindow();
 
-    private final JTabbedPane tabs = new JTabbedPane(JTabbedPane.NORTH);
+    private final JTabbedPane tabs =
+            new JTabbedPane(SwingConstants.TOP);
 
     private MainWindow() {
         initWindow();
@@ -26,6 +38,7 @@ public class MainWindow extends MainAppFrame {
     public boolean onClose(JFrame frame) {
         LOGGER.debug("Closing main window");
 
+        Toolkit.getDefaultToolkit().beep();
         return JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
                 frame,
                 "Do you want to close MusMeta?",
@@ -35,35 +48,131 @@ public class MainWindow extends MainAppFrame {
     }
 
     private void initWindow() {
-        getRootPane().putClientProperty(FlatClientProperties.USE_WINDOW_DECORATIONS, true);
-        getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
-        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_HEIGHT, 30);
+        //region Window Decorations
 
-        JPanel titlebar = new JPanel();
-        titlebar.setPreferredSize(new Dimension(getWidth(), 38));
-        titlebar.setBackground(new ColorWrapper(getBackground()).darker(0.85f));
-        titlebar.setLayout(new BorderLayout());
-        titlebar.setBorder(BorderFactory.createEmptyBorder(
-                0,
-                10,
-                0,
-                180
-        ));
-        add(titlebar,BorderLayout.NORTH);
-
-        tabs.putClientProperty( FlatClientProperties.TABBED_PANE_TAB_CLOSABLE, true );
-        tabs.putClientProperty( "JTabbedPane.tabCloseToolTipText", "Close" );
-        tabs.putClientProperty( "JTabbedPane.tabCloseCallback",
-            (java.util.function.BiConsumer<JTabbedPane, Integer>) (tabbedPane, tabIndex) -> {
-                if (tabIndex == 0) {
-                    closeThisWindow();
-                } else {
-                    tabbedPane.removeTabAt( tabIndex );
-                }
-            }
+        getRootPane().putClientProperty(
+                FlatClientProperties.USE_WINDOW_DECORATIONS,
+                true
         );
-        add(tabs);
 
-        tabs.addTab("Library", new AlbumPaneUI());
+        getRootPane().putClientProperty(
+                FlatClientProperties.MENU_BAR_EMBEDDED,
+                true
+        );
+
+        getRootPane().putClientProperty(
+                FlatClientProperties.FULL_WINDOW_CONTENT,
+                false
+        );
+
+        getRootPane().putClientProperty(
+                FlatClientProperties.TITLE_BAR_HEIGHT,
+                38
+        );
+
+        getRootPane().putClientProperty(
+                FlatClientProperties.TITLE_BAR_BACKGROUND,
+                getBackground().darker()
+        );
+
+        //endregion
+
+
+        //region Menu Bar
+
+        JMenuBar menuBar = new JMenuBar();
+
+        menuBar.setOpaque(false);
+        menuBar.setBorder(
+                BorderFactory.createEmptyBorder()
+        );
+
+        // File
+
+        JMenu fileMenu = new JMenu("File");
+
+        fileMenu.add(
+                new JMenuItem("Open")
+        );
+
+        fileMenu.add(
+                new JMenuItem("Save")
+        );
+
+        fileMenu.addSeparator();
+
+        JMenuItem exitItem =
+                new JMenuItem("Exit");
+
+        exitItem.addActionListener(e ->
+                closeThisWindow()
+        );
+
+        fileMenu.add(exitItem);
+
+
+        // Edit
+
+        JMenu editMenu =
+                new JMenu("Edit");
+
+
+        // View
+
+        JMenu viewMenu =
+                new JMenu("View");
+
+
+        menuBar.add(fileMenu);
+        menuBar.add(editMenu);
+        menuBar.add(viewMenu);
+
+        /*
+         * This is what tells Swing/FlatLaf that this is
+         * the window's menu bar.
+         *
+         * FlatLaf then embeds it into its title pane.
+         */
+        setJMenuBar(menuBar);
+
+        //endregion
+
+
+        //region Tabs
+
+        tabs.putClientProperty(
+                FlatClientProperties.TABBED_PANE_TAB_CLOSABLE,
+                true
+        );
+
+        tabs.putClientProperty(
+                "JTabbedPane.tabCloseToolTipText",
+                "Close"
+        );
+
+        tabs.putClientProperty(
+                "JTabbedPane.tabCloseCallback",
+                (java.util.function.BiConsumer<JTabbedPane, Integer>)
+                        (tabbedPane, tabIndex) -> {
+
+                            if (tabIndex == 0) {
+                                closeThisWindow();
+                            } else {
+                                tabbedPane.removeTabAt(tabIndex);
+                            }
+                        }
+        );
+
+        tabs.addTab(
+                "Library",
+                new AlbumLibraryUI()
+        );
+
+        add(
+                tabs,
+                BorderLayout.CENTER
+        );
+
+        //endregion
     }
 }

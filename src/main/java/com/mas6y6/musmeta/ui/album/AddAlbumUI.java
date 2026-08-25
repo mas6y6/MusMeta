@@ -1,6 +1,8 @@
 package com.mas6y6.musmeta.ui.album;
 
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
+import com.mas6y6.musmeta.utils.ColorWrapper;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,17 +10,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
 
-public class AlbumUI extends JPanel {
-
+public class AddAlbumUI extends JPanel {
     private static final int ARTWORK_SIZE = 180;
     private static final Color HOVER_TINT = new Color(255, 255, 255, 70);
     private static final int HOVER_PADDING = 20;
 
     private final AlbumArtwork artwork;
-    private final JLabel title;
-    private final JLabel artist;
 
-    public AlbumUI(String album, String artist) {
+    public AddAlbumUI() {
         super(new BorderLayout(0, 6));
 
         setOpaque(false);
@@ -64,7 +63,7 @@ public class AlbumUI extends JPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
-                    // TODO: openAlbum();
+                    // TODO: newAlbum();
                 }
             }
         };
@@ -72,16 +71,16 @@ public class AlbumUI extends JPanel {
         addMouseListener(mouseAdapter);
 
         // Artwork
-        ImageIcon originalIcon = new ImageIcon(
+        ImageIcon originalIcon = new FlatSVGIcon(
                 Objects.requireNonNull(
-                        getClass().getResource("/testalbum.jpg")
+                        getClass().getResource("/plus.svg")
                 )
         );
 
         Image scaledImage = originalIcon.getImage()
                 .getScaledInstance(
-                        ARTWORK_SIZE,
-                        ARTWORK_SIZE,
+                        32,
+                        32,
                         Image.SCALE_SMOOTH
                 );
 
@@ -99,81 +98,39 @@ public class AlbumUI extends JPanel {
 
         artwork.addMouseListener(mouseAdapter);
 
-        add(artwork, BorderLayout.NORTH);
-
-        // Text container
-        JPanel text = new JPanel();
-
-        text.setOpaque(false);
-
-        text.setLayout(
-                new BoxLayout(
-                        text,
-                        BoxLayout.Y_AXIS
-                )
-        );
-
-        // Album title
-        title = new JLabel(album);
-
-        title.setAlignmentX(
-                Component.LEFT_ALIGNMENT
-        );
-
-        title.setFont(
-                title.getFont().deriveFont(
-                        Font.BOLD,
-                        14f
-                )
-        );
-
-        // Artist
-        this.artist = new JLabel(artist);
-
-        this.artist.setAlignmentX(
-                Component.LEFT_ALIGNMENT
-        );
-
-        this.artist.setFont(
-                this.artist.getFont().deriveFont(
-                        Font.PLAIN,
-                        13f
-                )
-        );
-
-        this.artist.setForeground(
-                UIManager.getColor(
-                        "Label.disabledForeground"
-                )
-        );
-
-        text.add(title);
-        text.add(this.artist);
-
-        text.addMouseListener(mouseAdapter);
-        title.addMouseListener(mouseAdapter);
-        this.artist.addMouseListener(mouseAdapter);
-
-        add(text, BorderLayout.CENTER);
+        add(artwork, BorderLayout.CENTER);
     }
 
     @Override
     protected void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
 
+        Graphics2D g2 = (Graphics2D) graphics.create();
+
+        g2.setRenderingHint(
+                RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON
+        );
+
+        int padding_d = 20;
+
+        g2.setColor(ColorWrapper.addWrapper(getBackground()).darker(0.80f));
+        g2.fillRoundRect(
+                padding_d,
+                padding_d,
+                getWidth() - padding_d * 2,
+                getHeight() - padding_d * 2,
+                12,
+                12
+        );
+
         if (!hovered) {
             return;
         }
 
-        Graphics2D g2 = (Graphics2D) graphics.create();
-
         try {
-            g2.setRenderingHint(
-                    RenderingHints.KEY_ANTIALIASING,
-                    RenderingHints.VALUE_ANTIALIAS_ON
-            );
-
             int padding = 4;
+
             int width = getWidth() - padding * 2;
             int height = getHeight() - padding * 2;
 
@@ -186,7 +143,6 @@ public class AlbumUI extends JPanel {
                     12,
                     12
             );
-
         } finally {
             g2.dispose();
         }

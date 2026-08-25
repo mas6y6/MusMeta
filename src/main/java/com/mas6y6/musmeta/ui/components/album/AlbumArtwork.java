@@ -1,15 +1,27 @@
-package com.mas6y6.musmeta.ui.components;
+package com.mas6y6.musmeta.ui.components.album;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
-public class RoundedLabel extends JLabel {
+public class AlbumArtwork extends JLabel {
 
     private final int radius;
 
-    public RoundedLabel(Icon icon, int radius) {
+    public AlbumArtwork(Icon icon, int radius) {
         super(icon, SwingConstants.CENTER);
+        this.radius = radius;
+        setOpaque(false);
+    }
+
+    public AlbumArtwork(int radius) {
+        super("" ,SwingConstants.CENTER);
+        this.radius = radius;
+        setOpaque(false);
+    }
+
+    public AlbumArtwork(String text, int radius) {
+        super(text ,SwingConstants.CENTER);
         this.radius = radius;
         setOpaque(false);
     }

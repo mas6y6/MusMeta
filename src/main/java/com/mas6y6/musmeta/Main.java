@@ -73,12 +73,15 @@ public class Main {
         /* Tray catch block for applying Outfit-VariableFont_wght globally.
         * - Batista 8/22/2026  */
         try {
+            InputStream isLight = Main.class.getResourceAsStream("/font/Outfit-Light.ttf");
             InputStream isMedium = Main.class.getResourceAsStream("/font/Outfit-Medium.ttf");
             InputStream isExtraBold = Main.class.getResourceAsStream("/font/Outfit-ExtraBold.ttf");
-            if (isMedium != null && isExtraBold != null) {
-                outfitMedium = Font.createFont(Font.TRUETYPE_FONT, isMedium);
-                outfitExtraBold = Font.createFont(Font.TRUETYPE_FONT, isExtraBold);
+            if (isMedium != null && isExtraBold != null && isLight != null) {
+                Font outfitLight = Font.createFont(Font.TRUETYPE_FONT, isLight);
+                Font outfitMedium = Font.createFont(Font.TRUETYPE_FONT, isMedium);
+                Font outfitExtraBold = Font.createFont(Font.TRUETYPE_FONT, isExtraBold);
 
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(outfitLight);
                 GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(outfitMedium);
                 GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(outfitExtraBold);
 
@@ -88,7 +91,7 @@ public class Main {
                 LOGGER.error("Outfit static font resources not found.");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Failed to load Outfit fonts", e);
         }
 
         JFrame.setDefaultLookAndFeelDecorated(true);

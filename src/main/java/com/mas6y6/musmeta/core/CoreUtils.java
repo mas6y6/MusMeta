@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Set;
@@ -30,6 +31,8 @@ public class CoreUtils {
         Path musicDirectory = Settings.MUSIC_DIRECTORY_PATH.get()
                 .toAbsolutePath()
                 .normalize();
+
+        ArrayList<Song> musicFiles = new ArrayList<>();
 
         try {
             Files.walkFileTree(musicDirectory, new SimpleFileVisitor<>() {
@@ -60,6 +63,9 @@ public class CoreUtils {
                     try {
                         if (Constants.MUSIC_EXTENSIONS.contains(extension)) {
                             AudioFile audioFile = AudioFileIO.read(file.toFile());
+
+                            musicFiles.add(new Song(audioFile));
+
                             LOGGER.info("Processing file: {}", file);
                         }
                     } catch (Exception e) {

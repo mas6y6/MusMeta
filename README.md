@@ -44,6 +44,8 @@ The user-friendly interface makes it easy for users to edit music file metadata 
 
 [picocli](https://picocli.info/)
 
+[JAudioTagger](https://github.com/RouHim/jaudiotagger)
+
 ## Executeables
 
 [FFmpeg](https://www.ffmpeg.org/)

@@ -82,14 +82,14 @@ public class ConfigSerializableAdapterFactory implements TypeAdapterFactory {
             return null;
         }
 
-        if (rawType.isInterface() || Modifier.isAbstract(rawType.getModifiers())) {
-            throw new JsonParseException("Cannot instantiate abstract type or interface " + rawType.getName() + " directly.");
-        }
-
         // 1. Registered Codec
         ConfigCodec<?> codec = ConfigManager.getCodec(rawType);
         if (codec != null) {
             return (T) ((ConfigCodec<Object>) codec).decode(builder);
+        }
+
+        if (rawType.isInterface() || Modifier.isAbstract(rawType.getModifiers())) {
+            throw new JsonParseException("Cannot instantiate abstract type or interface " + rawType.getName() + " directly.");
         }
 
         // 2. Constructor(ConfigBuilder)

@@ -4,23 +4,13 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.util.SystemInfo;
 import com.mas6y6.musmeta.ui.components.MainAppFrame;
 import com.mas6y6.musmeta.ui.album.AlbumLibraryUI;
-import com.mas6y6.musmeta.ui.dialogs.EXTDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
 import com.mas6y6.musmeta.ui.prompts.MusicScanPrompt;
-import com.mas6y6.musmeta.utils.ColorWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
-
-import com.formdev.flatlaf.FlatClientProperties;
-import com.formdev.flatlaf.ui.FlatRootPaneUI;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.function.BiConsumer;
 
 public class MainWindow extends MainAppFrame {
     public static final Logger LOGGER =
@@ -144,13 +134,13 @@ public class MainWindow extends MainAppFrame {
         JMenu libraryMenu =
                 new JMenu("Library");
 
-        JMenuItem scanLibraryItem =
-                new JMenuItem("Scan Library");
-        scanLibraryItem.addActionListener(e ->
+        JMenuItem musicScanMenuItem =
+                new JMenuItem("Music Scan");
+        musicScanMenuItem.addActionListener(e ->
                 new MusicScanPrompt(this).setVisible(true)
         );
 
-        libraryMenu.add(scanLibraryItem);
+        libraryMenu.add(musicScanMenuItem);
 
         menuBar.add(fileMenu);
         menuBar.add(editMenu);

@@ -1,4 +1,4 @@
-package com.mas6y6.musmeta.ui.dialogs;
+package com.mas6y6.musmeta.ui.dialogs.base;
 
 import com.formdev.flatlaf.FlatClientProperties;
 

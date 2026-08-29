@@ -3,7 +3,7 @@ package com.mas6y6.musmeta.utils;
 import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Disc;
 import com.mas6y6.musmeta.core.Song;
-import com.mas6y6.musmeta.ui.dialogs.EXTDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -198,12 +198,24 @@ public class ConfigManager {
     @SuppressWarnings("unchecked")
     public static synchronized <T> ConfigCodec<T> getCodec(Class<T> clazz) {
         if (clazz == null) return null;
-        return (ConfigCodec<T>) codecs.get(clazz);
+        ConfigCodec<?> codec = codecs.get(clazz);
+        if (codec != null) {
+            return (ConfigCodec<T>) codec;
+        }
+
+        // Values are often stored as an implementation of their declared type
+        // (for example, Path is a WindowsPath on Windows). Allow a codec
+        // registered for an interface or superclass to handle those values.
+        for (Map.Entry<Class<?>, ConfigCodec<?>> entry : codecs.entrySet()) {
+            if (entry.getKey().isAssignableFrom(clazz)) {
+                return (ConfigCodec<T>) entry.getValue();
+            }
+        }
+        return null;
     }
 
     public static synchronized boolean hasCodec(Class<?> clazz) {
-        if (clazz == null) return false;
-        return codecs.containsKey(clazz);
+        return getCodec(clazz) != null;
     }
 
     public static synchronized void clearCodecs() {

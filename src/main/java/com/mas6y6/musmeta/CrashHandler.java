@@ -1,7 +1,6 @@
 package com.mas6y6.musmeta;
 
 import javax.swing.*;
-import com.mas6y6.musmeta.ui.dialogs.EXTDialog;
 import java.awt.*;
 import java.io.IOException;
 import java.io.PrintWriter;

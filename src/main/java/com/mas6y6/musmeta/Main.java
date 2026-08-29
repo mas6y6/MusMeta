@@ -8,6 +8,7 @@ import com.formdev.flatlaf.util.SystemInfo;
 import com.jthemedetecor.OsThemeDetector;
 import com.mas6y6.musmeta.config.ConfigManager;
 import com.mas6y6.musmeta.config.SubConfig;
+import com.mas6y6.musmeta.settings.ConfigCodecs;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.settings.Updates;
@@ -52,6 +53,8 @@ public class Main {
         }
 
         ConfigManager configManager = ConfigManager.getInstance();
+        ConfigCodecs.register();
+
         Path configPath = configManager.getConfigPath();
 
         Settings.registerConfigs();

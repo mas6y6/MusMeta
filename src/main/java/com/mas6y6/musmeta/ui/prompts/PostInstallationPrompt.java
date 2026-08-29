@@ -17,7 +17,7 @@ import com.mas6y6.musmeta.ui.dialogs.FFmpegDownloadDialog;
 import org.slf4j.Logger;
 
 import javax.swing.*;
-import com.mas6y6.musmeta.ui.dialogs.EXTDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -45,6 +45,10 @@ public class PostInstallationPrompt extends MusMetaFrame {
     private String ffmpegBinPath = null;
     private JTextField pathField;
 
+
+    private boolean useDefaultMusicPath = true;
+    private JTextField musicPathField;
+
     public PostInstallationPrompt() {
         super();
         setSubTitle("Post Installation");
@@ -64,6 +68,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
         tabs.addTab("Welcome", welcomePage());
         tabs.addTab("Auto updates", autoCheckUpdates());
         tabs.addTab("Theme", themePage());
+        tabs.addTab("Music Path", musicPathPage());
         tabs.addTab("FFmpeg", ffmpegInstallation());
         tabs.addTab("Completion", completionPage());
 
@@ -156,8 +161,9 @@ public class PostInstallationPrompt extends MusMetaFrame {
         tabs.setTitleAt(0, currentPage > 0 ? "✓ Welcome" : "Welcome");
         tabs.setTitleAt(1, currentPage > 1 ? "✓ Auto updates" : "Auto updates");
         tabs.setTitleAt(2, currentPage > 2 ? "✓ Theme" : "Theme");
-        tabs.setTitleAt(3, currentPage > 3 ? "✓ FFmpeg" : "FFmpeg");
-        tabs.setTitleAt(4, currentPage > 4 ? "✓ Completion" : "Completion");
+        tabs.setTitleAt(3, currentPage > 3 ? "✓ Music Path" : "Music Path");
+        tabs.setTitleAt(4, currentPage > 4 ? "✓ FFmpeg" : "FFmpeg");
+        tabs.setTitleAt(5, currentPage > 5 ? "✓ Completion" : "Completion");
     }
 
     private void initFailsafe() {
@@ -177,6 +183,10 @@ public class PostInstallationPrompt extends MusMetaFrame {
      * Called when the user finishes all installation / setup steps.
      */
     public void completeInstallation() {
+        if (!useDefaultMusicPath) {
+            Settings.MUSIC_DIRECTORY_PATH.set(Path.of(musicPathField.getText()));
+        }
+
         Settings.AUTO_FFMPEG_INSTALL.set(isffmpegAutoInstall);
         if (isffmpegAutoInstall) {
             Path targetDir = Paths.get(Main.appDir.toString(), "bins");
@@ -258,6 +268,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
 
     private boolean validateCurrentPage() {
         return switch (currentPage) {
+            case 3 -> validateMusicPathPage();
             case 4 -> validateFFmpegPage();
             default -> true;
         };
@@ -487,6 +498,117 @@ public class PostInstallationPrompt extends MusMetaFrame {
     }
 
 
+    public JPanel musicPathPage() {
+        JPanel page = new JPanel(new BorderLayout(20, 20));
+        page.setBorder(BorderFactory.createEmptyBorder(
+                30, 40, 30, 40
+        ));
+
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+
+        JLabel title = new JLabel("Default Music Directory");
+        if (com.mas6y6.musmeta.Main.outfitExtraBold != null) {
+            title.setFont(com.mas6y6.musmeta.Main.outfitExtraBold.deriveFont(28f));
+        } else {
+            title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
+        }
+
+        JLabel description = new JLabel("""
+                <html>
+                    Select the default directory where your music files are stored.<br>
+                    You can change this later in the settings.
+                </html>""");
+
+        content.add(title);
+        content.add(Box.createVerticalStrut(10));
+        content.add(description);
+        content.add(Box.createVerticalStrut(25));
+
+        // Radio buttons
+        JRadioButton useDefaultRadio =
+                new JRadioButton("Use default: " + Paths.get(System.getProperty("user.home"),"Music"));
+
+        JRadioButton useCustomRadio =
+                new JRadioButton("Use a custom folder");
+
+        ButtonGroup buttonGroup = new ButtonGroup();
+        buttonGroup.add(useDefaultRadio);
+        buttonGroup.add(useCustomRadio);
+
+        useDefaultRadio.setSelected(true);
+
+        content.add(useDefaultRadio);
+        content.add(Box.createVerticalStrut(8));
+        content.add(useCustomRadio);
+
+        // Existing installation controls
+        JPanel existingPanel = new JPanel(new BorderLayout(10, 0));
+
+        musicPathField = new JTextField();
+        JButton browseButton = new JButton("Browse...");
+
+        existingPanel.add(musicPathField, BorderLayout.CENTER);
+        existingPanel.add(browseButton, BorderLayout.EAST);
+
+        // Give it a little indentation so it belongs to the radio option
+        existingPanel.setBorder(
+                BorderFactory.createEmptyBorder(5, 25, 5, 0)
+        );
+
+        existingPanel.setMaximumSize(
+                new Dimension(Integer.MAX_VALUE, 40)
+        );
+
+        content.add(existingPanel);
+
+        // Hidden initially
+        existingPanel.setVisible(false);
+
+        // Show/hide when radio button changes
+        useCustomRadio.addActionListener(e -> {
+            useDefaultMusicPath = false;
+            existingPanel.setVisible(true);
+            content.revalidate();
+            content.repaint();
+        });
+
+        useDefaultRadio.addActionListener(e -> {
+            useDefaultMusicPath = true;
+            existingPanel.setVisible(false);
+            content.revalidate();
+            content.repaint();
+        });
+
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+        description.setAlignmentX(Component.LEFT_ALIGNMENT);
+        useDefaultRadio.setAlignmentX(Component.LEFT_ALIGNMENT);
+        useCustomRadio.setAlignmentX(Component.LEFT_ALIGNMENT);
+        existingPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Browse button
+        browseButton.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+
+            chooser.setDialogTitle("Select Music Folder");
+
+            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            chooser.setAcceptAllFileFilterUsed(false);
+
+            int result = chooser.showOpenDialog(page);
+
+            if (result == JFileChooser.APPROVE_OPTION) {
+                String selectedPath = chooser.getSelectedFile().getAbsolutePath();
+                pathField.setText(selectedPath);
+                ffmpegBinPath = selectedPath;
+            }
+        });
+
+        page.add(content, BorderLayout.NORTH);
+
+        return page;
+    }
+
     /*
         FFMPEG
     */
@@ -654,6 +776,43 @@ public class PostInstallationPrompt extends MusMetaFrame {
         }
 
         ffmpegBinPath = binDir.toAbsolutePath().toString();
+        return true;
+    }
+
+    private boolean validateMusicPathPage() {
+        if (!useDefaultMusicPath) {
+            if (musicPathField.getText().isEmpty()) {
+                EXTDialog.showMessageDialog(
+                        this,
+                        "Please select a default music directory.",
+                        "Music Path Validation",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return false;
+            }
+
+            Path musicDir = Paths.get(musicPathField.getText());
+            if (!Files.exists(musicDir)) {
+                EXTDialog.showMessageDialog(
+                        this,
+                        "The selected music directory does not exist.",
+                        "Music Path Validation",
+                        JOptionPane.ERROR_MESSAGE
+                );
+                return false;
+            }
+
+            if (!Files.isDirectory(musicDir)) {
+                EXTDialog.showMessageDialog(
+                        this,
+                        "The selected path is not a directory.",
+                        "Music Path Validation",
+                        JOptionPane.ERROR_MESSAGE
+                );
+                return false;
+            }
+            return true;
+        }
         return true;
     }
 

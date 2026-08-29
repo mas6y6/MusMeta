@@ -2,7 +2,7 @@ package com.mas6y6.musmeta.ui.album;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
-import com.mas6y6.musmeta.ui.dialogs.EXTDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
 import com.mas6y6.musmeta.utils.ColorWrapper;
 
 import javax.swing.*;

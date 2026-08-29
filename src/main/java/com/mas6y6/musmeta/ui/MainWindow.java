@@ -5,6 +5,7 @@ import com.formdev.flatlaf.util.SystemInfo;
 import com.mas6y6.musmeta.ui.components.MainAppFrame;
 import com.mas6y6.musmeta.ui.album.AlbumLibraryUI;
 import com.mas6y6.musmeta.ui.dialogs.EXTDialog;
+import com.mas6y6.musmeta.ui.prompts.MusicScanPrompt;
 import com.mas6y6.musmeta.utils.ColorWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,15 +134,27 @@ public class MainWindow extends MainAppFrame {
         JMenu editMenu =
                 new JMenu("Edit");
 
-
         // View
 
         JMenu viewMenu =
                 new JMenu("View");
 
+        // Library
+
+        JMenu libraryMenu =
+                new JMenu("Library");
+
+        JMenuItem scanLibraryItem =
+                new JMenuItem("Scan Library");
+        scanLibraryItem.addActionListener(e ->
+                new MusicScanPrompt(this).setVisible(true)
+        );
+
+        libraryMenu.add(scanLibraryItem);
 
         menuBar.add(fileMenu);
         menuBar.add(editMenu);
+        menuBar.add(libraryMenu);
         menuBar.add(viewMenu);
 
         /*

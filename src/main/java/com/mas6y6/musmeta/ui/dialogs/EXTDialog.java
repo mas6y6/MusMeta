@@ -1,7 +1,6 @@
 package com.mas6y6.musmeta.ui.dialogs;
 
 import com.formdev.flatlaf.FlatClientProperties;
-import com.formdev.flatlaf.util.SystemInfo;
 
 import javax.swing.*;
 import java.awt.*;
@@ -58,7 +57,7 @@ public class EXTDialog extends JOptionPane {
         JDialog dialog = pane.createDialog(parentComponent, title);
         Toolkit.getDefaultToolkit().beep();
         try {
-            removeMacTitleBar(dialog);
+            removeTitleBar(dialog);
             dialog.setVisible(true);
             return pane.getValue();
         } finally {
@@ -77,11 +76,11 @@ public class EXTDialog extends JOptionPane {
      * window peer. Dispose that peer before changing its decoration state;
      * the existing content, size, modality, and active look and feel remain.
      */
-    private static void removeMacTitleBar(JDialog dialog) {
+    private static void removeTitleBar(JDialog dialog) {
         //TODO: remove dialog titlebar
 
         dialog.getRootPane().putClientProperty(FlatClientProperties.USE_WINDOW_DECORATIONS, true);
-        dialog.getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
+        dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_BACKGROUND, dialog.getBackground().darker());
         dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_CLOSE, false);
         dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_MAXIMIZE, false);
         dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_ICONIFFY, false);

@@ -4,22 +4,28 @@ import com.mas6y6.musmeta.Constants;
 import com.mas6y6.musmeta.settings.Settings;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.Tag;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class CoreUtils {
-    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(CoreUtils.class);
+public class Core {
+    static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Core.class);
+    static final ArrayList<Album> albums = new ArrayList<>();
 
-    public static void scanForMusicFiles(Path... ignorePaths) {
+    public record ScanResult(List<Song> musicFiles, List<UntaggedSong> untaggedSongs, List<Album> albums) {}
+
+    public static List<Album> getAlbums() {
+        return List.copyOf(albums);
+    }
+
+    public static ScanResult scanForMusicFiles(Path musicDir,Path... ignorePaths) {
         LOGGER.info("Scanning for music files...");
         LOGGER.info("Ignoring paths: {}", Arrays.toString(ignorePaths));
 
@@ -28,11 +34,12 @@ public class CoreUtils {
                 .map(Path::normalize)
                 .collect(Collectors.toUnmodifiableSet());
 
-        Path musicDirectory = Settings.MUSIC_DIRECTORY_PATH.get()
+        Path musicDirectory = musicDir
                 .toAbsolutePath()
                 .normalize();
 
         ArrayList<Song> musicFiles = new ArrayList<>();
+        ArrayList<UntaggedSong> untaggedSongs = new ArrayList<>();
 
         try {
             Files.walkFileTree(musicDirectory, new SimpleFileVisitor<>() {
@@ -64,7 +71,11 @@ public class CoreUtils {
                         if (Constants.MUSIC_EXTENSIONS.contains(extension)) {
                             AudioFile audioFile = AudioFileIO.read(file.toFile());
 
-                            musicFiles.add(new Song(audioFile));
+                            if (audioFile.getTag() == null) {
+                                untaggedSongs.add(new UntaggedSong(audioFile));
+                            } else {
+                                musicFiles.add(new Song(audioFile));
+                            }
 
                             LOGGER.info("Processing file: {}", file);
                         }
@@ -89,6 +100,46 @@ public class CoreUtils {
             });
         } catch (IOException e) {
             throw new RuntimeException("Failed to scan music directory", e);
+        }
+
+        assortMusicIntoAlbums(musicFiles);
+        return new ScanResult(List.copyOf(musicFiles), List.copyOf(untaggedSongs), getAlbums());
+    }
+
+    private static void assortMusicIntoAlbums(List<Song> songs) {
+        Map<String, Album> albumsByTitle = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
+        for (Song song : songs) {
+            Tag tag = song.getAudioFile().getTag();
+            String title = tag == null ? "" : tag.getFirst(FieldKey.ALBUM).trim();
+            if (title.isEmpty()) {
+                LOGGER.debug("Leaving song without an album tag unassigned: {}", song.getAudioFile().getFile());
+                continue;
+            }
+
+            Album album = albumsByTitle.computeIfAbsent(title, Album::new);
+            int discIndex = positiveNumber(tag == null ? "" : tag.getFirst(FieldKey.DISC_NO), 1);
+            int discTotal = Math.max(discIndex,
+                    positiveNumber(tag == null ? "" : tag.getFirst(FieldKey.DISC_TOTAL), 1));
+            album.addSong(song, discIndex, discTotal);
+        }
+
+        albums.clear();
+        albums.addAll(albumsByTitle.values());
+        LOGGER.info("Assorted {} songs into {} albums", songs.size(), albums.size());
+    }
+
+    private static int positiveNumber(String value, int fallback) {
+        if (value == null || value.isBlank()) {
+            return fallback;
+        }
+
+        String number = value.trim().split("/", 2)[0];
+        try {
+            int parsed = Integer.parseInt(number);
+            return parsed > 0 ? parsed : fallback;
+        } catch (NumberFormatException ignored) {
+            return fallback;
         }
     }
 }

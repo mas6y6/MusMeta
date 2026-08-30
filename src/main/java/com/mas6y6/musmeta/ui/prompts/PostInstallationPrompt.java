@@ -599,8 +599,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
 
             if (result == JFileChooser.APPROVE_OPTION) {
                 String selectedPath = chooser.getSelectedFile().getAbsolutePath();
-                pathField.setText(selectedPath);
-                ffmpegBinPath = selectedPath;
+                musicPathField.setText(selectedPath);
             }
         });
 

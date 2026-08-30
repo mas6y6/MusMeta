@@ -2,7 +2,7 @@ package com.mas6y6.musmeta.ui.album;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
-import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
+import com.mas6y6.musmeta.ui.prompts.NewAlbumPrompt;
 import com.mas6y6.musmeta.utils.ColorWrapper;
 
 import javax.swing.*;
@@ -64,14 +64,9 @@ public class AddAlbumUI extends JPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
-                    // TODO: newAlbum();
-
-                    EXTDialog.showMessageDialog(
-                            e.getComponent(),
-                            "In Development",
-                            "In Development",
-                            JOptionPane.INFORMATION_MESSAGE
-                        );
+                    handleClick();
+                } else if (SwingUtilities.isRightMouseButton(e))  {
+                    handleRightClickMenu(e);
                 }
             }
         };
@@ -163,5 +158,22 @@ public class AddAlbumUI extends JPanel {
             this.hovered = hovered;
             repaint();
         }
+    }
+
+    private void handleRightClickMenu(MouseEvent mouseEvent) {
+        var popupMenu = new JPopupMenu();
+
+        JMenuItem addButton = new JMenuItem("Add Album");
+        popupMenu.add(addButton);
+        addButton.addActionListener(e -> handleClick());
+
+        popupMenu.show(this, mouseEvent.getX(), mouseEvent.getY());
+    }
+
+    private void handleClick() {
+        // TODO: newAlbum();
+
+        NewAlbumPrompt prompt = new NewAlbumPrompt((Frame) SwingUtilities.getWindowAncestor(this));
+        prompt.setVisible(true);
     }
 }

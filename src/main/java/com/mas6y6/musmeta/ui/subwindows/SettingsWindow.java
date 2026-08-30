@@ -5,6 +5,7 @@ import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import com.jthemedetecor.OsThemeDetector;
+import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ public class SettingsWindow extends JDialog {
         tabs.addTab("Appearance", appearanceTab());
         tabs.addTab("Music", musicTab());
 
-
+        Registries.SETTING_TABS.getAll().forEach(tab -> tabs.addTab(tab.getKey(), tab.getValue().component()));
 
         add(tabs, BorderLayout.CENTER);
     }

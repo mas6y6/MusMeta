@@ -1,4 +1,6 @@
 package com.mas6y6.musmeta.registry.base;
 
-public class SettingTab {
+import javax.swing.*;
+
+public record SettingTab(String name,JComponent component) {
 }

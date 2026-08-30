@@ -2,6 +2,7 @@ package com.mas6y6.musmeta;
 
 import com.mas6y6.musmeta.config.ConfigManager;
 import com.mas6y6.musmeta.plugin.PluginManager;
+import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.utils.Utils;
 import com.mas6y6.musmeta.utils.Version;
@@ -39,12 +40,6 @@ public class Bootstrap implements Runnable {
             PluginManager.defaultPluginsDirectory()
     );
 
-    @CommandLine.Option(
-            names = {"--plugins-only","-p"},
-            description = "Boot plugins and exit without starting the application (headless smoke test)."
-    )
-    private boolean pluginsOnly;
-
     @Override
     public void run() {
         System.out.println("java.home = " + System.getProperty("java.home"));
@@ -59,23 +54,14 @@ public class Bootstrap implements Runnable {
             );
         }
 
-
-
         if (!skipbootstrap) {
             LOGGER.info("Running MusMeta bootstrap...");
 
             pluginManager.discover();
             pluginManager.boot();
-
-            // testing
-            if (pluginsOnly) {
-                runPluginsOnlySmokeTest();
-                pluginManager.shutdown();
-                LOGGER.info("Plugins-only smoke test completed.");
-                System.exit(0);
-            }
         }
 
+        Registries.freeze();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             LOGGER.info("MusMeta shutdown in progress...");

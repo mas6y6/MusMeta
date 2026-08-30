@@ -2,6 +2,7 @@ package com.mas6y6.musmeta.registry;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public final class Registry<K,T> {
     private final Map<K, T> entries = new HashMap<>();
@@ -18,7 +19,9 @@ public final class Registry<K,T> {
 
     public T get(K id) { return entries.get(id); }
 
-    public void freeze() {
+    public Stream<Map.Entry<K,T>> getAll() { return entries.entrySet().stream(); }
+
+    void freeze() {
         frozen = true;
         entries.replaceAll((k, v) -> v); // no-op, but makes intent explicit
     }

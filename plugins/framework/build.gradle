@@ -20,6 +20,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.jetbrains:annotations:$annotations")
     implementation("org.spongepowered:mixin:$mixin")
     implementation("org.ow2.asm:asm:$asm")
     implementation("org.ow2.asm:asm-tree:$asm")

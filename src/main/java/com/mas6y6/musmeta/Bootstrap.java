@@ -12,7 +12,6 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 import java.io.IOException;
-import java.util.logging.Level;
 
 @Command(
         name = "musmeta",
@@ -61,7 +60,7 @@ public class Bootstrap implements Runnable {
             pluginManager.boot();
         }
 
-        Registries.freeze();
+        Registries.freezeAll();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             LOGGER.info("MusMeta shutdown in progress...");

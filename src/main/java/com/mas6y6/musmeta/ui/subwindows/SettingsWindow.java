@@ -35,7 +35,13 @@ public class SettingsWindow extends JDialog {
         tabs.addTab("Appearance", appearanceTab());
         tabs.addTab("Music", musicTab());
 
-        Registries.SETTING_TABS.getAll().forEach(tab -> tabs.addTab(tab.getKey(), tab.getValue().component()));
+        Registries.SETTING_TABS.getAll().forEach(tab -> {
+            if (tab.getValue().icon() != null) {
+                tabs.addTab(tab.getKey(), tab.getValue().icon(), tab.getValue().settingsTabBuilder().build());
+            } else {
+                tabs.addTab(tab.getKey(), tab.getValue().settingsTabBuilder().build());
+            }
+        });
 
         add(tabs, BorderLayout.CENTER);
     }

@@ -24,6 +24,14 @@ application {
     mainClass = 'com.mas6y6.musmeta.launch.Launcher'
 }
 
+// ============================================================
+// Plugin sync on run
+// ============================================================
+
+tasks.named('run') {
+    dependsOn ':plugins:example-plugin:publishPlugin'
+}
+
 idea.project.settings.runConfigurations {
     'App'(Application) {
         mainClass = 'com.mas6y6.musmeta.launch.Launcher'

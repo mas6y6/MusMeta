@@ -8,23 +8,23 @@ import com.formdev.flatlaf.util.SystemInfo;
 import com.jthemedetecor.OsThemeDetector;
 import com.mas6y6.musmeta.config.ConfigManager;
 import com.mas6y6.musmeta.config.SubConfig;
+import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.settings.ConfigCodecs;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
-import com.mas6y6.musmeta.settings.Updates;
 import com.mas6y6.musmeta.ui.MainWindow;
+import com.mas6y6.musmeta.ui.prompts.MissingSongsPrompt;
 import com.mas6y6.musmeta.ui.prompts.PostInstallationPrompt;
 import org.slf4j.Logger;
-import org.spongepowered.asm.launch.MixinBootstrap;
 
 import javax.swing.*;
-import javax.swing.plaf.FontUIResource;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 public class Main {
 
@@ -73,6 +73,8 @@ public class Main {
             }
         }
 
+        Library.load();
+
         /* Tray catch block for applying Outfit-VariableFont_wght globally.
         * - Batista 8/22/2026  */
         try {
@@ -116,7 +118,8 @@ public class Main {
 
             OsThemeDetector.getDetector().registerListener(isDark -> {
                 try {
-                    if (configManager.getConfig("app").getValue("preferred_theme") == Theme.DARK) {
+                    Theme preferredTheme = configManager.getConfig("app").getValue("preferred_theme");
+                    if (preferredTheme == Theme.SYSTEM || preferredTheme == Theme.DARK) {
                         if (isDark) {
                             FlatAnimatedLafChange.showSnapshot();
                             UIManager.setLookAndFeel(new FlatDarkLaf());
@@ -140,11 +143,52 @@ public class Main {
         SubConfig appConfig = configManager.getConfig("app");
         boolean isSetupCompleted = appConfig != null && Boolean.TRUE.equals(appConfig.getValue("setup_completed"));
 
+        runPreWindowConfigExecuter();
 
         if (!isSetupCompleted) {
             SwingUtilities.invokeLater(PostInstallationPrompt::new);
         } else {
-            SwingUtilities.invokeLater(() -> MainWindow.INSTANCE.setVisible(true));
+            SwingUtilities.invokeLater(() -> {
+                MainWindow.INSTANCE.setVisible(true);
+                showMissingSongsPromptIfAny();
+            });
+        }
+    }
+
+    private static void showMissingSongsPromptIfAny() {
+        List<Library.MissingSong> missing = List.copyOf(Library.getInstance().getMissingSongs());
+        if (!missing.isEmpty()) {
+            new MissingSongsPrompt(MainWindow.INSTANCE, missing).setVisible(true);
+        }
+    }
+
+    private static void runPreWindowConfigExecuter() {
+        try {
+            if (Settings.PREFERRED_THEME.get() == Theme.DARK) {
+                FlatAnimatedLafChange.showSnapshot();
+                UIManager.setLookAndFeel(new FlatDarkLaf());
+                FlatLaf.updateUI();
+                FlatAnimatedLafChange.hideSnapshotWithAnimation();
+            } else if (Settings.PREFERRED_THEME.get() == Theme.LIGHT) {
+                FlatAnimatedLafChange.showSnapshot();
+                UIManager.setLookAndFeel(new FlatLightLaf());
+                FlatLaf.updateUI();
+                FlatAnimatedLafChange.hideSnapshotWithAnimation();
+            } else {
+                if (OsThemeDetector.getDetector().isDark()) {
+                    FlatAnimatedLafChange.showSnapshot();
+                    UIManager.setLookAndFeel(new FlatDarkLaf());
+                    FlatLaf.updateUI();
+                    FlatAnimatedLafChange.hideSnapshotWithAnimation();
+                } else {
+                    FlatAnimatedLafChange.showSnapshot();
+                    UIManager.setLookAndFeel(new FlatLightLaf());
+                    FlatLaf.updateUI();
+                    FlatAnimatedLafChange.hideSnapshotWithAnimation();
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error setting theme", e);
         }
     }
 }

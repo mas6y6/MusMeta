@@ -467,7 +467,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
                             FlatAnimatedLafChange.hideSnapshotWithAnimation();
                         }
                     } catch (Exception ex) {
-                        ex.printStackTrace();
+                        LOGGER.error("Failed to change theme", ex);
                     }
                 }
         );

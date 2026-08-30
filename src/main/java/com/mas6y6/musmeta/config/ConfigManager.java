@@ -5,6 +5,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 import org.slf4j.Logger;
 
 import java.io.BufferedReader;
@@ -225,6 +229,25 @@ public class ConfigManager {
     public static Gson createGson() {
         return new GsonBuilder()
                 .registerTypeAdapterFactory(new ConfigSerializableAdapterFactory())
+                .registerTypeHierarchyAdapter(Path.class, new TypeAdapter<Path>() {
+                    @Override
+                    public void write(JsonWriter out, Path value) throws IOException {
+                        if (value == null) {
+                            out.nullValue();
+                        } else {
+                            out.value(value.toString());
+                        }
+                    }
+
+                    @Override
+                    public Path read(JsonReader in) throws IOException {
+                        if (in.peek() == JsonToken.NULL) {
+                            in.nextNull();
+                            return null;
+                        }
+                        return Paths.get(in.nextString());
+                    }
+                })
                 .setPrettyPrinting()
                 .create();
     }

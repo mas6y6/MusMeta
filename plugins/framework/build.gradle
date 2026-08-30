@@ -1,0 +1,32 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'com.mas6y6'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+}
+
+dependencies {
+    implementation("org.spongepowered:mixin:$mixin")
+    implementation("org.ow2.asm:asm:$asm")
+    implementation("org.ow2.asm:asm-tree:$asm")
+    implementation("org.ow2.asm:asm-analysis:$asm")
+    implementation("org.ow2.asm:asm-commons:$asm")
+    implementation("org.ow2.asm:asm-util:$asm")
+    implementation("com.google.guava:guava:$guava")
+    implementation("com.google.code.gson:gson:$json")
+    implementation("org.slf4j:slf4j-api:$slf4j")
+}

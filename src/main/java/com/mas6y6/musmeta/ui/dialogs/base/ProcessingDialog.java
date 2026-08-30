@@ -1,5 +1,7 @@
 package com.mas6y6.musmeta.ui.dialogs.base;
 
+import org.jspecify.annotations.Nullable;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -420,7 +422,7 @@ public abstract class ProcessingDialog extends JDialog {
      */
     protected final void updateProgress(
             String status,
-            int percentage,
+            @Nullable Integer percentage,
             String details
     ) {
         SwingUtilities.invokeLater(() -> {
@@ -435,16 +437,21 @@ public abstract class ProcessingDialog extends JDialog {
                 detailLabel.setText(" ");
             }
 
-            if (percentage >= 0 &&
-                    percentage <= 100) {
+            if (percentage != null) {
+                if (percentage >= 0 &&
+                        percentage <= 100) {
 
-                progressBar.setIndeterminate(false);
-                progressBar.setValue(percentage);
-                progressBar.setStringPainted(true);
-                progressBar.setString(
-                        percentage + "%"
-                );
+                    progressBar.setIndeterminate(false);
+                    progressBar.setValue(percentage);
+                    progressBar.setStringPainted(true);
+                    progressBar.setString(
+                            percentage + "%"
+                    );
 
+                } else {
+                    progressBar.setIndeterminate(true);
+                    progressBar.setStringPainted(false);
+                }
             } else {
                 progressBar.setIndeterminate(true);
                 progressBar.setStringPainted(false);

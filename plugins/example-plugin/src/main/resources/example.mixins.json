@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.example.musmeta.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "UtilsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

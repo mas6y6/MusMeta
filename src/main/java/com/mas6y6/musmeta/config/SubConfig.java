@@ -73,7 +73,7 @@ public class SubConfig {
                     configManager.setLoading(wasLoading);
                 }
             } catch (Exception e) {
-                LOGGER.error("Failed to deserialize property '" + key + "' in subconfig '" + name + "': " + e.getMessage());
+                LOGGER.error("Failed to deserialize property '" + key + "' in subconfig '" + name + "': " + e);
             }
         }
         return container;

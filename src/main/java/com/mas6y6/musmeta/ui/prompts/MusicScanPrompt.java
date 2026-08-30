@@ -5,7 +5,6 @@ import com.mas6y6.musmeta.ui.dialogs.MusicScanDialog;
 
 import javax.swing.*;
 import java.awt.*;
-import java.nio.file.Path;
 
 public class MusicScanPrompt extends JDialog {
     private static final Dimension DIALOG_SIZE = new Dimension(480, 500);
@@ -141,7 +140,7 @@ public class MusicScanPrompt extends JDialog {
 
         JButton scanButton = new JButton("Scan");
         scanButton.addActionListener(e -> {
-            var musicScanDialog = new MusicScanDialog(this);
+            var musicScanDialog = new MusicScanDialog(this,useDefaultMusicDir,pathField.getText());
             musicScanDialog.startAndShow();
             this.dispose();
         });

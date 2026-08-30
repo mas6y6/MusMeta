@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.example'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+}
+
+def mixinVersion = providers.gradleProperty('mixin').get()
+def asmVersion = providers.gradleProperty('asm').get()
+def slf4jVersion = providers.gradleProperty('slf4j').get()
+
+dependencies {
+    compileOnly project(':plugins:framework')
+    compileOnly "org.spongepowered:mixin:$mixinVersion"
+    compileOnly "org.ow2.asm:asm:$asmVersion"
+    compileOnly "org.ow2.asm:asm-tree:$asmVersion"
+    compileOnly "org.slf4j:slf4j-api:$slf4jVersion"
+}
+
+jar {
+    archiveBaseName = 'example-plugin'
+    archiveVersion = ''
+}
+
+def pluginsDir = providers.gradleProperty('musmeta.plugins')
+        .orElse("${System.getProperty('user.home')}/.musmeta/plugins")
+        .get()
+
+tasks.register('publishPlugin', Copy) {
+    group = 'plugins'
+    description = 'Copies the built plugin JAR into the MusMeta plugins directory.'
+    dependsOn tasks.named('jar')
+    from(tasks.named('jar'))
+    into(pluginsDir)
+}

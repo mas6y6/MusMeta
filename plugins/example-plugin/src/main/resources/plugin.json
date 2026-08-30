@@ -1,0 +1,14 @@
+{
+  "id": "example-plugin",
+  "name": "Example Plugin",
+  "version": "1.0.0",
+  "description": "Sample MusMeta plugin demonstrating the plugin mixin system.",
+  "authors": [
+    "mas6y6"
+  ],
+  "main": "com.example.musmeta.ExamplePlugin",
+  "mixins": [
+    "example.mixins.json"
+  ],
+  "dependencies": []
+}

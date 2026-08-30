@@ -2,10 +2,15 @@ package com.mas6y6.musmeta.ui;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.util.SystemInfo;
+import com.jthemedetecor.OsThemeDetector;
+import com.mas6y6.musmeta.settings.Settings;
+import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.ui.components.MainAppFrame;
 import com.mas6y6.musmeta.ui.album.AlbumLibraryUI;
 import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
 import com.mas6y6.musmeta.ui.prompts.MusicScanPrompt;
+import com.mas6y6.musmeta.ui.subwindows.AboutWindow;
+import com.mas6y6.musmeta.ui.subwindows.SettingsWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +53,16 @@ public class MainWindow extends MainAppFrame {
         );
     }
 
+    private void applyTitleBarBackground() {
+        Theme theme = Settings.PREFERRED_THEME.get();
+        boolean dark = theme == Theme.DARK
+                || (theme == Theme.SYSTEM && OsThemeDetector.getDetector().isDark());
+        getRootPane().putClientProperty(
+                FlatClientProperties.TITLE_BAR_BACKGROUND,
+                dark ? getBackground().darker() : getBackground()
+        );
+    }
+
     private void initWindow() {
         //region Window Decorations
 
@@ -71,10 +86,15 @@ public class MainWindow extends MainAppFrame {
                 38
         );
 
-        getRootPane().putClientProperty(
-                FlatClientProperties.TITLE_BAR_BACKGROUND,
-                getBackground().darker()
-        );
+        OsThemeDetector.getDetector().registerListener(isDark -> {
+            if (Settings.PREFERRED_THEME.get() == Theme.SYSTEM) {
+                applyTitleBarBackground();
+            }
+        });
+
+        Settings.PREFERRED_THEME.addListener(theme -> applyTitleBarBackground());
+
+        applyTitleBarBackground();
 
         //endregion
 
@@ -97,26 +117,34 @@ public class MainWindow extends MainAppFrame {
 
         // File
 
+        //region File menu
         JMenu fileMenu = new JMenu("File");
 
-        fileMenu.add(
-                new JMenuItem("Open")
-        );
+        // Save button
+        JMenuItem importsongs = new JMenuItem("Import song(s)...");
+        fileMenu.add(importsongs);
 
-        fileMenu.add(
-                new JMenuItem("Save")
+        JMenuItem settings = new JMenuItem("Settings");
+        settings.addActionListener(e ->
+                new SettingsWindow(this).setVisible(true)
         );
+        fileMenu.add(settings);
 
+        // Exit button
         fileMenu.addSeparator();
-
+        JMenuItem aboutItem =
+                new JMenuItem("About");
+        fileMenu.add(aboutItem);
         JMenuItem exitItem =
                 new JMenuItem("Exit");
-
+        fileMenu.add(exitItem);
         exitItem.addActionListener(e ->
                 closeThisWindow()
         );
-
-        fileMenu.add(exitItem);
+        aboutItem.addActionListener(e ->
+                new AboutWindow(this).setVisible(true)
+        );
+        //endregion
 
 
         // Edit

@@ -21,12 +21,12 @@ java {
 }
 
 application {
-    mainClass = 'com.mas6y6.musmeta.Bootstrap'
+    mainClass = 'com.mas6y6.musmeta.launch.Launcher'
 }
 
 idea.project.settings.runConfigurations {
     'App'(Application) {
-        mainClass = 'com.mas6y6.musmeta.Bootstrap'
+        mainClass = 'com.mas6y6.musmeta.launch.Launcher'
         moduleName = project.idea.module.name + '.main'
         programParameters = '--debug'
         jvmArgs = '-Xmx1G'
@@ -40,8 +40,9 @@ repositories {
 }
 
 dependencies {
+    implementation project(':plugins:framework')
+
     implementation("com.google.guava:guava:$guava")
-    implementation("org.spongepowered:mixin:$mixin")
 
     implementation("com.formdev:flatlaf:$flatlaf")
     implementation("com.formdev:flatlaf-extras:$flatlaf")
@@ -53,6 +54,8 @@ dependencies {
     implementation("com.github.Dansoftowner:jSystemThemeDetector:$jSystemThemeDetector")
     implementation("org.jetbrains:annotations:$annotations")
     implementation("info.picocli:picocli:$picocli")
+
+    implementation("com.vladsch.flexmark:flexmark-all:$flexmark")
 
     implementation("org.slf4j:slf4j-api:$slf4j")
     implementation("org.slf4j:slf4j-simple:$slf4j")
@@ -68,7 +71,6 @@ test {
     useJUnitPlatform()
 }
 
-
 // ============================================================
 // Shadow JAR
 // ============================================================
@@ -82,6 +84,7 @@ tasks.named('shadowJar') {
         attributes(
                 'Main-Class': application.mainClass.get()
         )
+        attributes(['Implementation-Version': asm], 'org/objectweb/asm/')
     }
 }
 
@@ -98,6 +101,10 @@ tasks.register('fatJar') {
 
 tasks.named('processResources') {
     filesMatching('musmeta.properties') {
+        expand(version: project.version)
+    }
+
+    filesMatching('about.md') {
         expand(version: project.version)
     }
 }
@@ -152,10 +159,6 @@ runtime {
             'java.prefs',
 
             // Management / monitoring
-            'java.management',
-
-            // Instrumentation / service loading
-            'java.instrument',
             'java.management'
     ])
 
@@ -176,7 +179,7 @@ runtime {
         installerName = 'MusMeta'
 
         mainJar = "MusMeta-${project.version}-all.jar"
-        mainClass = 'com.mas6y6.musmeta.Bootstrap'
+        mainClass = 'com.mas6y6.musmeta.launch.Launcher'
 
         appVersion = project.version.toString()
 

@@ -46,6 +46,8 @@ The user-friendly interface makes it easy for users to edit music file metadata 
 
 [JAudioTagger](https://github.com/RouHim/jaudiotagger)
 
+[flexmark-java](https://github.com/vsch/flexmark-java)
+
 ## Executeables
 
 [FFmpeg](https://www.ffmpeg.org/)

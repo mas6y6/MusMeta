@@ -1,11 +1,16 @@
 package com.mas6y6.musmeta;
 
+import com.mas6y6.musmeta.config.ConfigManager;
+import com.mas6y6.musmeta.plugin.PluginManager;
+import com.mas6y6.musmeta.settings.Settings;
+import com.mas6y6.musmeta.utils.Utils;
 import com.mas6y6.musmeta.utils.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
+import java.io.IOException;
 import java.util.logging.Level;
 
 @Command(
@@ -30,6 +35,15 @@ public class Bootstrap implements Runnable {
             description = "Skip MusMeta bootstrap."
     )
     private boolean skipbootstrap;
+    private final PluginManager pluginManager = new PluginManager(
+            PluginManager.defaultPluginsDirectory()
+    );
+
+    @CommandLine.Option(
+            names = {"--plugins-only","-p"},
+            description = "Boot plugins and exit without starting the application (headless smoke test)."
+    )
+    private boolean pluginsOnly;
 
     @Override
     public void run() {
@@ -45,17 +59,52 @@ public class Bootstrap implements Runnable {
             );
         }
 
+
+
         if (!skipbootstrap) {
             LOGGER.info("Running MusMeta bootstrap...");
+
+            pluginManager.discover();
+            pluginManager.boot();
+
+            // testing
+            if (pluginsOnly) {
+                runPluginsOnlySmokeTest();
+                pluginManager.shutdown();
+                LOGGER.info("Plugins-only smoke test completed.");
+                System.exit(0);
+            }
         }
+
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             LOGGER.info("MusMeta shutdown in progress...");
-            // TODO: when plugin implementation is completed add shutdown hook here
+
+            pluginManager.shutdown();
+
+            if (Settings.SETUP_COMPLETED.get()) {
+                try {
+                    ConfigManager.getInstance().save();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
             LOGGER.info("MusMeta is shutdown completed.");
         }));
 
         Main.main();
+    }
+
+    private void runPluginsOnlySmokeTest() {
+        LOGGER.info("Running plugins-only smoke test...");
+        try {
+            Class.forName("com.mas6y6.musmeta.utils.Utils");
+            boolean isRoot = Utils.isRunningAsRoot();
+            LOGGER.info("Plugin smoke test: Utils.isRunningAsRoot() = {}", isRoot);
+        } catch (ClassNotFoundException e) {
+            LOGGER.error("Plugin smoke test failed: Utils class not found", e);
+        }
     }
 
     public static void main(String[] args) {

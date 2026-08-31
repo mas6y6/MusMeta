@@ -5,6 +5,7 @@ import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.dialogs.FFmpegDownloadDialog;
 import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
+import com.formdev.flatlaf.util.SystemFileChooser;
 
 import javax.swing.*;
 import java.awt.*;
@@ -214,12 +215,12 @@ public class FFmpegSettingsTab extends JPanel {
     }
 
     private void browseForFFmpeg() {
-        JFileChooser chooser = new JFileChooser();
+        SystemFileChooser chooser = new SystemFileChooser();
         chooser.setDialogTitle("Select FFmpeg bin directory");
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setFileSelectionMode(SystemFileChooser.DIRECTORIES_ONLY);
         chooser.setAcceptAllFileFilterUsed(false);
 
-        if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+        if (chooser.showOpenDialog(this) != SystemFileChooser.APPROVE_OPTION) {
             return;
         }
 

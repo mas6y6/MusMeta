@@ -1,5 +1,7 @@
 package com.mas6y6.musmeta.ui.components;
 
+import com.formdev.flatlaf.util.SystemFileChooser;
+
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -51,11 +53,11 @@ public class PathField extends JPanel {
         });
 
         browseButton.addActionListener(e -> {
-            JFileChooser chooser = new JFileChooser();
+            SystemFileChooser chooser = new SystemFileChooser();
 
             chooser.setDialogTitle(dialogTitle);
             chooser.setFileSelectionMode(
-                    JFileChooser.DIRECTORIES_ONLY
+                    SystemFileChooser.DIRECTORIES_ONLY
             );
             chooser.setAcceptAllFileFilterUsed(false);
 
@@ -70,7 +72,7 @@ public class PathField extends JPanel {
 
             int result = chooser.showOpenDialog(parentComponent);
 
-            if (result == JFileChooser.APPROVE_OPTION) {
+            if (result == SystemFileChooser.APPROVE_OPTION) {
                 setPath(
                         chooser.getSelectedFile().getAbsolutePath()
                 );

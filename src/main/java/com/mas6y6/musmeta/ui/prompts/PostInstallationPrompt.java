@@ -4,6 +4,7 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
+import com.formdev.flatlaf.util.SystemFileChooser;
 import com.jthemedetecor.OsThemeDetector;
 import com.mas6y6.musmeta.Main;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
@@ -588,16 +589,16 @@ public class PostInstallationPrompt extends MusMetaFrame {
 
         // Browse button
         browseButton.addActionListener(e -> {
-            JFileChooser chooser = new JFileChooser();
+            SystemFileChooser chooser = new SystemFileChooser();
 
             chooser.setDialogTitle("Select Music Folder");
 
-            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            chooser.setFileSelectionMode(SystemFileChooser.DIRECTORIES_ONLY);
             chooser.setAcceptAllFileFilterUsed(false);
 
             int result = chooser.showOpenDialog(page);
 
-            if (result == JFileChooser.APPROVE_OPTION) {
+            if (result == SystemFileChooser.APPROVE_OPTION) {
                 String selectedPath = chooser.getSelectedFile().getAbsolutePath();
                 musicPathField.setText(selectedPath);
             }
@@ -702,16 +703,16 @@ public class PostInstallationPrompt extends MusMetaFrame {
 
         // Browse button
         browseButton.addActionListener(e -> {
-            JFileChooser chooser = new JFileChooser();
+            SystemFileChooser chooser = new SystemFileChooser();
 
             chooser.setDialogTitle("Select FFmpeg bin directory");
 
-            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            chooser.setFileSelectionMode(SystemFileChooser.DIRECTORIES_ONLY);
             chooser.setAcceptAllFileFilterUsed(false);
 
             int result = chooser.showOpenDialog(page);
 
-            if (result == JFileChooser.APPROVE_OPTION) {
+            if (result == SystemFileChooser.APPROVE_OPTION) {
                 String selectedPath = chooser.getSelectedFile().getAbsolutePath();
                 pathField.setText(selectedPath);
                 ffmpegBinPath = selectedPath;

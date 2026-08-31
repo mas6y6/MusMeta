@@ -4,6 +4,7 @@ import com.mas6y6.musmeta.Main;
 import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
+import com.formdev.flatlaf.util.SystemFileChooser;
 
 import javax.swing.*;
 import java.awt.*;
@@ -93,19 +94,19 @@ public class NewAlbumPrompt extends JDialog {
     }
 
     private void chooseImage() {
-        JFileChooser chooser = new JFileChooser();
+        SystemFileChooser chooser = new SystemFileChooser();
         chooser.setDialogTitle("Select album image");
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        chooser.setFileSelectionMode(SystemFileChooser.FILES_ONLY);
         chooser.setAcceptAllFileFilterUsed(false);
         chooser.setFileFilter(
-                new javax.swing.filechooser.FileNameExtensionFilter(
+                new SystemFileChooser.FileNameExtensionFilter(
                         "Images", "jpg", "jpeg", "png", "gif", "bmp", "webp"
                 )
         );
 
         int result = chooser.showOpenDialog(this);
 
-        if (result == JFileChooser.APPROVE_OPTION) {
+        if (result == SystemFileChooser.APPROVE_OPTION) {
             setImage(chooser.getSelectedFile());
         }
     }

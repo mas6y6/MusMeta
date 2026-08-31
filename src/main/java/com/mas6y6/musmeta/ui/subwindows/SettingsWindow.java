@@ -4,6 +4,7 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
+import com.formdev.flatlaf.util.SystemFileChooser;
 import com.jthemedetecor.OsThemeDetector;
 import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.settings.Settings;
@@ -261,13 +262,13 @@ public class SettingsWindow extends JDialog {
         JButton browseButton = new JButton("+ Browse...");
 
         browseButton.addActionListener(e -> {
-            JFileChooser chooser = new JFileChooser();
+            SystemFileChooser chooser = new SystemFileChooser();
 
             chooser.setDialogTitle("Select ignored directory");
-            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            chooser.setFileSelectionMode(SystemFileChooser.DIRECTORIES_ONLY);
             chooser.setAcceptAllFileFilterUsed(false);
 
-            if (chooser.showOpenDialog(table) == JFileChooser.APPROVE_OPTION) {
+            if (chooser.showOpenDialog(table) == SystemFileChooser.APPROVE_OPTION) {
                 Path path = chooser.getSelectedFile()
                         .toPath()
                         .toAbsolutePath()

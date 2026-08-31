@@ -2,6 +2,7 @@ package com.mas6y6.musmeta.ui.prompts;
 
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.dialogs.MusicScanDialog;
+import com.formdev.flatlaf.util.SystemFileChooser;
 
 import javax.swing.*;
 import java.awt.*;
@@ -97,15 +98,15 @@ public class MusicScanPrompt extends JDialog {
         var browseButton = new JButton("Browse...");
 
         browseButton.addActionListener(e -> {
-            JFileChooser chooser = new JFileChooser();
+            SystemFileChooser chooser = new SystemFileChooser();
 
             chooser.setDialogTitle("Select music directory");
-            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            chooser.setFileSelectionMode(SystemFileChooser.DIRECTORIES_ONLY);
             chooser.setAcceptAllFileFilterUsed(false);
 
             int result = chooser.showOpenDialog(this);
 
-            if (result == JFileChooser.APPROVE_OPTION) {
+            if (result == SystemFileChooser.APPROVE_OPTION) {
                 pathField.setText(
                         chooser.getSelectedFile().getAbsolutePath()
                 );

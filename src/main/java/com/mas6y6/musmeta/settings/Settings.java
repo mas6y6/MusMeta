@@ -46,6 +46,12 @@ public class Settings {
             ConfigManager.getInstance().getConfig("app").register("music_scan_ignore_paths", List.of(),
                     new TypeToken<List<Path>>() {});
 
+    public static ConfigContainer<String> AUDIO_TARGET_FORMAT =
+            ConfigManager.getInstance().getConfig("app").register("audio_target_format", "flac");
+
+    public static ConfigContainer<Integer> FFMPEG_CONVERSION_THREADS =
+            ConfigManager.getInstance().getConfig("app").register("ffmpeg_conversion_threads", 1);
+
     private Settings() {}
 
     public static void registerConfigs() {

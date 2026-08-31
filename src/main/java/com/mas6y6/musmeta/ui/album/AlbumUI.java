@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.util.Objects;
 
 public class AlbumUI extends JPanel {
@@ -18,7 +19,7 @@ public class AlbumUI extends JPanel {
     private final JLabel title;
     private final JLabel artist;
 
-    public AlbumUI(String album, String artist) {
+    public AlbumUI(String album, String artist, Image artworkImage) {
         super(new BorderLayout(0, 6));
 
         setOpaque(false);
@@ -72,21 +73,9 @@ public class AlbumUI extends JPanel {
         addMouseListener(mouseAdapter);
 
         // Artwork
-        ImageIcon originalIcon = new ImageIcon(
-                Objects.requireNonNull(
-                        getClass().getResource("/testalbum.jpg")
-                )
-        );
-
-        Image scaledImage = originalIcon.getImage()
-                .getScaledInstance(
-                        ARTWORK_SIZE,
-                        ARTWORK_SIZE,
-                        Image.SCALE_SMOOTH
-                );
 
         artwork = new AlbumArtwork(
-                new ImageIcon(scaledImage),
+                new ImageIcon(prepareArtwork(artworkImage)),
                 10
         );
 
@@ -199,5 +188,58 @@ public class AlbumUI extends JPanel {
             this.hovered = hovered;
             repaint();
         }
+    }
+
+    private static BufferedImage prepareArtwork(Image image) {
+        if (image == null) {
+            image = new ImageIcon(
+                    Objects.requireNonNull(
+                            AlbumUI.class.getResource("/placeholder_album.png")
+                    )
+            ).getImage();
+        }
+
+        int width = image.getWidth(null);
+        int height = image.getHeight(null);
+        int size = Math.min(width, height);
+
+        BufferedImage result = new BufferedImage(
+                ARTWORK_SIZE,
+                ARTWORK_SIZE,
+                BufferedImage.TYPE_INT_ARGB
+        );
+
+        Graphics2D g2 = result.createGraphics();
+
+        try {
+            g2.setRenderingHint(
+                    RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BICUBIC
+            );
+            g2.setRenderingHint(
+                    RenderingHints.KEY_RENDERING,
+                    RenderingHints.VALUE_RENDER_QUALITY
+            );
+
+            int x = (width - size) / 2;
+            int y = (height - size) / 2;
+
+            g2.drawImage(
+                    image,
+                    0,
+                    0,
+                    ARTWORK_SIZE,
+                    ARTWORK_SIZE,
+                    x,
+                    y,
+                    x + size,
+                    y + size,
+                    null
+            );
+        } finally {
+            g2.dispose();
+        }
+
+        return result;
     }
 }

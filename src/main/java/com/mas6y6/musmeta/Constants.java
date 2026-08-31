@@ -15,7 +15,6 @@ public class Constants {
     ).getImage();
 
     public static final Set<String> MUSIC_EXTENSIONS = Set.of(
-            "mp3", "flac", "m4a", "mp4", "ogg", "opus",
-            "wav", "aiff", "aif", "ape", "wv", "tta"
+            "mp3", "flac", "m4a", "ogg", "opus", "wav", "aiff", "aif", "ape", "wv", "tta"
     );
 }

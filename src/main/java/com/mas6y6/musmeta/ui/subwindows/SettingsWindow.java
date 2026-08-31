@@ -9,6 +9,8 @@ import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.ui.components.PathField;
+import com.mas6y6.musmeta.ui.subwindows.settings.FFmpegSettingsTab;
+import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +43,7 @@ public class SettingsWindow extends JDialog {
 
         tabs.addTab("Appearance", appearanceTab());
         tabs.addTab("Music", musicTab());
+        tabs.addTab("FFmpeg", ffmpegTab());
 
         Registries.SETTING_TABS.getAll().forEach(tab -> {
             if (tab.getValue().icon() != null) {
@@ -165,6 +168,29 @@ public class SettingsWindow extends JDialog {
         content.add(separator);
 
         content.add(Box.createVerticalStrut(10));
+        content.add(new JLabel("Target format for auto-conversion during scan"));
+        content.add(Box.createVerticalStrut(10));
+
+        List<AlbumFormatNormalizer.AudioFormat> formats = AlbumFormatNormalizer.allFormats();
+        JComboBox<AlbumFormatNormalizer.AudioFormat> formatPicker =
+                new JComboBox<>(formats.toArray(new AlbumFormatNormalizer.AudioFormat[0]));
+        formatPicker.setAlignmentX(Component.LEFT_ALIGNMENT);
+        formatPicker.setSelectedItem(
+                AlbumFormatNormalizer.fromSetting(Settings.AUDIO_TARGET_FORMAT.get())
+        );
+        formatPicker.addActionListener(e -> {
+            Object selected = formatPicker.getSelectedItem();
+            if (selected instanceof AlbumFormatNormalizer.AudioFormat format) {
+                Settings.AUDIO_TARGET_FORMAT.set(format.extension());
+            }
+        });
+        content.add(formatPicker);
+
+        content.add(Box.createVerticalStrut(10));
+        content.add(new JLabel("Incompatible songs are converted into <music directory>/MusMeta."));
+        content.add(Box.createVerticalStrut(10));
+
+        content.add(Box.createVerticalStrut(10));
         content.add(new JLabel("Ignored paths for music scan"));
         content.add(Box.createVerticalStrut(10));
 
@@ -287,5 +313,9 @@ public class SettingsWindow extends JDialog {
         page.add(content, BorderLayout.NORTH);
 
         return page;
+    }
+
+    private JPanel ffmpegTab() {
+        return new FFmpegSettingsTab();
     }
 }

@@ -3,6 +3,11 @@ package com.mas6y6.musmeta.core;
 import com.mas6y6.musmeta.Constants;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.CannotReadVideoException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
+import org.jaudiotagger.tag.TagException;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 
@@ -56,6 +61,8 @@ public class Core {
                 .toAbsolutePath()
                 .normalize();
 
+        Path musMetaDirectory = musicDirectory.resolve("MusMeta");
+
         ArrayList<Song> musicFiles = new ArrayList<>();
         ArrayList<UntaggedSong> untaggedSongs = new ArrayList<>();
 
@@ -72,6 +79,11 @@ public class Core {
                         return FileVisitResult.SKIP_SUBTREE;
                     }
 
+                    if (dir.toAbsolutePath().normalize().equals(musMetaDirectory)) {
+                        LOGGER.info("Skipping already-converted MusMeta directory: {}", dir);
+                        return FileVisitResult.SKIP_SUBTREE;
+                    }
+
                     return FileVisitResult.CONTINUE;
                 }
 
@@ -85,8 +97,8 @@ public class Core {
                     }
 
                     String extension = com.google.common.io.Files.getFileExtension(file.toString()).toLowerCase(Locale.ROOT);
-                    try {
-                        if (Constants.MUSIC_EXTENSIONS.contains(extension)) {
+                    if (Constants.MUSIC_EXTENSIONS.contains(extension)) {
+                        try {
                             AudioFile audioFile = AudioFileIO.read(file.toFile());
 
                             if (audioFile.getTag() == null) {
@@ -96,9 +108,16 @@ public class Core {
                             }
 
                             LOGGER.info("Processing file: {}", file);
+                        } catch (CannotReadVideoException e) {
+                            // Container holds a video track (e.g. MP4/M4A/OGG video) -> not audio-only.
+                            LOGGER.warn("Skipping video file (not audio-only): {}", file);
+                        } catch (CannotReadException e) {
+                            // File could not be parsed as audio (e.g. broken or video-only container).
+                            LOGGER.warn("Skipping file that cannot be read as audio: {} ({})", file, e.getMessage());
+                        } catch (IOException | TagException | ReadOnlyFileException |
+                                 InvalidAudioFrameException e) {
+                            LOGGER.error("Error processing file: {}", file, e);
                         }
-                    } catch (Exception e) {
-                        LOGGER.error("Error processing file: {}", file, e);
                     }
 
                     return FileVisitResult.CONTINUE;

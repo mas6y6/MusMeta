@@ -3,10 +3,11 @@ package com.mas6y6.musmeta.ui;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.util.SystemInfo;
 import com.jthemedetecor.OsThemeDetector;
+import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.ui.components.MainAppFrame;
-import com.mas6y6.musmeta.ui.album.AlbumLibraryUI;
+import com.mas6y6.musmeta.ui.album.LibraryUI;
 import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
 import com.mas6y6.musmeta.ui.prompts.MusicScanPrompt;
 import com.mas6y6.musmeta.ui.subwindows.AboutWindow;
@@ -175,6 +176,8 @@ public class MainWindow extends MainAppFrame {
         menuBar.add(libraryMenu);
         menuBar.add(viewMenu);
 
+        Registries.MENU_ITEMS.getAll().forEach(e -> menuBar.add(e.getValue()));
+
         /*
          * This is what tells Swing/FlatLaf that this is
          * the window's menu bar.
@@ -213,7 +216,7 @@ public class MainWindow extends MainAppFrame {
 
         tabs.addTab(
                 "Library",
-                new AlbumLibraryUI()
+                new LibraryUI()
         );
 
         add(

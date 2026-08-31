@@ -1,6 +1,8 @@
 package com.mas6y6.musmeta.ui.dialogs.base;
 
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,6 +10,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 public abstract class ProcessingDialog extends JDialog {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProcessingDialog.class.getName());
 
     public enum ProgressMode {
         INDETERMINATE,
@@ -279,6 +282,7 @@ public abstract class ProcessingDialog extends JDialog {
             cancelled = true;
             Thread.currentThread().interrupt();
         } catch (Exception e) {
+            LOGGER.error("Error processing files", e);
             errorMessage =
                     e.getMessage() != null
                             ? e.getMessage()

@@ -1,6 +1,8 @@
 package com.mas6y6.musmeta.ui.dialogs.base;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.mas6y6.musmeta.settings.Settings;
+import com.mas6y6.musmeta.settings.Theme;
 
 import javax.swing.*;
 import java.awt.*;
@@ -80,7 +82,9 @@ public class EXTDialog extends JOptionPane {
         //TODO: remove dialog titlebar
 
         dialog.getRootPane().putClientProperty(FlatClientProperties.USE_WINDOW_DECORATIONS, true);
-        dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_BACKGROUND, dialog.getBackground().darker());
+        if (Settings.PREFERRED_THEME.get() == Theme.DARK) {
+            dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_BACKGROUND, dialog.getBackground().darker());
+        }
         dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_CLOSE, false);
         dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_MAXIMIZE, false);
         dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_ICONIFFY, false);

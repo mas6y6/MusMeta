@@ -3,10 +3,7 @@ package com.mas6y6.musmeta.core;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.mas6y6.musmeta.config.ConfigBuilder;
-import com.mas6y6.musmeta.config.ConfigCodec;
-import com.mas6y6.musmeta.config.ConfigManager;
-import com.mas6y6.musmeta.config.SubConfig;
+import com.mas6y6.musmeta.config.*;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.slf4j.Logger;
 
@@ -47,6 +44,12 @@ public class Library {
 
     private static final Library INSTANCE = new Library();
 
+    static {
+        ensureRegistered();
+    }
+
+    public static final ConfigContainer<Library> CONFIG = ConfigManager.getInstance().getConfig(CONFIG_NAME).getContainer(CONFIG_KEY);
+
     private Library() {
     }
 
@@ -58,6 +61,14 @@ public class Library {
         return albums.stream()
                 .sorted(Comparator.comparing(Album::getTitle, String.CASE_INSENSITIVE_ORDER))
                 .toList();
+    }
+
+    public Map<String, Album> getAlbumsByTitle() {
+        return Map.copyOf(albumsByTitle);
+    }
+
+    public boolean containsAlbum(String title) {
+        return albumsByTitle.containsKey(title);
     }
 
     public List<Song> getSongs() {
@@ -103,7 +114,11 @@ public class Library {
         }
     }
 
-    private void registerAlbum(Album album) {
+    public void registerAlbum(Album album) {
+        if (albumsByTitle.containsKey(album.getTitle())) {
+            throw new IllegalArgumentException("Album with title '" + album.getTitle() + "' already exists");
+        }
+
         albumsByTitle.put(album.getTitle(), album);
         albums.add(album);
     }
@@ -114,6 +129,11 @@ public class Library {
         for (Album album : library.getAlbums()) {
             JsonObject albumObject = new JsonObject();
             albumObject.addProperty("title", album.getTitle());
+
+            Path artworkPath = album.getArtworkPath();
+            if (artworkPath != null) {
+                albumObject.addProperty("artworkPath", artworkPath.toString());
+            }
 
             JsonArray discsArray = new JsonArray();
             for (Disc disc : album.getDiscs()) {
@@ -153,7 +173,16 @@ public class Library {
             String title = albumObject.has("title")
                     ? albumObject.get("title").getAsString()
                     : "Unknown Album";
-            Album album = new Album(title);
+
+            Path artworkPath = null;
+            if (albumObject.has("artworkPath")) {
+                String raw = albumObject.get("artworkPath").getAsString();
+                if (raw != null && !raw.isBlank()) {
+                    artworkPath = Path.of(raw);
+                }
+            }
+
+            Album album = new Album(title, artworkPath);
 
             JsonElement discsElement = albumObject.get("discs");
             if (discsElement != null && discsElement.isJsonArray()) {
@@ -197,6 +226,8 @@ public class Library {
             return null;
         }
     }
+
+
 
     /**
      * Persists the library to the config through the registered codec.

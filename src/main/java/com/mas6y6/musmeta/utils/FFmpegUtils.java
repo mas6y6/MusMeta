@@ -740,7 +740,7 @@ public class FFmpegUtils {
                     } else {
                         detail = String.format(Locale.US, "%.1f MB downloaded", totalBytesRead / (1024.0 * 1024.0));
                     }
-                    LOGGER.info("Downloading FFmpeg...", percent, detail);
+                    LOGGER.info("Downloading FFmpeg... {} {}", percent, detail);
                     listener.onProgress("Downloading FFmpeg...", percent, detail);
                 }
             }

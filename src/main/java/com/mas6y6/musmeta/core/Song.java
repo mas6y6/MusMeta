@@ -64,8 +64,13 @@ public class Song {
         if (tag == null) {
             return fallback;
         }
-        String value = tag.getFirst(key);
-        return value == null || value.isBlank() ? fallback : value.trim();
+        try {
+            String value = tag.getFirst(key);
+            return value == null || value.isBlank() ? fallback : value.trim();
+        } catch (UnsupportedOperationException e) {
+            // Some tag types (e.g. WAV Info tags) do not support every field key.
+            return fallback;
+        }
     }
 
     private static int positiveNumber(String value, int fallback) {

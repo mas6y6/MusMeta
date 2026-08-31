@@ -1,5 +1,7 @@
 package com.mas6y6.musmeta.ui.album;
 
+import com.mas6y6.musmeta.core.Album;
+import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 
 import javax.swing.*;
@@ -15,12 +17,19 @@ public class AlbumUI extends JPanel {
     private static final Color HOVER_TINT = new Color(255, 255, 255, 70);
     private static final int HOVER_PADDING = 20;
 
+    private final Album album;
     private final AlbumArtwork artwork;
     private final JLabel title;
     private final JLabel artist;
 
-    public AlbumUI(String album, String artist, Image artworkImage) {
+    public AlbumUI(Album album, Image artworkImage) {
         super(new BorderLayout(0, 6));
+        this.album = album;
+
+        String artist = album.getArtist();
+        if (album.hasDiscs()) {
+            artist = artist + "  •  " + album.getDiscs().size() + " discs";
+        }
 
         setOpaque(false);
 
@@ -65,7 +74,7 @@ public class AlbumUI extends JPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
-                    // TODO: openAlbum();
+                    MainWindow.INSTANCE.openAlbumTab(album);
                 }
             }
         };
@@ -103,7 +112,7 @@ public class AlbumUI extends JPanel {
         );
 
         // Album title
-        title = new JLabel(album);
+        title = new JLabel(album.getTitle());
 
         title.setAlignmentX(
                 Component.LEFT_ALIGNMENT
@@ -204,8 +213,8 @@ public class AlbumUI extends JPanel {
         int size = Math.min(width, height);
 
         BufferedImage result = new BufferedImage(
-                ARTWORK_SIZE,
-                ARTWORK_SIZE,
+                500,
+                500,
                 BufferedImage.TYPE_INT_ARGB
         );
 

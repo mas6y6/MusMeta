@@ -157,13 +157,7 @@ public final class AlbumFormatNormalizer {
         return List.of(AudioFormat.values());
     }
 
-    /**
-     * Callback that reports per-file conversion progress.
-     *
-     * @param completed number of files already processed (converted or failed)
-     * @param total     total number of incompatible files to process
-     * @param details   the file currently being processed
-     */
+
     @FunctionalInterface
     public interface ConversionProgress {
         void update(int completed, int total, String details);

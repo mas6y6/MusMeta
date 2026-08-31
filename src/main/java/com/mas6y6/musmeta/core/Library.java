@@ -59,7 +59,9 @@ public class Library {
 
     public List<Album> getAlbums() {
         return albums.stream()
-                .sorted(Comparator.comparing(Album::getTitle, String.CASE_INSENSITIVE_ORDER))
+                .sorted(Comparator
+                        .comparingLong(Album::getCreatedAt).reversed()
+                        .thenComparing(Album::getTitle, String.CASE_INSENSITIVE_ORDER))
                 .toList();
     }
 
@@ -129,6 +131,7 @@ public class Library {
         for (Album album : library.getAlbums()) {
             JsonObject albumObject = new JsonObject();
             albumObject.addProperty("title", album.getTitle());
+            albumObject.addProperty("createdAt", album.getCreatedAt());
 
             Path artworkPath = album.getArtworkPath();
             if (artworkPath != null) {
@@ -182,7 +185,11 @@ public class Library {
                 }
             }
 
-            Album album = new Album(title, artworkPath);
+            long createdAt = albumObject.has("createdAt")
+                    ? albumObject.get("createdAt").getAsLong()
+                    : System.currentTimeMillis();
+
+            Album album = new Album(title, artworkPath, createdAt);
 
             JsonElement discsElement = albumObject.get("discs");
             if (discsElement != null && discsElement.isJsonArray()) {

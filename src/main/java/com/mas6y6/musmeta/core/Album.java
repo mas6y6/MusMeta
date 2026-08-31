@@ -1,5 +1,6 @@
 package com.mas6y6.musmeta.core;
 
+import com.mas6y6.musmeta.Main;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.images.Artwork;
 
@@ -16,13 +17,15 @@ import java.util.Objects;
 
 public class Album {
     private static final String UNKNOWN_ARTIST = "Unknown Artist";
+    private static final String ARTWORK_DIR = "album_art";
 
     private final String title;
-    private final Path artworkPath;
+    private Path artworkPath;
+    private final long createdAt;
     private final ArrayList<Disc> discs = new ArrayList<>();
 
     public Album(String title) {
-        this(title, null);
+        this(title, null, System.currentTimeMillis());
     }
 
     /**
@@ -32,8 +35,20 @@ public class Album {
      * @param artworkPath path to a stored artwork image, or {@code null} if none
      */
     public Album(String title, Path artworkPath) {
+        this(title, artworkPath, System.currentTimeMillis());
+    }
+
+    /**
+     * Creates an album with an optional stored artwork image and creation time.
+     *
+     * @param title       the album title (must not be null)
+     * @param artworkPath path to a stored artwork image, or {@code null} if none
+     * @param createdAt   creation timestamp (epoch millis), used to order albums
+     */
+    public Album(String title, Path artworkPath, long createdAt) {
         this.title = Objects.requireNonNull(title, "Album title cannot be null");
         this.artworkPath = artworkPath;
+        this.createdAt = createdAt;
     }
 
     public String getTitle() {
@@ -45,6 +60,13 @@ public class Album {
      */
     public Path getArtworkPath() {
         return artworkPath;
+    }
+
+    /**
+     * @return this album's creation timestamp (epoch millis)
+     */
+    public long getCreatedAt() {
+        return createdAt;
     }
 
     /**
@@ -88,9 +110,11 @@ public class Album {
     }
 
     /**
-     * Returns the album's artwork: the stored artwork image if one is set,
-     * otherwise the embedded artwork found in the album's songs, or
-     * {@code null} if neither is available.
+     * Returns the album's artwork: the stored (cached) artwork image if one is
+     * set, otherwise the embedded artwork found in the album's songs. The first
+     * time embedded artwork is found it is written to the {@code .musmeta}
+     * folder so later lookups read it straight from disk and never re-decode
+     * the audio tags. Returns {@code null} if no usable artwork exists.
      */
     public Image getArtworkImage() {
         if (artworkPath != null && Files.isRegularFile(artworkPath)) {
@@ -123,6 +147,7 @@ public class Album {
 
                 Image image = ImageIO.read(new ByteArrayInputStream(data));
                 if (image != null) {
+                    cacheArtwork(data);
                     return image;
                 }
             } catch (UnsupportedOperationException | IOException ignored) {
@@ -130,6 +155,34 @@ public class Album {
             }
         }
         return null;
+    }
+
+    /**
+     * Persists the raw artwork bytes to {@code ~/.musmeta/album_art/<title>.png}
+     * and points this album at the cached file, so the embedded art is decoded
+     * only once. The image itself is not validated here; callers pass the bytes
+     * of artwork they have already decoded successfully.
+     */
+    private void cacheArtwork(byte[] data) {
+        try {
+            Path artDir = Main.appDir.resolve(ARTWORK_DIR);
+            Files.createDirectories(artDir);
+
+            Path cached = artDir.resolve(fileSafe(title) + ".png");
+            Files.write(cached, data);
+
+            artworkPath = cached;
+            Library.getInstance().save();
+        } catch (IOException | RuntimeException ignored) {
+            // Caching is best-effort; artwork is still returned from memory.
+        }
+    }
+
+    private static String fileSafe(String name) {
+        String sanitized = name
+                .replaceAll("[\\\\/:*?\"<>|]", "_")
+                .trim();
+        return sanitized.isBlank() ? "album" : sanitized;
     }
 
     /**

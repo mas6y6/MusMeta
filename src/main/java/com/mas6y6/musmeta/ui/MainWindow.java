@@ -7,6 +7,8 @@ import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.ui.components.MainAppFrame;
+import com.mas6y6.musmeta.core.Album;
+import com.mas6y6.musmeta.ui.tabs.AlbumDetailUI;
 import com.mas6y6.musmeta.ui.album.LibraryUI;
 import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
 import com.mas6y6.musmeta.ui.prompts.MusicScanPrompt;
@@ -52,6 +54,22 @@ public class MainWindow extends MainAppFrame {
                 "Confirmation",
                 JOptionPane.YES_NO_OPTION
         );
+    }
+
+    /**
+     * Opens the given album in an iTunes-style detail tab, or activates the
+     * existing tab for that album if it is already open.
+     */
+    public void openAlbumTab(Album album) {
+        SwingUtilities.invokeLater(() -> {
+            int index = tabs.indexOfTab(album.getTitle());
+            if (index >= 0) {
+                tabs.setSelectedIndex(index);
+                return;
+            }
+            tabs.addTab(album.getTitle(), new AlbumDetailUI(album));
+            tabs.setSelectedIndex(tabs.getTabCount() - 1);
+        });
     }
 
     private void applyTitleBarBackground() {
@@ -212,6 +230,10 @@ public class MainWindow extends MainAppFrame {
                                 tabbedPane.removeTabAt(tabIndex);
                             }
                         }
+        );
+
+        tabs.setTabLayoutPolicy(
+                JTabbedPane.SCROLL_TAB_LAYOUT
         );
 
         tabs.addTab(

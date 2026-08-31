@@ -46,7 +46,9 @@ public class LibraryUI extends JScrollPane {
 
         getVerticalScrollBar().setUnitIncrement(16);
 
-        Library.CONFIG.addListener(e -> refresh());
+        Library.CONFIG.addListener(e ->
+                SwingUtilities.invokeLater(this::refresh)
+        );
 
         refresh();
     }
@@ -65,11 +67,7 @@ public class LibraryUI extends JScrollPane {
     }
 
     private Component albumCard(Album album) {
-        String artist = album.getArtist();
-        if (album.hasDiscs()) {
-            artist = artist + "  •  " + album.getDiscs().size() + " discs";
-        }
-        return new AlbumUI(album.getTitle(), artist, album.getArtworkImage());
+        return new AlbumUI(album, album.getArtworkImage());
     }
 
     /**

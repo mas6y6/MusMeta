@@ -9,7 +9,6 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,12 +36,10 @@ public class AlbumDetailUI extends JPanel {
         JPanel header = new JPanel(new BorderLayout(24, 0));
         header.setOpaque(false);
 
-        AlbumArtwork artwork = new AlbumArtwork(
-                prepareArtwork(),
-                12
-        );
+        AlbumArtwork artwork = new AlbumArtwork(12);
         artwork.setPreferredSize(new Dimension(ARTWORK_SIZE, ARTWORK_SIZE));
         artwork.setMaximumSize(artwork.getPreferredSize());
+        artwork.setArtwork(album.getArtworkImage());
         header.add(artwork, BorderLayout.WEST);
 
         // Metadata column
@@ -174,69 +171,6 @@ public class AlbumDetailUI extends JPanel {
         int minutes = seconds / 60;
         int sec = seconds % 60;
         return minutes + ":" + (sec < 10 ? "0" : "") + sec;
-    }
-
-    private ImageIcon prepareArtwork() {
-        Image image = album.getArtworkImage();
-        if (image == null) {
-            return null;
-        }
-        return new ImageIcon(centerCrop(image, ARTWORK_SIZE));
-    }
-
-    /**
-     * Center-crops the source to a square and scales it down (never up beyond
-     * the original's smaller dimension) to the given size using bicubic
-     * interpolation, preserving as much detail as the source provides.
-     */
-    private static BufferedImage centerCrop(Image image, int size) {
-        int width = image.getWidth(null);
-        int height = image.getHeight(null);
-        if (width <= 0 || height <= 0) {
-            return null;
-        }
-
-        int side = Math.min(width, height);
-        int sx = (width - side) / 2;
-        int sy = (height - side) / 2;
-
-        BufferedImage out = new BufferedImage(
-                size,
-                size,
-                BufferedImage.TYPE_INT_ARGB
-        );
-
-        Graphics2D g2 = out.createGraphics();
-        try {
-            g2.setRenderingHint(
-                    RenderingHints.KEY_INTERPOLATION,
-                    RenderingHints.VALUE_INTERPOLATION_BICUBIC
-            );
-            g2.setRenderingHint(
-                    RenderingHints.KEY_RENDERING,
-                    RenderingHints.VALUE_RENDER_QUALITY
-            );
-            g2.setRenderingHint(
-                    RenderingHints.KEY_ANTIALIASING,
-                    RenderingHints.VALUE_ANTIALIAS_ON
-            );
-            g2.drawImage(
-                    image,
-                    0,
-                    0,
-                    size,
-                    size,
-                    sx,
-                    sy,
-                    sx + side,
-                    sy + side,
-                    null
-            );
-        } finally {
-            g2.dispose();
-        }
-
-        return out;
     }
 
     /**

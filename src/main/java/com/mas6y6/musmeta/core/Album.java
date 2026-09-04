@@ -22,6 +22,7 @@ public class Album {
     private final String title;
     private Path artworkPath;
     private final long createdAt;
+    private boolean unknown;
     private final ArrayList<Disc> discs = new ArrayList<>();
 
     public Album(String title) {
@@ -67,6 +68,18 @@ public class Album {
      */
     public long getCreatedAt() {
         return createdAt;
+    }
+
+    /**
+     * @return {@code true} if this is the special "Unknown Songs" album used to
+     *         hold songs that do not declare an album title
+     */
+    public boolean isUnknown() {
+        return unknown;
+    }
+
+    void setUnknown(boolean unknown) {
+        this.unknown = unknown;
     }
 
     /**

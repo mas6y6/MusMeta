@@ -70,11 +70,6 @@ public class LibraryUI extends JScrollPane {
         return new AlbumUI(album, album.getArtworkImage());
     }
 
-    /**
-     * A simple left-aligned, top-aligned layout that wraps components to the
-     * container's width and reports a correct preferred size so the enclosing
-     * {@link JScrollPane} scrolls vertically when the content overflows.
-     */
     private static final class WrapLayout implements LayoutManager {
 
         @Override

@@ -6,6 +6,7 @@ import org.jaudiotagger.tag.Tag;
 
 public class Song {
     private static final String UNKNOWN_ARTIST = "Unknown Artist";
+    public static final String UNKNOWN_ALBUM = "Unknown Album";
 
     private AudioFile audioFile;
 
@@ -39,7 +40,7 @@ public class Song {
     }
 
     public String getAlbum() {
-        return tagFirst(FieldKey.ALBUM, "Unknown Album");
+        return tagFirst(FieldKey.ALBUM, UNKNOWN_ALBUM);
     }
 
     public int getDiscNumber() {

@@ -29,6 +29,8 @@ public class FFmpegUtils {
             "https://api.github.com/repos/GyanD/codexffmpeg/releases/latest";
     private static final String MACOS_URL =
             "https://evermeet.cx/ffmpeg/getrelease/zip";
+    private static final String FFMPEG_STATIC_GITHUB_API =
+            "https://api.github.com/repos/eugeneware/ffmpeg-static/releases/latest";
 
     /**
      * Returns the Path to the FFmpeg executable.
@@ -232,7 +234,7 @@ public class FFmpegUtils {
         }
         LOGGER.info("Getting latest FFmpeg release...");
 
-        GithubRelease release = getLatestFFmpegRelease();
+        GithubRelease release = getLatestRelease(GITHUB_API);
 
         LOGGER.info(
                 "Latest FFmpeg: " + release.tag_name()
@@ -547,6 +549,18 @@ public class FFmpegUtils {
             return setupLinuxInstallationDir(installationDir, existingExec);
         }
 
+        // Prefer a self-contained static FFmpeg binary downloaded into the app
+        // folder (no root/sudo required). Fall back to the package manager if
+        // the download fails or no binary exists for this architecture.
+        try {
+            return installLinuxBinaryFFmpeg(installationDir, listener);
+        } catch (Exception e) {
+            LOGGER.warn(
+                    "Direct FFmpeg binary download failed, falling back to package manager: "
+                            + e.getMessage()
+            );
+        }
+
         LOGGER.warn("FFmpeg not found. Attempting to install via package manager...");
 
         List<LinuxPackageManager> packageManagers = getSupportedLinuxPackageManagers();
@@ -640,6 +654,120 @@ public class FFmpegUtils {
             listener.onProgress("FFmpeg installation complete!", 100, "");
         }
         return setupLinuxInstallationDir(installationDir, installedExec);
+    }
+
+    /**
+     * Downloads a self-contained, statically linked FFmpeg binary for the
+     * current Linux architecture (no root/sudo required) and places it in the
+     * application's installation directory. Supports x86_64, arm64, arm and
+     * x86 (ia32). Throws if no binary is available for the architecture or the
+     * download/validation fails, so callers can fall back to a package manager.
+     */
+    private static boolean installLinuxBinaryFFmpeg(
+            Path installationDir,
+            InstallProgressListener listener
+    ) throws IOException, InterruptedException {
+
+        String assetName = linuxBinaryAssetName();
+        if (assetName == null) {
+            throw new IOException(
+                    "No self-contained FFmpeg download is available for this CPU architecture: "
+                            + System.getProperty("os.arch")
+            );
+        }
+
+        if (listener != null) {
+            listener.onProgress("Checking latest FFmpeg release...", -1, "Querying GitHub API");
+        }
+        LOGGER.info("Getting latest FFmpeg release...");
+
+        GithubRelease release = getLatestRelease(FFMPEG_STATIC_GITHUB_API);
+        GithubAsset asset = Arrays.stream(release.assets())
+                .filter(a -> a.name().equals(assetName))
+                .findFirst()
+                .orElseThrow(() ->
+                        new IOException(
+                                "Could not find " + assetName + " in the FFmpeg release."
+                        )
+                );
+
+        if (listener != null) {
+            listener.onProgress("Downloading FFmpeg...", -1, "Fetching static binary");
+        }
+        LOGGER.info("Downloading: " + asset.browser_download_url());
+
+        Path dir = installationDir.resolve("ffmpeg");
+        Files.createDirectories(dir);
+
+        Path executable = dir.resolve("ffmpeg");
+        try {
+            downloadFFmpeg(
+                    asset.browser_download_url(),
+                    executable,
+                    listener
+            );
+        } catch (Exception e) {
+            Files.deleteIfExists(executable);
+            throw e;
+        }
+
+        try {
+            Files.setPosixFilePermissions(
+                    executable,
+                    PosixFilePermissions.fromString("rwxr-xr-x")
+            );
+        } catch (UnsupportedOperationException ignored) {
+            // Shouldn't happen on normal Linux filesystems; don't fail if unsupported.
+        }
+
+        if (listener != null) {
+            listener.onProgress("Validating FFmpeg binary...", -1, "Checking executable");
+        }
+        if (!validateFFmpeg(executable)) {
+            Files.deleteIfExists(executable);
+            throw new IOException(
+                    "Downloaded FFmpeg failed validation."
+            );
+        }
+
+        LOGGER.info("FFmpeg executable: " + executable);
+        Settings.FFMPEG_INSTALLATION_PATH.set(String.valueOf(executable));
+
+        if (listener != null) {
+            listener.onProgress("FFmpeg installation complete!", 100, "");
+        }
+
+        return true;
+    }
+
+    /**
+     * Maps the current CPU architecture to the matching static FFmpeg binary
+     * asset name hosted by the ffmpeg-static project, or {@code null} if no
+     * binary is available for this architecture.
+     */
+    private static String linuxBinaryAssetName() {
+        String arch = System.getProperty("os.arch", "")
+                .toLowerCase(Locale.ROOT);
+        switch (arch) {
+            case "amd64":
+            case "x86_64":
+                return "ffmpeg-linux-x64";
+            case "aarch64":
+            case "arm64":
+                return "ffmpeg-linux-arm64";
+            case "arm":
+            case "armv7l":
+            case "armhf":
+                return "ffmpeg-linux-arm";
+            case "x86":
+            case "i386":
+            case "i486":
+            case "i586":
+            case "i686":
+                return "ffmpeg-linux-ia32";
+            default:
+                return null;
+        }
     }
 
     private static boolean setupLinuxInstallationDir(Path installationDir, Path systemFfmpeg) throws IOException {
@@ -973,13 +1101,13 @@ public class FFmpegUtils {
         }
     }
 
-    private static GithubRelease getLatestFFmpegRelease()
+    private static GithubRelease getLatestRelease(String apiUrl)
             throws IOException, InterruptedException {
 
         HttpClient client = HttpClient.newHttpClient();
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(GITHUB_API))
+                .uri(URI.create(apiUrl))
                 .header(
                         "Accept",
                         "application/vnd.github+json"

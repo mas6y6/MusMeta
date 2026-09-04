@@ -73,22 +73,14 @@ public class AddAlbumUI extends JPanel {
 
         addMouseListener(mouseAdapter);
 
-        // Artwork
-        ImageIcon originalIcon = new FlatSVGIcon(
+        FlatSVGIcon plusIcon = new FlatSVGIcon(
                 Objects.requireNonNull(
                         getClass().getResource("/plus.svg")
                 )
-        );
-
-        Image scaledImage = originalIcon.getImage()
-                .getScaledInstance(
-                        32,
-                        32,
-                        Image.SCALE_SMOOTH
-                );
+        ).derive(32, 32);
 
         artwork = new AlbumArtwork(
-                new ImageIcon(scaledImage),
+                plusIcon,
                 10
         );
 

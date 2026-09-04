@@ -114,13 +114,9 @@ public class NewAlbumPrompt extends JDialog {
     private void setImage(File file) {
         albumImageFile = file;
 
-        Image original = new ImageIcon(file.getAbsolutePath()).getImage();
-        Image scaled = original.getScaledInstance(
-                ARTWORK_SIZE,
-                ARTWORK_SIZE,
-                Image.SCALE_SMOOTH
+        dropZone.setArtwork(
+                new ImageIcon(file.getAbsolutePath()).getImage()
         );
-        dropZone.setIcon(new ImageIcon(scaled));
         dropZone.setText("");
         dropZone.setBorder(null);
     }

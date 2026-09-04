@@ -8,7 +8,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.util.Objects;
 
 public class AlbumUI extends JPanel {
@@ -83,16 +82,17 @@ public class AlbumUI extends JPanel {
 
         // Artwork
 
-        artwork = new AlbumArtwork(
-                new ImageIcon(prepareArtwork(artworkImage)),
-                10
-        );
+        artwork = new AlbumArtwork(10);
 
         artwork.setPreferredSize(
                 new Dimension(
                         ARTWORK_SIZE,
                         ARTWORK_SIZE
                 )
+        );
+
+        artwork.setArtwork(
+                artworkImage != null ? artworkImage : placeholderArtwork()
         );
 
         artwork.addMouseListener(mouseAdapter);
@@ -199,56 +199,11 @@ public class AlbumUI extends JPanel {
         }
     }
 
-    private static BufferedImage prepareArtwork(Image image) {
-        if (image == null) {
-            image = new ImageIcon(
-                    Objects.requireNonNull(
-                            AlbumUI.class.getResource("/placeholder_album.png")
-                    )
-            ).getImage();
-        }
-
-        int width = image.getWidth(null);
-        int height = image.getHeight(null);
-        int size = Math.min(width, height);
-
-        BufferedImage result = new BufferedImage(
-                500,
-                500,
-                BufferedImage.TYPE_INT_ARGB
-        );
-
-        Graphics2D g2 = result.createGraphics();
-
-        try {
-            g2.setRenderingHint(
-                    RenderingHints.KEY_INTERPOLATION,
-                    RenderingHints.VALUE_INTERPOLATION_BICUBIC
-            );
-            g2.setRenderingHint(
-                    RenderingHints.KEY_RENDERING,
-                    RenderingHints.VALUE_RENDER_QUALITY
-            );
-
-            int x = (width - size) / 2;
-            int y = (height - size) / 2;
-
-            g2.drawImage(
-                    image,
-                    0,
-                    0,
-                    ARTWORK_SIZE,
-                    ARTWORK_SIZE,
-                    x,
-                    y,
-                    x + size,
-                    y + size,
-                    null
-            );
-        } finally {
-            g2.dispose();
-        }
-
-        return result;
+    private static Image placeholderArtwork() {
+        return new ImageIcon(
+                Objects.requireNonNull(
+                        AlbumUI.class.getResource("/placeholder_album.png")
+                )
+        ).getImage();
     }
 }

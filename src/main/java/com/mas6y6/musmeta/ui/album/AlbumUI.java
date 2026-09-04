@@ -206,4 +206,8 @@ public class AlbumUI extends JPanel {
                 )
         ).getImage();
     }
+
+    public Album getAlbum() {
+        return album;
+    }
 }

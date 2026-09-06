@@ -19,12 +19,17 @@ final class MusMetaBytecodeProvider implements IClassBytecodeProvider {
 
     @Override
     public ClassNode getClassNode(String name, boolean runTransformers) throws ClassNotFoundException, IOException {
+        return getClassNode(name, runTransformers, ClassReader.EXPAND_FRAMES);
+    }
+
+    @Override
+    public ClassNode getClassNode(String name, boolean runTransformers, int readerFlags) throws ClassNotFoundException, IOException {
         byte[] bytes = getClassBytes(name);
         if (bytes == null) {
             throw new ClassNotFoundException("Class bytes not found for " + name);
         }
         ClassNode classNode = new ClassNode(Opcodes.ASM9);
-        new MixinClassReader(bytes, name).accept(classNode, ClassReader.EXPAND_FRAMES);
+        new MixinClassReader(bytes, name).accept(classNode, readerFlags);
         return classNode;
     }
 

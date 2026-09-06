@@ -12,7 +12,7 @@
               <option name="patterns">
                 <list>
                   <Item>
-                    <option name="path" value="plugins/example-plugin/src/main/resources/example.mixins.json" />
+                    <option name="path" value="plugin-template/src/main/resources/hello.mixins.json" />
                   </Item>
                 </list>
               </option>

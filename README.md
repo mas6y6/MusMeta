@@ -38,7 +38,9 @@ The user-friendly interface makes it easy for users to edit music file metadata 
 
 [JUnit](https://junit.org/junit5/)
 
-[SpongePowered mixin](https://github.com/SpongePowered/Mixin)
+[SpongePowered mixin](https://github.com/SpongePowered/Mixin) 
+
+It's using the FabricMC mixins since it's more up to date compared to SpongePowered mixin repository
 
 [SLF4J](https://github.com/qos-ch/slf4j)
 

@@ -4,6 +4,7 @@ import com.mas6y6.musmeta.config.ConfigManager;
 import com.mas6y6.musmeta.plugin.PluginManager;
 import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.settings.Settings;
+import com.mas6y6.musmeta.ui.components.LaunchScreen;
 import com.mas6y6.musmeta.utils.Utils;
 import com.mas6y6.musmeta.utils.Version;
 import org.slf4j.Logger;
@@ -31,6 +32,12 @@ public class Bootstrap implements Runnable {
     private boolean debug;
 
     @CommandLine.Option(
+            names = {"--test-application-startup","-l"},
+            description = "Test application startup."
+    )
+    private boolean testApplicationStartup;
+
+    @CommandLine.Option(
             names = {"--skip-bootstrap","-b"},
             description = "Skip MusMeta bootstrap."
     )
@@ -53,14 +60,24 @@ public class Bootstrap implements Runnable {
             );
         }
 
+        if (testApplicationStartup) {
+            LOGGER.info("Testing application startup...");
+        }
+
+        LaunchScreen.showSplash();
+
         if (!skipbootstrap) {
             LOGGER.info("Running MusMeta bootstrap...");
 
+            LaunchScreen.setStatus("Loading plugins...");
             pluginManager.discover();
+            LaunchScreen.setStatus("Initializing plugins...");
             pluginManager.boot();
         }
 
         Registries.freezeAll();
+
+        LaunchScreen.setStatus("Starting MusMeta...");
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             LOGGER.info("MusMeta shutdown in progress...");

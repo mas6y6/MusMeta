@@ -11,4 +11,3 @@ pluginManagement {
 rootProject.name = 'musmeta'
 
 include 'plugins:framework'
-include 'plugins:example-plugin'

@@ -13,6 +13,7 @@ import com.mas6y6.musmeta.settings.ConfigCodecs;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.ui.MainWindow;
+import com.mas6y6.musmeta.ui.components.LaunchScreen;
 import com.mas6y6.musmeta.ui.prompts.MissingSongsPrompt;
 import com.mas6y6.musmeta.ui.prompts.PostInstallationPrompt;
 import org.slf4j.Logger;
@@ -146,9 +147,13 @@ public class Main {
         runPreWindowConfigExecuter();
 
         if (!isSetupCompleted) {
-            SwingUtilities.invokeLater(PostInstallationPrompt::new);
+            SwingUtilities.invokeLater(() -> {
+                LaunchScreen.closeIfOpen();
+                new PostInstallationPrompt();
+            });
         } else {
             SwingUtilities.invokeLater(() -> {
+                LaunchScreen.closeIfOpen();
                 MainWindow.INSTANCE.setVisible(true);
                 showMissingSongsPromptIfAny();
             });
@@ -163,6 +168,16 @@ public class Main {
     }
 
     private static void runPreWindowConfigExecuter() {
+        try {
+            SwingUtilities.invokeAndWait(Main::applyTheme);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            LOGGER.error("Error setting theme", e.getCause());
+        }
+    }
+
+    private static void applyTheme() {
         try {
             if (Settings.PREFERRED_THEME.get() == Theme.DARK) {
                 FlatAnimatedLafChange.showSnapshot();

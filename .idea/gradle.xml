@@ -9,7 +9,6 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/plugins" />
-            <option value="$PROJECT_DIR$/plugins/example-plugin" />
             <option value="$PROJECT_DIR$/plugins/framework" />
           </set>
         </option>

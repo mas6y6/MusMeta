@@ -7,6 +7,7 @@ import java.net.URL;
 final class MusMetaClassProvider implements IClassProvider {
 
     @Override
+    @SuppressWarnings("deprecation")
     public URL[] getClassPath() {
         return new URL[0];
     }

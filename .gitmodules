@@ -1,0 +1,3 @@
+[submodule "plugin-template"]
+	path = plugin-template
+	url = https://github.com/mas6y6/musmeta-plugin.git

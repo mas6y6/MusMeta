@@ -1,4 +1,4 @@
-package com.mas6y6.musmeta.ui.prompts;
+package com.mas6y6.musmeta.ui.dialogs;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
@@ -14,7 +14,6 @@ import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.settings.Updates;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.MusMetaFrame;
-import com.mas6y6.musmeta.ui.dialogs.FFmpegDownloadDialog;
 import org.slf4j.Logger;
 
 import javax.swing.*;
@@ -27,8 +26,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class PostInstallationPrompt extends MusMetaFrame {
-    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(PostInstallationPrompt.class);
+public class PostInstallationDialog extends MusMetaFrame {
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(PostInstallationDialog.class);
 
     // Set window size.
     private static final Dimension SIZE = new Dimension(800, 600);
@@ -50,7 +49,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
     private boolean useDefaultMusicPath = true;
     private JTextField musicPathField;
 
-    public PostInstallationPrompt() {
+    public PostInstallationDialog() {
         super();
         setSubTitle("Post Installation");
 
@@ -191,7 +190,7 @@ public class PostInstallationPrompt extends MusMetaFrame {
         Settings.AUTO_FFMPEG_INSTALL.set(isffmpegAutoInstall);
         if (isffmpegAutoInstall) {
             Path targetDir = Paths.get(Main.appDir.toString(), "bins");
-            FFmpegDownloadDialog downloadDialog = new FFmpegDownloadDialog(this, targetDir);
+            FFmpegDownloadProcessingDialog downloadDialog = new FFmpegDownloadProcessingDialog(this, targetDir);
             boolean success = downloadDialog.startAndShow();
             if (!success) {
                 return;

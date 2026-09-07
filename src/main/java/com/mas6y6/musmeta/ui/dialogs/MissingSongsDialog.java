@@ -1,4 +1,4 @@
-package com.mas6y6.musmeta.ui.prompts;
+package com.mas6y6.musmeta.ui.dialogs;
 
 import com.mas6y6.musmeta.core.Library.MissingSong;
 
@@ -10,10 +10,10 @@ import java.util.List;
  * Informs the user that songs from the saved library could not be found
  * (or read) at the path they were stored.
  */
-public class MissingSongsPrompt extends JDialog {
+public class MissingSongsDialog extends JDialog {
     private static final Dimension DIALOG_SIZE = new Dimension(580, 430);
 
-    public MissingSongsPrompt(JFrame parent, List<MissingSong> missingSongs) {
+    public MissingSongsDialog(JFrame parent, List<MissingSong> missingSongs) {
         super(parent, "Missing Songs", true);
 
         setSize(DIALOG_SIZE);

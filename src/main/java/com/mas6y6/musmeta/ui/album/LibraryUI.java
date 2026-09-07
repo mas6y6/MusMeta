@@ -59,6 +59,9 @@ public class LibraryUI extends JScrollPane {
         content.add(new AddAlbumUI());
 
         for (Album album : Core.getAlbums()) {
+            if (album.isUnknown() && album.getSongs().isEmpty()) {
+                continue;
+            }
             content.add(albumCard(album));
         }
 

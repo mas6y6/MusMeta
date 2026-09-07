@@ -1,10 +1,16 @@
 package com.mas6y6.musmeta.core;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.mas6y6.musmeta.Main;
+import com.mas6y6.musmeta.config.ConfigBuilder;
+import com.mas6y6.musmeta.config.ConfigCodec;
+import com.mas6y6.musmeta.ui.album.AlbumUI;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.images.Artwork;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.Image;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -16,10 +22,15 @@ import java.util.List;
 import java.util.Objects;
 
 public class Album {
+    public static final ConfigCodec<Album> CODEC = ConfigCodec.of(
+            Album::serialize,
+            Album::decodeFrom
+    );
+
     private static final String UNKNOWN_ARTIST = "Unknown Artist";
     private static final String ARTWORK_DIR = "album_art";
 
-    private final String title;
+    private String title;
     private Path artworkPath;
     private final long createdAt;
     private boolean unknown;
@@ -50,10 +61,18 @@ public class Album {
         this.title = Objects.requireNonNull(title, "Album title cannot be null");
         this.artworkPath = artworkPath;
         this.createdAt = createdAt;
+        if (Song.UNKNOWN_ALBUM.equalsIgnoreCase(title) || "Unknown Album".equalsIgnoreCase(title)) {
+            this.unknown = true;
+        }
     }
 
     public String getTitle() {
         return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = Objects.requireNonNull(title, "Album title cannot be null");
+        this.unknown = Song.UNKNOWN_ALBUM.equalsIgnoreCase(title) || "Unknown Album".equalsIgnoreCase(title);
     }
 
     /**
@@ -61,6 +80,25 @@ public class Album {
      */
     public Path getArtworkPath() {
         return artworkPath;
+    }
+
+    public void setArtworkPath(Path artworkPath) {
+        this.artworkPath = artworkPath;
+    }
+
+    public void setArtworkBytes(byte[] data) {
+        cacheArtwork(data);
+    }
+
+    public void removeArtwork() {
+        if (artworkPath != null) {
+            try {
+                Files.deleteIfExists(artworkPath);
+            } catch (Exception ignored) {
+            }
+            artworkPath = null;
+            Library.getInstance().save();
+        }
     }
 
     /**
@@ -78,32 +116,166 @@ public class Album {
         return unknown;
     }
 
-    void setUnknown(boolean unknown) {
+    public void setUnknown(boolean unknown) {
         this.unknown = unknown;
+    }
+
+    public String getGenre() {
+        for (Song song : getSongs()) {
+            String genre = song.getGenre();
+            if (!genre.isBlank()) {
+                return genre;
+            }
+        }
+        return "";
+    }
+
+    public String getYear() {
+        for (Song song : getSongs()) {
+            String year = song.getYear();
+            if (!year.isBlank()) {
+                return year;
+            }
+        }
+        return "";
+    }
+
+    public String getComposer() {
+        for (Song song : getSongs()) {
+            String composer = song.getComposer();
+            if (!composer.isBlank()) {
+                return composer;
+            }
+        }
+        return "";
+    }
+
+    public String getGrouping() {
+        for (Song song : getSongs()) {
+            String grouping = song.getGrouping();
+            if (!grouping.isBlank()) {
+                return grouping;
+            }
+        }
+        return "";
+    }
+
+    public String getRating() {
+        for (Song song : getSongs()) {
+            String rating = song.getRating();
+            if (!rating.isBlank()) {
+                return rating;
+            }
+        }
+        return "";
+    }
+
+    public String getBpm() {
+        for (Song song : getSongs()) {
+            String bpm = song.getBpm();
+            if (!bpm.isBlank()) {
+                return bpm;
+            }
+        }
+        return "";
+    }
+
+    public String getComment() {
+        for (Song song : getSongs()) {
+            String comment = song.getComment();
+            if (!comment.isBlank()) {
+                return comment;
+            }
+        }
+        return "";
+    }
+
+    public boolean isCompilation() {
+        if (getArtist().variousArtists()) {
+            return true;
+        }
+        for (Song song : getSongs()) {
+            if (song.isCompilation()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int getDiscTotal() {
+        int total = discs.size();
+        for (Disc disc : discs) {
+            total = Math.max(total, disc.getDiscTotal());
+            for (Song song : disc.getSongs()) {
+                total = Math.max(total, song.getDiscTotal());
+            }
+        }
+        return Math.max(1, total);
+    }
+
+    public int getTrackTotal() {
+        int max = 0;
+        for (Song song : getSongs()) {
+            max = Math.max(max, song.getTrackTotal());
+        }
+        return max > 0 ? max : getSongs().size();
+    }
+
+    public void removeSong(Song song) {
+        for (Disc disc : discs) {
+            disc.removeSong(song);
+        }
+        discs.removeIf(disc -> disc.getSongs().isEmpty() && disc.getMissingSongPaths().isEmpty());
     }
 
     /**
      * Resolves the album artist from its songs, falling back to the first
      * artist and finally to "Unknown Artist".
      */
-    public String getArtist() {
+    public record ArtistInfo(String artist, boolean variousArtists) {
+    }
+
+    public ArtistInfo getArtist() {
+        String firstAlbumArtist = null;
+        boolean foundMultipleArtists = false;
+
         for (Disc disc : discs) {
             for (Song song : disc.getSongs()) {
                 String albumArtist = song.getAlbumArtist();
                 if (!albumArtist.isBlank() && !UNKNOWN_ARTIST.equalsIgnoreCase(albumArtist)) {
-                    return albumArtist;
+                    if (firstAlbumArtist == null) {
+                        firstAlbumArtist = albumArtist;
+                    } else if (!firstAlbumArtist.equals(albumArtist)) {
+                        foundMultipleArtists = true;
+                    }
                 }
             }
         }
+
+        if (firstAlbumArtist != null) {
+            return new ArtistInfo(foundMultipleArtists ? "Various Artists" : firstAlbumArtist, foundMultipleArtists);
+        }
+
+        String firstArtist = null;
+
         for (Disc disc : discs) {
             for (Song song : disc.getSongs()) {
                 String artist = song.getArtist();
                 if (!artist.isBlank() && !UNKNOWN_ARTIST.equalsIgnoreCase(artist)) {
-                    return artist;
+                    if (firstArtist == null) {
+                        firstArtist = artist;
+                    } else if (!firstArtist.equals(artist)) {
+                        foundMultipleArtists = true;
+                    }
                 }
             }
         }
-        return UNKNOWN_ARTIST;
+
+        if (firstArtist != null) {
+            return new ArtistInfo(foundMultipleArtists ? "Various Artists" : firstArtist, foundMultipleArtists);
+        }
+
+        return new ArtistInfo(UNKNOWN_ARTIST, false);
     }
 
     public List<Disc> getDiscs() {
@@ -167,7 +339,11 @@ public class Album {
                 // Some tag types don't support artwork, or the image failed to decode.
             }
         }
-        return null;
+        return new ImageIcon(
+                Objects.requireNonNull(
+                        AlbumUI.class.getResource("/placeholder_album.png")
+                )
+        ).getImage();
     }
 
     /**
@@ -225,5 +401,64 @@ public class Album {
     void addDisc(Disc disc) {
         discs.add(disc);
         discs.sort(Comparator.comparingInt(Disc::getDiscIndex));
+    }
+
+    private static void serialize(Album album, ConfigBuilder builder) {
+        builder.setString("title", album.getTitle());
+        builder.setLong("createdAt", album.getCreatedAt());
+        if (album.isUnknown()) {
+            builder.setBoolean("unknown", true);
+        }
+
+        Path artworkPath = album.getArtworkPath();
+        if (artworkPath != null) {
+            builder.setString("artworkPath", artworkPath.toString());
+        }
+
+        JsonArray discsArray = new JsonArray();
+        for (Disc disc : album.getDiscs()) {
+            ConfigBuilder discBuilder = new ConfigBuilder();
+            Disc.CODEC.encode(disc, discBuilder);
+            discsArray.add(discBuilder.toJsonObject());
+        }
+        builder.set("discs", discsArray);
+    }
+
+    private static Album decodeFrom(ConfigBuilder builder) {
+        if (builder == null) {
+            return null;
+        }
+        String title = builder.getString("title", Song.UNKNOWN_ALBUM);
+
+        Path artworkPath = null;
+        if (builder.has("artworkPath")) {
+            String raw = builder.getString("artworkPath");
+            if (raw != null && !raw.isBlank()) {
+                artworkPath = Path.of(raw);
+            }
+        }
+
+        long createdAt = builder.getLong("createdAt", System.currentTimeMillis());
+
+        Album album = new Album(title, artworkPath, createdAt);
+        if (builder.getBoolean("unknown", false)) {
+            album.setUnknown(true);
+        }
+
+        JsonElement discsElement = builder.get("discs");
+        if (discsElement != null && discsElement.isJsonArray()) {
+            for (JsonElement discElement : discsElement.getAsJsonArray()) {
+                if (!discElement.isJsonObject()) {
+                    continue;
+                }
+                ConfigBuilder discBuilder = ConfigBuilder.from(discElement.getAsJsonObject());
+                Disc disc = Disc.CODEC.decode(discBuilder);
+                if (disc != null) {
+                    album.addDisc(disc);
+                }
+            }
+        }
+
+        return album;
     }
 }

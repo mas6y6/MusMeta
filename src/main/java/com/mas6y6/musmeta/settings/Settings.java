@@ -56,33 +56,41 @@ public class Settings {
 
     public static void registerConfigs() {
         PREFERRED_THEME.addListener((value) -> {
-            try {
-                if (value == Theme.DARK) {
+            if (!SwingUtilities.isEventDispatchThread()) {
+                SwingUtilities.invokeLater(() -> applyTheme(value));
+                return;
+            }
+            applyTheme(value);
+        });
+    }
+
+    private static void applyTheme(Theme value) {
+        try {
+            if (value == Theme.DARK) {
+                FlatAnimatedLafChange.showSnapshot();
+                UIManager.setLookAndFeel(new FlatDarkLaf());
+                FlatLaf.updateUI();
+                FlatAnimatedLafChange.hideSnapshotWithAnimation();
+            } else if (value == Theme.LIGHT) {
+                FlatAnimatedLafChange.showSnapshot();
+                UIManager.setLookAndFeel(new FlatLightLaf());
+                FlatLaf.updateUI();
+                FlatAnimatedLafChange.hideSnapshotWithAnimation();
+            } else {
+                if (OsThemeDetector.getDetector().isDark()) {
                     FlatAnimatedLafChange.showSnapshot();
                     UIManager.setLookAndFeel(new FlatDarkLaf());
                     FlatLaf.updateUI();
                     FlatAnimatedLafChange.hideSnapshotWithAnimation();
-                } else if (value == Theme.LIGHT) {
+                } else {
                     FlatAnimatedLafChange.showSnapshot();
                     UIManager.setLookAndFeel(new FlatLightLaf());
                     FlatLaf.updateUI();
                     FlatAnimatedLafChange.hideSnapshotWithAnimation();
-                } else {
-                    if (OsThemeDetector.getDetector().isDark()) {
-                        FlatAnimatedLafChange.showSnapshot();
-                        UIManager.setLookAndFeel(new FlatDarkLaf());
-                        FlatLaf.updateUI();
-                        FlatAnimatedLafChange.hideSnapshotWithAnimation();
-                    } else {
-                        FlatAnimatedLafChange.showSnapshot();
-                        UIManager.setLookAndFeel(new FlatLightLaf());
-                        FlatLaf.updateUI();
-                        FlatAnimatedLafChange.hideSnapshotWithAnimation();
-                    }
                 }
-            } catch (Exception e) {
-                LOGGER.error("Error setting theme", e);
             }
-        });
+        } catch (Exception e) {
+            LOGGER.error("Error setting theme", e);
+        }
     }
 }

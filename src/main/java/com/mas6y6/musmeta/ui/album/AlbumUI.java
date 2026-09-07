@@ -1,8 +1,11 @@
 package com.mas6y6.musmeta.ui.album;
 
 import com.mas6y6.musmeta.core.Album;
+import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
+import com.mas6y6.musmeta.ui.dialogs.EditAlbumDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,7 +28,7 @@ public class AlbumUI extends JPanel {
         super(new BorderLayout(0, 6));
         this.album = album;
 
-        String artist = album.getArtist();
+        String artist = album.getArtist().artist();
         if (album.hasDiscs()) {
             artist = artist + "  •  " + album.getDiscs().size() + " discs";
         }
@@ -74,6 +77,8 @@ public class AlbumUI extends JPanel {
             public void mouseClicked(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     MainWindow.INSTANCE.openAlbumTab(album);
+                } else if (SwingUtilities.isRightMouseButton(e)) {
+                    handleRightClickMenu(e);
                 }
             }
         };
@@ -209,5 +214,40 @@ public class AlbumUI extends JPanel {
 
     public Album getAlbum() {
         return album;
+    }
+
+    private void handleRightClickMenu(MouseEvent mouseEvent) {
+        var popupMenu = new JPopupMenu();
+
+        var openInNewTab = new JMenuItem("Open In New Tab");
+        popupMenu.add(openInNewTab);
+        openInNewTab.addActionListener(e -> {MainWindow.INSTANCE.openAlbumTab(album);});
+
+        var editAlbum = new JMenuItem("Edit Album");
+        editAlbum.addActionListener(e -> {
+            new EditAlbumDialog(MainWindow.INSTANCE, album).setVisible(true);
+        });
+        popupMenu.add(editAlbum);
+
+        var deleteAlbum = new JMenuItem("Delete Album");
+        deleteAlbum.addActionListener(e -> {
+             if (
+                EXTDialog.showOptionDialog(
+                    MainWindow.INSTANCE,
+                    "Are you sure you want to delete this album?",
+                    "Delete Album?",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    null,
+                    null
+                )
+                     == JOptionPane.YES_OPTION) {
+                 Library.getInstance().removeAlbum(album.getTitle());
+             };
+        });
+        popupMenu.add(deleteAlbum);
+
+        popupMenu.show(this, mouseEvent.getX(), mouseEvent.getY());
     }
 }

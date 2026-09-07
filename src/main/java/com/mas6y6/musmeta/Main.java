@@ -14,8 +14,8 @@ import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.LaunchScreen;
-import com.mas6y6.musmeta.ui.prompts.MissingSongsPrompt;
-import com.mas6y6.musmeta.ui.prompts.PostInstallationPrompt;
+import com.mas6y6.musmeta.ui.dialogs.MissingSongsDialog;
+import com.mas6y6.musmeta.ui.dialogs.PostInstallationDialog;
 import org.slf4j.Logger;
 
 import javax.swing.*;
@@ -149,7 +149,7 @@ public class Main {
         if (!isSetupCompleted) {
             SwingUtilities.invokeLater(() -> {
                 LaunchScreen.closeIfOpen();
-                new PostInstallationPrompt();
+                new PostInstallationDialog();
             });
         } else {
             SwingUtilities.invokeLater(() -> {
@@ -163,7 +163,7 @@ public class Main {
     private static void showMissingSongsPromptIfAny() {
         List<Library.MissingSong> missing = List.copyOf(Library.getInstance().getMissingSongs());
         if (!missing.isEmpty()) {
-            new MissingSongsPrompt(MainWindow.INSTANCE, missing).setVisible(true);
+            new MissingSongsDialog(MainWindow.INSTANCE, missing).setVisible(true);
         }
     }
 

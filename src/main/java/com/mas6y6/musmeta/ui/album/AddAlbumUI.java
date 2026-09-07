@@ -1,9 +1,8 @@
 package com.mas6y6.musmeta.ui.album;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
-import com.mas6y6.musmeta.ui.prompts.NewAlbumPrompt;
+import com.mas6y6.musmeta.ui.dialogs.NewAlbumDialog;
 import com.mas6y6.musmeta.utils.ColorWrapper;
 
 import javax.swing.*;
@@ -164,9 +163,7 @@ public class AddAlbumUI extends JPanel {
     }
 
     private void handleClick() {
-        // TODO: newAlbum();
-
-        NewAlbumPrompt prompt = new NewAlbumPrompt((Frame) SwingUtilities.getWindowAncestor(this));
+        NewAlbumDialog prompt = new NewAlbumDialog((Frame) SwingUtilities.getWindowAncestor(this));
         prompt.setVisible(true);
     }
 }

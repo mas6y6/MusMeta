@@ -2,7 +2,7 @@ package com.mas6y6.musmeta.ui.subwindows.settings;
 
 import com.mas6y6.musmeta.Main;
 import com.mas6y6.musmeta.settings.Settings;
-import com.mas6y6.musmeta.ui.dialogs.FFmpegDownloadDialog;
+import com.mas6y6.musmeta.ui.dialogs.FFmpegDownloadProcessingDialog;
 import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
 import com.formdev.flatlaf.util.SystemFileChooser;
@@ -260,7 +260,7 @@ public class FFmpegSettingsTab extends JPanel {
 
         Window owner = SwingUtilities.getWindowAncestor(this);
         Path targetDir = Main.appDir.resolve("bins");
-        FFmpegDownloadDialog dialog = new FFmpegDownloadDialog(owner, targetDir);
+        FFmpegDownloadProcessingDialog dialog = new FFmpegDownloadProcessingDialog(owner, targetDir);
         boolean success = dialog.startAndShow();
 
         refreshStatus();

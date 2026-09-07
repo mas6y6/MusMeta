@@ -1,17 +1,23 @@
 package com.mas6y6.musmeta.ui;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.util.SystemFileChooser;
 import com.formdev.flatlaf.util.SystemInfo;
 import com.jthemedetecor.OsThemeDetector;
+import com.mas6y6.musmeta.Constants;
 import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.ui.components.MainAppFrame;
 import com.mas6y6.musmeta.core.Album;
+import com.mas6y6.musmeta.core.Song;
+import com.mas6y6.musmeta.ui.dialogs.ProcessMusicDialog;
 import com.mas6y6.musmeta.ui.tabs.AlbumDetailUI;
+
+import java.io.File;
 import com.mas6y6.musmeta.ui.album.LibraryUI;
 import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
-import com.mas6y6.musmeta.ui.prompts.MusicScanPrompt;
+import com.mas6y6.musmeta.ui.dialogs.MusicScanDialog;
 import com.mas6y6.musmeta.ui.subwindows.AboutWindow;
 import com.mas6y6.musmeta.ui.subwindows.SettingsWindow;
 import org.slf4j.Logger;
@@ -19,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class MainWindow extends MainAppFrame {
     public static final Logger LOGGER =
@@ -26,8 +33,10 @@ public class MainWindow extends MainAppFrame {
 
     public static final MainWindow INSTANCE = new MainWindow();
 
-    private final JTabbedPane tabs =
-            new JTabbedPane(SwingConstants.TOP);
+    private final JTabbedPane tabs = new JTabbedPane(SwingConstants.TOP);
+
+    private List<Song> selectedSongs = List.of();
+    private LibraryUI libraryUI = new LibraryUI();
 
     private MainWindow() {
         if (SystemInfo.isMacOS) {
@@ -67,9 +76,58 @@ public class MainWindow extends MainAppFrame {
                 tabs.setSelectedIndex(index);
                 return;
             }
-            tabs.addTab(album.getTitle(), new AlbumDetailUI(album));
+            AlbumDetailUI detail = new AlbumDetailUI(album);
+            detail.setSelectionListener(this::setSelectedSongs);
+            tabs.addTab(album.getTitle(), detail);
             tabs.setSelectedIndex(tabs.getTabCount() - 1);
         });
+    }
+
+    private void setSelectedSongs(List<Song> songs) {
+        selectedSongs = songs != null ? songs : List.of();
+    }
+
+    public void updateAlbumTabs(Album album, String oldTitle) {
+        SwingUtilities.invokeLater(() -> {
+            for (int i = 0; i < tabs.getTabCount(); i++) {
+                Component comp = tabs.getComponentAt(i);
+                if (comp instanceof AlbumDetailUI detail) {
+                    if (detail.getAlbum() == album || (oldTitle != null && oldTitle.equalsIgnoreCase(tabs.getTitleAt(i)))) {
+                        tabs.setTitleAt(i, album.getTitle());
+                        detail.refresh();
+                    }
+                }
+            }
+        });
+    }
+
+    public void refreshAllDetailTabs() {
+        SwingUtilities.invokeLater(() -> {
+            for (int i = 0; i < tabs.getTabCount(); i++) {
+                Component comp = tabs.getComponentAt(i);
+                if (comp instanceof AlbumDetailUI detail) {
+                    tabs.setTitleAt(i, detail.getAlbum().getTitle());
+                    detail.refresh();
+                }
+            }
+        });
+    }
+
+    /**
+     * Re-reads the selection of the currently visible tab so the Selection
+     * menu mirrors whichever tab is active.
+     */
+    private void refreshSelectionForActiveTab() {
+        Component tab = tabs.getSelectedComponent();
+        if (tab instanceof AlbumDetailUI detail) {
+            setSelectedSongs(detail.getSelectedSongs());
+        } else {
+            setSelectedSongs(List.of());
+        }
+    }
+
+    public List<Song> getSelectedSongs() {
+        return List.copyOf(selectedSongs);
     }
 
     private void applyTitleBarBackground() {
@@ -139,8 +197,28 @@ public class MainWindow extends MainAppFrame {
         //region File menu
         JMenu fileMenu = new JMenu("File");
 
-        // Save button
         JMenuItem importsongs = new JMenuItem("Import song(s)...");
+        importsongs.addActionListener((e) -> {
+            var fsc = new SystemFileChooser(System.getProperty("user.home"));
+            fsc.setMultiSelectionEnabled(true);
+            fsc.addChoosableFileFilter(new SystemFileChooser.FileNameExtensionFilter("Audio Files", Constants.MUSIC_EXTENSIONS.toArray(String[]::new)));
+            fsc.setAcceptAllFileFilterUsed(false);
+            if (fsc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File[] selectedFiles = fsc.getSelectedFiles();
+                if (selectedFiles == null || selectedFiles.length == 0) {
+                    File single = fsc.getSelectedFile();
+                    if (single != null) {
+                        selectedFiles = new File[]{single};
+                    }
+                }
+                if (selectedFiles != null && selectedFiles.length > 0) {
+                    var dialog = new ProcessMusicDialog(this, selectedFiles);
+                    dialog.startAndShow();
+                }
+            }
+            getLibraryUI().refresh();
+        });
+
         fileMenu.add(importsongs);
 
         JMenuItem settings = new JMenuItem("Settings");
@@ -171,6 +249,52 @@ public class MainWindow extends MainAppFrame {
         JMenu editMenu =
                 new JMenu("Edit");
 
+        JMenuItem getInfoItem = new JMenuItem("Get Info");
+        getInfoItem.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+        getInfoItem.addActionListener(e -> {
+            if (!selectedSongs.isEmpty()) {
+                new com.mas6y6.musmeta.ui.dialogs.EditSongDialog(this, selectedSongs).setVisible(true);
+            } else {
+                Component tab = tabs.getSelectedComponent();
+                if (tab instanceof AlbumDetailUI detail) {
+                    new com.mas6y6.musmeta.ui.dialogs.EditAlbumDialog(this, detail.getAlbum()).setVisible(true);
+                }
+            }
+        });
+        editMenu.add(getInfoItem);
+
+        JMenuItem editAlbumItem = new JMenuItem("Edit Album Info...");
+        editAlbumItem.addActionListener(e -> {
+            Component tab = tabs.getSelectedComponent();
+            if (tab instanceof AlbumDetailUI detail) {
+                new com.mas6y6.musmeta.ui.dialogs.EditAlbumDialog(this, detail.getAlbum()).setVisible(true);
+            }
+        });
+        editMenu.add(editAlbumItem);
+
+        editMenu.addSeparator();
+
+        JMenuItem selectAllItem = new JMenuItem("Select All");
+        selectAllItem.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+        selectAllItem.addActionListener(e -> {
+            Component tab = tabs.getSelectedComponent();
+            if (tab instanceof AlbumDetailUI detail) {
+                detail.selectAllTracks();
+            }
+        });
+        editMenu.add(selectAllItem);
+
+        JMenuItem deselectAllItem = new JMenuItem("Deselect All");
+        deselectAllItem.addActionListener(e -> {
+            Component tab = tabs.getSelectedComponent();
+            if (tab instanceof AlbumDetailUI detail) {
+                detail.deselectAllTracks();
+            }
+        });
+        editMenu.add(deselectAllItem);
+
+
+
         // View
 
         JMenu viewMenu =
@@ -184,7 +308,7 @@ public class MainWindow extends MainAppFrame {
         JMenuItem musicScanMenuItem =
                 new JMenuItem("Music Scan");
         musicScanMenuItem.addActionListener(e ->
-                new MusicScanPrompt(this).setVisible(true)
+                new MusicScanDialog(this).setVisible(true)
         );
 
         libraryMenu.add(musicScanMenuItem);
@@ -228,9 +352,12 @@ public class MainWindow extends MainAppFrame {
                                 closeThisWindow();
                             } else {
                                 tabbedPane.removeTabAt(tabIndex);
+                                refreshSelectionForActiveTab();
                             }
                         }
         );
+
+        tabs.addChangeListener(e -> refreshSelectionForActiveTab());
 
         tabs.setTabLayoutPolicy(
                 JTabbedPane.SCROLL_TAB_LAYOUT
@@ -238,7 +365,7 @@ public class MainWindow extends MainAppFrame {
 
         tabs.addTab(
                 "Library",
-                new LibraryUI()
+                libraryUI
         );
 
         add(
@@ -247,5 +374,12 @@ public class MainWindow extends MainAppFrame {
         );
 
         //endregion
+    }
+
+    public Component getSelectedTab() {
+        return tabs.getSelectedComponent();
+    }
+    public LibraryUI getLibraryUI() {
+        return libraryUI;
     }
 }

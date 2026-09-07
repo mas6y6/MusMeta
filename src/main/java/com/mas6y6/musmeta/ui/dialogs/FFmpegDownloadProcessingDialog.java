@@ -7,11 +7,11 @@ import com.mas6y6.musmeta.utils.FFmpegUtils;
 import java.awt.*;
 import java.nio.file.Path;
 
-public class FFmpegDownloadDialog extends ProcessingDialog {
+public class FFmpegDownloadProcessingDialog extends ProcessingDialog {
 
     private final Path installationDir;
 
-    public FFmpegDownloadDialog(
+    public FFmpegDownloadProcessingDialog(
             Window owner,
             Path installationDir
     ) {

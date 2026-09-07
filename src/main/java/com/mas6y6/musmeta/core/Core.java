@@ -100,12 +100,12 @@ public class Core {
                     if (Constants.MUSIC_EXTENSIONS.contains(extension)) {
                         try {
                             AudioFile audioFile = AudioFileIO.read(file.toFile());
+                            Song song = new Song(audioFile);
 
                             if (audioFile.getTag() == null) {
                                 untaggedSongs.add(new UntaggedSong(audioFile));
-                            } else {
-                                musicFiles.add(new Song(audioFile));
                             }
+                            musicFiles.add(song);
 
                             LOGGER.info("Processing file: {}", file);
                         } catch (CannotReadVideoException e) {

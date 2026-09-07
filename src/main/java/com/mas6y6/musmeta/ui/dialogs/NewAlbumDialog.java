@@ -1,4 +1,4 @@
-package com.mas6y6.musmeta.ui.prompts;
+package com.mas6y6.musmeta.ui.dialogs;
 
 import com.mas6y6.musmeta.Main;
 import com.mas6y6.musmeta.core.Album;
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Locale;
 
 
-public class NewAlbumPrompt extends JDialog {
+public class NewAlbumDialog extends JDialog {
 
     private static final Dimension DIALOG_SIZE = new Dimension(500, 400);
     private static final int ARTWORK_SIZE = 220;
@@ -31,7 +31,7 @@ public class NewAlbumPrompt extends JDialog {
     private final AlbumArtwork dropZone = createDropZone();
     private File albumImageFile = null;
 
-    public NewAlbumPrompt(Frame parent) {
+    public NewAlbumDialog(Frame parent) {
         super(parent, "Create new album", true);
 
         setSize(DIALOG_SIZE);

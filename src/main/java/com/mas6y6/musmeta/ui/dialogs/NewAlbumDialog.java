@@ -3,6 +3,7 @@ package com.mas6y6.musmeta.ui.dialogs;
 import com.mas6y6.musmeta.Main;
 import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Library;
+import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.formdev.flatlaf.util.SystemFileChooser;
 
@@ -137,6 +138,7 @@ public class NewAlbumDialog extends JDialog {
         } else {
             Library.getInstance().registerAlbum(new Album(albumName, storeArtwork(albumName)));
             Library.getInstance().save();
+            MainWindow.INSTANCE.getLibraryUI().refresh();
             dispose();
         }
     }

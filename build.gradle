@@ -73,6 +73,7 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    systemProperty 'java.awt.headless', 'true'
 }
 
 // ============================================================

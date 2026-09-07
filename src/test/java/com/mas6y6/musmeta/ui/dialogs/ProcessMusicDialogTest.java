@@ -47,4 +47,13 @@ class ProcessMusicDialogTest {
         assertDoesNotThrow(dialog::process);
         assertEquals(0, dialog.getProcessedSongs().size());
     }
+
+    @Test
+    void testStartAndShowInHeadless() {
+        ProcessMusicDialog dialog = new ProcessMusicDialog(null, new File[0]);
+        boolean result = dialog.startAndShow();
+        assertTrue(result);
+        assertTrue(dialog.isSuccess());
+        assertFalse(dialog.isProcessing());
+    }
 }

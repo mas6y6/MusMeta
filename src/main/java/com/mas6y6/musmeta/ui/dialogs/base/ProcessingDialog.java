@@ -9,7 +9,7 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-public abstract class ProcessingDialog extends JDialog {
+public abstract class ProcessingDialog {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessingDialog.class.getName());
 
     public enum ProgressMode {
@@ -20,6 +20,13 @@ public abstract class ProcessingDialog extends JDialog {
 
     private static final Dimension DEFAULT_SIZE =
             new Dimension(480, 220);
+
+    private final Window owner;
+    private final String title;
+    private final Dimension size;
+    private final ProgressMode progressMode;
+
+    private JDialog dialog;
 
     private final JLabel titleLabel = new JLabel();
     private final JLabel statusLabel = new JLabel();
@@ -69,31 +76,55 @@ public abstract class ProcessingDialog extends JDialog {
             Dimension size,
             ProgressMode progressMode
     ) {
-        super(
-                owner,
-                title,
-                ModalityType.APPLICATION_MODAL
-        );
+        this.owner = owner;
+        this.title = title;
+        this.size = size;
+        this.progressMode = progressMode;
 
-        setSize(size);
-        setMinimumSize(size);
-        setResizable(false);
-        setLocationRelativeTo(owner);
-        setDefaultCloseOperation(
-                JDialog.DO_NOTHING_ON_CLOSE
-        );
+        JPanel mainPanel = initUI(progressMode);
 
-        initUI(progressMode);
+        if (!GraphicsEnvironment.isHeadless()) {
+            dialog = new JDialog(
+                    owner,
+                    title,
+                    Dialog.ModalityType.APPLICATION_MODAL
+            );
 
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                cancel();
-            }
-        });
+            dialog.setSize(size);
+            dialog.setMinimumSize(size);
+            dialog.setResizable(false);
+            dialog.setLocationRelativeTo(owner);
+            dialog.setDefaultCloseOperation(
+                    JDialog.DO_NOTHING_ON_CLOSE
+            );
+            dialog.setContentPane(mainPanel);
+
+            dialog.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    cancel();
+                }
+            });
+        }
     }
 
-    private void initUI(ProgressMode progressMode) {
+    public JDialog getDialog() {
+        return dialog;
+    }
+
+    public void setVisible(boolean visible) {
+        if (dialog != null) {
+            dialog.setVisible(visible);
+        }
+    }
+
+    public void dispose() {
+        if (dialog != null) {
+            dialog.dispose();
+        }
+    }
+
+    private JPanel initUI(ProgressMode progressMode) {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(
                 new BoxLayout(mainPanel, BoxLayout.Y_AXIS)
@@ -215,7 +246,7 @@ public abstract class ProcessingDialog extends JDialog {
 
         mainPanel.add(buttonPanel);
 
-        setContentPane(mainPanel);
+        return mainPanel;
     }
 
     private void configureProgressBar(
@@ -258,6 +289,25 @@ public abstract class ProcessingDialog extends JDialog {
         errorMessage = null;
         processing = true;
 
+        if (GraphicsEnvironment.isHeadless()) {
+            try {
+                success = process();
+            } catch (InterruptedException e) {
+                cancelled = true;
+                Thread.currentThread().interrupt();
+            } catch (Exception e) {
+                LOGGER.error("Error processing files", e);
+                errorMessage =
+                        e.getMessage() != null
+                                ? e.getMessage()
+                                : e.toString();
+                success = false;
+            } finally {
+                processing = false;
+            }
+            return success;
+        }
+
         resetUI();
 
         workerThread = new Thread(
@@ -268,7 +318,9 @@ public abstract class ProcessingDialog extends JDialog {
         workerThread.setDaemon(true);
         workerThread.start();
 
-        setVisible(true);
+        if (dialog != null) {
+            dialog.setVisible(true);
+        }
 
         return success;
     }
@@ -344,13 +396,15 @@ public abstract class ProcessingDialog extends JDialog {
 
         actionButton.setEnabled(false);
 
-        Timer timer = new Timer(
-                getSuccessCloseDelay(),
-                e -> dispose()
-        );
+        if (!GraphicsEnvironment.isHeadless() && dialog != null) {
+            Timer timer = new Timer(
+                    getSuccessCloseDelay(),
+                    e -> dispose()
+            );
 
-        timer.setRepeats(false);
-        timer.start();
+            timer.setRepeats(false);
+            timer.start();
+        }
     }
 
     protected void onFailure() {
@@ -367,12 +421,14 @@ public abstract class ProcessingDialog extends JDialog {
         actionButton.setText("Close");
         actionButton.setEnabled(true);
 
-        EXTDialog.showMessageDialog(
-                this,
-                getFailureMessage(),
-                getFailureDialogTitle(),
-                JOptionPane.ERROR_MESSAGE
-        );
+        if (!GraphicsEnvironment.isHeadless() && dialog != null) {
+            EXTDialog.showMessageDialog(
+                    dialog,
+                    getFailureMessage(),
+                    getFailureDialogTitle(),
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
     protected void onCancelled() {
@@ -429,6 +485,16 @@ public abstract class ProcessingDialog extends JDialog {
             @Nullable Integer percentage,
             String details
     ) {
+        if (GraphicsEnvironment.isHeadless()) {
+            if (status != null && !status.isBlank()) {
+                statusLabel.setText(status);
+            }
+            if (details != null && !details.isBlank()) {
+                detailLabel.setText(details);
+            }
+            return;
+        }
+
         SwingUtilities.invokeLater(() -> {
 
             if (status != null && !status.isBlank()) {
@@ -469,16 +535,18 @@ public abstract class ProcessingDialog extends JDialog {
             return;
         }
 
-        int choice = EXTDialog.showConfirmDialog(
-                this,
-                getCancelMessage(),
-                "Cancel Operation",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
-        );
+        if (!GraphicsEnvironment.isHeadless() && dialog != null) {
+            int choice = EXTDialog.showConfirmDialog(
+                    dialog,
+                    getCancelMessage(),
+                    "Cancel Operation",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
 
-        if (choice != JOptionPane.YES_OPTION) {
-            return;
+            if (choice != JOptionPane.YES_OPTION) {
+                return;
+            }
         }
 
         cancelled = true;

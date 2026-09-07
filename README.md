@@ -1,3 +1,8 @@
+> [!WARNING] 
+> MusMeta is still under **beta** and not every single feature has been fully completed!!!
+>
+> **If you encounter any issues the releases please report it on Github!**
+
 <img width="100%" alt="banner" src="https://github.com/user-attachments/assets/d7640317-2e9e-4b92-af78-09eed93b6595" />
 
 **An all-in-one music metadata editor.**

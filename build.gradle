@@ -299,6 +299,7 @@ def hostOsName = System.getProperty('os.name').toLowerCase()
 def hostPlatform = hostOsName.contains('windows') ? 'windows' :
         hostOsName.contains('mac') ? 'macos' :
                 hostOsName.contains('linux') ? 'linux' : 'portable'
+def isHostLinux = hostOsName.contains('linux')
 def nativeInstallerSupported = hostOsName.contains('windows') || hostOsName.contains('mac') || hostOsName.contains('linux')
 
 // ============================================================
@@ -327,6 +328,98 @@ tasks.register('createPortableApplication') {
     dependsOn tasks.named('portableZip')
 }
 
+// ============================================================
+// AppImage (Linux)
+// ============================================================
+
+tasks.register('appImage') {
+    group = 'distribution'
+    description = 'Creates a standalone AppImage for Linux.'
+    if (nativeInstallerSupported) {
+        dependsOn tasks.named('jpackage')
+    }
+
+    def appDir = layout.buildDirectory.dir('appimage/MusMeta.AppDir')
+    def appImageOutputDir = layout.buildDirectory.dir('appimage')
+    def outputAppImageName = "MusMeta-${project.version}-x86_64.AppImage"
+
+    inputs.dir(layout.buildDirectory.dir('jpackage/MusMeta'))
+    inputs.file('src/main/resources/icon.png')
+    outputs.file(appImageOutputDir.map { it.file(outputAppImageName) })
+
+    onlyIf {
+        isHostLinux
+    }
+
+    doLast {
+        def appDirFile = appDir.get().asFile
+        appDirFile.deleteDir()
+        appDirFile.mkdirs()
+
+        // 1. Copy jpackage app-image contents
+        copy {
+            from layout.buildDirectory.dir('jpackage/MusMeta')
+            into appDirFile
+        }
+
+        // 2. Copy icon
+        def iconFile = file('src/main/resources/icon.png')
+        if (iconFile.exists()) {
+            copy {
+                from iconFile
+                into appDirFile
+                rename { 'MusMeta.png' }
+            }
+            copy {
+                from iconFile
+                into appDirFile
+                rename { '.DirIcon' }
+            }
+        }
+
+        // 3. Create desktop file
+        def desktopFile = new File(appDirFile, 'MusMeta.desktop')
+        desktopFile.text = """[Desktop Entry]
+Type=Application
+Name=MusMeta
+Comment=MusMeta Music Metadata Editor
+Exec=MusMeta
+Icon=MusMeta
+Categories=AudioVideo;Audio;
+Terminal=false
+StartupWMClass=MusMeta
+"""
+
+        // 4. Create AppRun script
+        def appRunFile = new File(appDirFile, 'AppRun')
+        appRunFile.text = """#!/bin/sh
+APPDIR="\$(dirname "\$(readlink -f "\$0")")"
+exec "\$APPDIR/bin/MusMeta" "\$@"
+"""
+
+        // Ensure executable permissions
+        fileTree(appDirFile).matching {
+            include 'AppRun'
+            include 'bin/*'
+            include 'runtime/bin/*'
+            include 'lib/runtime/bin/*'
+        }.each { f ->
+            f.setExecutable(true, false)
+        }
+
+        // 5. Run appimagetool
+        def outputDirFile = appImageOutputDir.get().asFile
+        outputDirFile.mkdirs()
+        def outputFile = new File(outputDirFile, outputAppImageName)
+
+        def appimageToolCmd = System.getenv('APPIMAGETOOL') ?: 'appimagetool'
+        exec {
+            environment 'ARCH', 'x86_64'
+            commandLine appimageToolCmd, appDirFile.absolutePath, outputFile.absolutePath
+        }
+    }
+}
+
 
 // ============================================================
 // Collect final distributions
@@ -335,7 +428,11 @@ tasks.register('createPortableApplication') {
 tasks.register('collectDistributions', Copy) {
 
     dependsOn tasks.named('shadowJar')
-    dependsOn tasks.named('portableZip')
+    if (isHostLinux) {
+        dependsOn tasks.named('appImage')
+    } else {
+        dependsOn tasks.named('portableZip')
+    }
     if (nativeInstallerSupported) {
         dependsOn tasks.named('jpackage')
     }
@@ -357,6 +454,14 @@ tasks.register('collectDistributions', Copy) {
         include '*.dmg'
         include '*.deb'
         include '*.rpm'
+    }
+
+    // --------------------------------------------------------
+    // AppImage
+    // --------------------------------------------------------
+
+    from(layout.buildDirectory.dir('appimage')) {
+        include '*.AppImage'
     }
 }
 

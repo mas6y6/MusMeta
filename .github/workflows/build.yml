@@ -52,6 +52,19 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Setup AppImageTool
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y file desktop-file-utils
+          sudo apt-get install -y libfuse2 || sudo apt-get install -y libfuse2t64 || true
+          curl -sL https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage -o /tmp/appimagetool
+          chmod +x /tmp/appimagetool
+          cd /tmp && ./appimagetool --appimage-extract
+          sudo mv /tmp/squashfs-root /opt/appimagetool
+          sudo ln -sf /opt/appimagetool/AppRun /usr/local/bin/appimagetool
+
       - name: Build distributions
         shell: bash
         run: ./gradlew clean build

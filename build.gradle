@@ -357,7 +357,7 @@ tasks.register('appImage') {
         appDirFile.mkdirs()
 
         // 1. Copy jpackage app-image contents
-        copy {
+        project.copy {
             from layout.buildDirectory.dir('jpackage/MusMeta')
             into appDirFile
         }
@@ -365,12 +365,12 @@ tasks.register('appImage') {
         // 2. Copy icon
         def iconFile = file('src/main/resources/icon.png')
         if (iconFile.exists()) {
-            copy {
+            project.copy {
                 from iconFile
                 into appDirFile
                 rename { 'MusMeta.png' }
             }
-            copy {
+            project.copy {
                 from iconFile
                 into appDirFile
                 rename { '.DirIcon' }
@@ -413,7 +413,7 @@ exec "\$APPDIR/bin/MusMeta" "\$@"
         def outputFile = new File(outputDirFile, outputAppImageName)
 
         def appimageToolCmd = System.getenv('APPIMAGETOOL') ?: 'appimagetool'
-        exec {
+        project.exec {
             environment 'ARCH', 'x86_64'
             commandLine appimageToolCmd, appDirFile.absolutePath, outputFile.absolutePath
         }

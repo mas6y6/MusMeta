@@ -413,9 +413,13 @@ exec "\$APPDIR/bin/MusMeta" "\$@"
         def outputFile = new File(outputDirFile, outputAppImageName)
 
         def appimageToolCmd = System.getenv('APPIMAGETOOL') ?: 'appimagetool'
-        project.exec {
-            environment 'ARCH', 'x86_64'
-            commandLine appimageToolCmd, appDirFile.absolutePath, outputFile.absolutePath
+        def processBuilder = new ProcessBuilder(appimageToolCmd, appDirFile.absolutePath, outputFile.absolutePath)
+        processBuilder.environment().put('ARCH', 'x86_64')
+        processBuilder.inheritIO()
+        def process = processBuilder.start()
+        int exitCode = process.waitFor()
+        if (exitCode != 0) {
+            throw new GradleException("appimagetool failed with exit code ${exitCode}")
         }
     }
 }

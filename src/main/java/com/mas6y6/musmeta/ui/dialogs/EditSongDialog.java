@@ -29,7 +29,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public class EditSongDialog extends JDialog {
-    private static final Dimension DIALOG_SIZE = new Dimension(680, 540);
+    private static final Dimension DIALOG_SIZE = new Dimension(880, 540);
     private static final int ARTWORK_SIZE = 180;
 
     private final List<Song> songs;

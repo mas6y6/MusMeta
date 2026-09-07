@@ -30,7 +30,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public class EditAlbumDialog extends JDialog {
-    private static final Dimension DIALOG_SIZE = new Dimension(680, 520);
+    private static final Dimension DIALOG_SIZE = new Dimension(880, 540);
     private static final int ARTWORK_SIZE = 180;
 
     public static final String[] GENRES = {

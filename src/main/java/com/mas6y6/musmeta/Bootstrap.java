@@ -1,6 +1,7 @@
 package com.mas6y6.musmeta;
 
 import com.mas6y6.musmeta.config.ConfigManager;
+import com.mas6y6.musmeta.logging.LogSystem;
 import com.mas6y6.musmeta.plugin.PluginManager;
 import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.settings.Settings;
@@ -48,10 +49,12 @@ public class Bootstrap implements Runnable {
 
     @Override
     public void run() {
+        LogSystem.init();
         System.out.println("java.home = " + System.getProperty("java.home"));
         System.out.println("java.version = " + System.getProperty("java.version"));
         System.out.println("java.vendor = " + System.getProperty("java.vendor"));
         LOGGER.info("MusMeta - {}", Version.get());
+        LOGGER.info("Log file: {}", LogSystem.getLatestLogPath().toAbsolutePath());
         if (debug) {
             LOGGER.info("Running in debug mode");
             System.setProperty(
@@ -110,6 +113,7 @@ public class Bootstrap implements Runnable {
     }
 
     public static void main(String[] args) {
+        LogSystem.init(args);
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler::handle);
 
         CommandLine commandLine = new CommandLine(new Bootstrap());

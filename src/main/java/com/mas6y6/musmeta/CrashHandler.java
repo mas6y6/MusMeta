@@ -157,6 +157,7 @@ public final class CrashHandler {
             exception.printStackTrace();
         } finally {
             CRASH_DIALOG_CLOSED.countDown();
+            com.mas6y6.musmeta.logging.LogSystem.flush();
             System.exit(1);
         }
     }

@@ -73,6 +73,7 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: MusMeta ${{ github.ref_name }}
+          prerelease: ${{ endsWith(github.ref_name, '-beta') || endsWith(github.ref_name, '-alpha') }}
           generate_release_notes: true
           files: |
             artifacts/**/*

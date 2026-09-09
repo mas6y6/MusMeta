@@ -43,7 +43,7 @@ if (cliVersion) {
 def lastTag = git(['describe', '--tags', '--abbrev=0'])
 def installerVersion = version.find(/\d+\.\d+\.\d+/) ?:
         (lastTag.exitValue == 0 && lastTag.output ? lastTag.output.find(/\d+\.\d+\.\d+/) : null) ?:
-        '0.0.0'
+        '1.0.0'
 
 java {
     toolchain {

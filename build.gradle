@@ -40,7 +40,10 @@ if (cliVersion) {
     }
 }
 
-def numericVersion = (version =~ /\d+(?:\.\d+)*/).find() ?: '0.0.0'
+def lastTag = git(['describe', '--tags', '--abbrev=0'])
+def installerVersion = version.find(/\d+\.\d+\.\d+/) ?:
+        (lastTag.exitValue == 0 && lastTag.output ? lastTag.output.find(/\d+\.\d+\.\d+/) : null) ?:
+        '0.0.0'
 
 java {
     toolchain {
@@ -235,7 +238,7 @@ runtime {
         mainJar = "MusMeta-${project.version}-all.jar"
         mainClass = 'com.mas6y6.musmeta.launch.Launcher'
 
-        appVersion = numericVersion
+        appVersion = installerVersion
 
         outputDir = 'jpackage'
 

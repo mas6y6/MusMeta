@@ -354,8 +354,9 @@ public class PostInstallationDialog extends MusMetaFrame {
 
         JLabel description = new JLabel("""
 <html>
-    Automatic updates help ensure that you always have the latest version of MusMeta.<br>
-    You can disable this feature at any time.
+    MusMeta can check for updates automatically to keep your application up to date.<br>
+    Choose whether you want to be prompted when updates are available, or disable update checks entirely.<br>
+    You can change this setting later in the preferences.
 </html>
 """);
 
@@ -364,25 +365,15 @@ public class PostInstallationDialog extends MusMetaFrame {
         content.add(description);
         content.add(Box.createVerticalStrut(10));
 
-        JRadioButton enableUpdatesBtn =
-                new JRadioButton("Enable auto updates");
-
         JRadioButton promptOnlyUpdateBtn =
-                new JRadioButton("Disable auto updates, but still prompt for updates.");
+                new JRadioButton("Prompt only");
 
         JRadioButton disableUpdatesBtn =
-                new JRadioButton("Disable auto updates");
+                new JRadioButton("Disabled");
 
         ButtonGroup buttonGroup = new ButtonGroup();
-        buttonGroup.add(enableUpdatesBtn);
         buttonGroup.add(promptOnlyUpdateBtn);
         buttonGroup.add(disableUpdatesBtn);
-
-        enableUpdatesBtn.addActionListener(
-                e -> {
-                    Settings.UPDATES.set(Updates.ENABLED);
-                }
-        );
 
         promptOnlyUpdateBtn.addActionListener(
                 e -> {
@@ -395,10 +386,7 @@ public class PostInstallationDialog extends MusMetaFrame {
                     Settings.UPDATES.set(Updates.DISABLED);
                 }
         );
-
-        enableUpdatesBtn.setSelected(true);
-
-        content.add(enableUpdatesBtn);
+        
         content.add(Box.createVerticalStrut(8));
         content.add(promptOnlyUpdateBtn);
         content.add(Box.createVerticalStrut(8));

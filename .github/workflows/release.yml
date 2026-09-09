@@ -21,27 +21,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set version
-        shell: bash
-        run: |
-          CURRENT_VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2)
-
-          # Remove the leading "v" from the Git tag.
-          VERSION="${GITHUB_REF_NAME#v}"
-
-          awk -v version="$VERSION" '
-            /^version=/ {
-              print "version=" version
-              next
-            }
-            { print }
-          ' gradle.properties > gradle.properties.tmp
-
-          mv gradle.properties.tmp gradle.properties
-
-          echo "Building release version: $VERSION"
-          grep "^version=" gradle.properties
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:

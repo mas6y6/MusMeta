@@ -49,6 +49,17 @@ public final class PluginManager {
         if (configured != null && !configured.isBlank()) {
             return Path.of(configured);
         }
+        String home = System.getProperty("musmeta.home");
+        if (home != null && !home.isBlank()) {
+            return Path.of(home, "plugins");
+        }
+        if (Boolean.getBoolean("musmeta.test") || System.getProperty("musmeta.test") != null) {
+            String testDir = System.getProperty("musmeta.test.dir");
+            if (testDir != null && !testDir.isBlank()) {
+                return Path.of(testDir, "plugins");
+            }
+            return Path.of(System.getProperty("java.io.tmpdir"), "musmeta-test", "plugins");
+        }
         return Path.of(System.getProperty("user.home"), ".musmeta", "plugins");
     }
 

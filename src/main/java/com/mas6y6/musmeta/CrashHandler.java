@@ -24,6 +24,25 @@ public final class CrashHandler {
     private CrashHandler() {
     }
 
+    public static Path defaultCrashDirectory() {
+        String configured = System.getProperty("musmeta.crash.dir");
+        if (configured != null && !configured.isBlank()) {
+            return Path.of(configured);
+        }
+        String home = System.getProperty("musmeta.home");
+        if (home != null && !home.isBlank()) {
+            return Path.of(home, "crash-reports");
+        }
+        if (com.mas6y6.musmeta.config.ConfigManager.isTestEnvironment()) {
+            String testDir = System.getProperty("musmeta.test.dir");
+            if (testDir != null && !testDir.isBlank()) {
+                return Path.of(testDir, "crash-reports");
+            }
+            return Path.of(System.getProperty("java.io.tmpdir"), "musmeta-test", "crash-reports");
+        }
+        return Path.of(System.getProperty("user.home"), ".musmeta", "crash-reports");
+    }
+
     public static void handle(Thread thread, Throwable throwable) {
         if (!CRASHING.compareAndSet(false, true)) {
             // Do not block the EDT: it is responsible for processing the
@@ -39,11 +58,7 @@ public final class CrashHandler {
         Path crashFile = null;
 
         try {
-            Path crashDirectory = Path.of(
-                    System.getProperty("user.home"),
-                    ".musmeta",
-                    "crash-reports"
-            );
+            Path crashDirectory = defaultCrashDirectory();
 
             Files.createDirectories(crashDirectory);
 

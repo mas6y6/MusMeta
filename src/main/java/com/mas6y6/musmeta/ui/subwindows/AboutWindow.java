@@ -4,6 +4,7 @@ import com.mas6y6.musmeta.utils.ScrollUtil;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
@@ -13,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
@@ -20,6 +22,8 @@ public class AboutWindow extends JDialog {
 
     private static final Parser MARKDOWN_PARSER = Parser.builder().build();
     private static final HtmlRenderer HTML_RENDERER = HtmlRenderer.builder().build();
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AboutWindow.class);
 
     public AboutWindow(JFrame parent) {
         super(parent, "About", true);
@@ -71,12 +75,27 @@ public class AboutWindow extends JDialog {
         content.add(scrollPane, BorderLayout.CENTER);
 
         // Buttons
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+
+        JPanel buttons = new JPanel(new BorderLayout(10, 0));
+        buttons.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
 
         JButton okButton = new JButton("OK");
         okButton.addActionListener(e -> dispose());
 
-        buttons.add(okButton);
+        JButton githubButton = new JButton("Github");
+        githubButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        githubButton.addActionListener((e) -> {
+            if (Desktop.isDesktopSupported()) {
+                try {
+                    Desktop.getDesktop().browse(URI.create("https://github.com/mas6y6/MusMeta"));
+                } catch (IOException ex) {
+                    LOGGER.error("Failed to open GitHub URL", ex);
+                }
+            }
+        });
+
+        buttons.add(githubButton, BorderLayout.WEST);
+        buttons.add(okButton, BorderLayout.EAST);
 
         content.add(buttons, BorderLayout.SOUTH);
 

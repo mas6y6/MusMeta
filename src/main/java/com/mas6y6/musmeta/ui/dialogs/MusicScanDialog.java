@@ -154,6 +154,8 @@ public class MusicScanDialog extends JDialog {
                 new Dimension(Integer.MAX_VALUE, buttonPanel.getPreferredSize().height)
         );
 
+        getRootPane().setDefaultButton(scanButton);
+
         return buttonPanel;
     }
 }

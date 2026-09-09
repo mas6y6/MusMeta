@@ -43,6 +43,17 @@ public final class LogSystem {
         if (configured != null && !configured.isBlank()) {
             return Path.of(configured);
         }
+        String home = System.getProperty("musmeta.home");
+        if (home != null && !home.isBlank()) {
+            return Path.of(home, "logs");
+        }
+        if (com.mas6y6.musmeta.config.ConfigManager.isTestEnvironment()) {
+            String testDir = System.getProperty("musmeta.test.dir");
+            if (testDir != null && !testDir.isBlank()) {
+                return Path.of(testDir, "logs");
+            }
+            return Paths.get(System.getProperty("java.io.tmpdir"), "musmeta-test", "logs");
+        }
         return Paths.get(System.getProperty("user.home"), ".musmeta", "logs");
     }
 

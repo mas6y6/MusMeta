@@ -34,7 +34,7 @@ public class Settings {
             ConfigManager.getInstance().getConfig("app").register("ffmpeg_installation_path", "");
 
     public static ConfigContainer<Updates> UPDATES =
-            ConfigManager.getInstance().getConfig("app").register("updates", Updates.ENABLED);
+            ConfigManager.getInstance().getConfig("app").register("updates", Updates.PROMPT_ONLY);
 
     public static ConfigContainer<Theme> PREFERRED_THEME =
             ConfigManager.getInstance().getConfig("app").register("preferred_theme", Theme.SYSTEM);

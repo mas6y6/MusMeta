@@ -9,7 +9,38 @@ plugins {
 import org.jetbrains.gradle.ext.Application
 
 group = 'com.mas6y6'
-version = '1.0.0'
+
+def cliVersion = gradle.startParameter.projectProperties['version']
+
+def git = { List<String> args ->
+    try {
+        def proc = new ProcessBuilder(['git'] + args)
+                .redirectErrorStream(true)
+                .start()
+        def output = proc.inputStream.text
+        def code = proc.waitFor()
+        [exitValue: code, output: output.trim()]
+    } catch (Exception e) {
+        [exitValue: -1, output: '']
+    }
+}
+
+if (cliVersion) {
+    version = cliVersion
+} else {
+    def tag = git(['describe', '--tags', '--exact-match'])
+    def commit = git(['rev-parse', '--short', 'HEAD'])
+
+    if (tag.exitValue == 0 && tag.output) {
+        version = tag.output
+    } else if (commit.exitValue == 0 && commit.output) {
+        version = "Homebuilt - #${commit.output}"
+    } else {
+        version = 'HOMEBUILT'
+    }
+}
+
+def numericVersion = (version =~ /\d+(?:\.\d+)*/).find() ?: '0.0.0'
 
 java {
     toolchain {
@@ -35,6 +66,21 @@ idea.project.settings.runConfigurations {
         programParameters = '--debug'
         jvmArgs = '-Xmx1G'
     }
+}
+
+def cleanRunResources = tasks.register('cleanRunResources') {
+    description = 'Deletes processed resources so the application always starts with freshly expanded resources.'
+    doLast {
+        delete layout.buildDirectory.dir('resources/main')
+    }
+}
+
+tasks.named('run') {
+    dependsOn cleanRunResources
+}
+
+tasks.named('processResources') {
+    mustRunAfter cleanRunResources
 }
 
 repositories {
@@ -74,6 +120,9 @@ dependencies {
 test {
     useJUnitPlatform()
     systemProperty 'java.awt.headless', 'true'
+    systemProperty 'musmeta.test', 'true'
+    systemProperty 'musmeta.config', "${layout.buildDirectory.get().asFile}/test-config/config.json"
+    systemProperty 'musmeta.logs.dir', "${layout.buildDirectory.get().asFile}/test-logs"
 }
 
 // ============================================================
@@ -186,7 +235,7 @@ runtime {
         mainJar = "MusMeta-${project.version}-all.jar"
         mainClass = 'com.mas6y6.musmeta.launch.Launcher'
 
-        appVersion = project.version.toString()
+        appVersion = numericVersion
 
         outputDir = 'jpackage'
 

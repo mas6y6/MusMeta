@@ -28,7 +28,6 @@ public class ConfigManager {
 
     public static Gson GSON = createGson();
     private static ConfigManager instance;
-    private static final Path CONFIG_PATH = Paths.get(System.getProperty("user.home"), ".musmeta", "config.json");
 
     private static final Map<Class<?>, ConfigCodec<?>> codecs = new LinkedHashMap<>();
 
@@ -48,16 +47,65 @@ public class ConfigManager {
         return instance;
     }
 
+    public static synchronized void setInstance(ConfigManager configManager) {
+        instance = configManager;
+    }
+
+    public static synchronized void resetInstance() {
+        instance = null;
+    }
+
+    public static boolean isTestEnvironment() {
+        if (Boolean.getBoolean("musmeta.test") || System.getProperty("musmeta.test") != null) {
+            return true;
+        }
+        for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
+            String className = element.getClassName();
+            if (className.startsWith("org.junit.") ||
+                    className.startsWith("org.testng.") ||
+                    className.startsWith("junit.")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static Path getDefaultConfigPath() {
-        return CONFIG_PATH;
+        String configured = System.getProperty("musmeta.config.path");
+        if (configured == null || configured.isBlank()) {
+            configured = System.getProperty("musmeta.config");
+        }
+        if (configured != null && !configured.isBlank()) {
+            return Path.of(configured);
+        }
+        String home = System.getProperty("musmeta.home");
+        if (home != null && !home.isBlank()) {
+            return Path.of(home, "config.json");
+        }
+        if (isTestEnvironment()) {
+            String testDir = System.getProperty("musmeta.test.dir");
+            if (testDir != null && !testDir.isBlank()) {
+                return Path.of(testDir, "config.json");
+            }
+            return Paths.get(System.getProperty("java.io.tmpdir"), "musmeta-test", "config.json");
+        }
+        return Paths.get(System.getProperty("user.home"), ".musmeta", "config.json");
     }
 
     public Path getConfigPath() {
-        return customConfigPath != null ? customConfigPath : CONFIG_PATH;
+        return customConfigPath != null ? customConfigPath : getDefaultConfigPath();
     }
 
     public void setConfigPath(Path configPath) {
         this.customConfigPath = configPath;
+    }
+
+    public void setCustomConfigPath(Path configPath) {
+        this.customConfigPath = configPath;
+    }
+
+    public Path getCustomConfigPath() {
+        return customConfigPath;
     }
 
     public synchronized SubConfig registerConfig(String name) {

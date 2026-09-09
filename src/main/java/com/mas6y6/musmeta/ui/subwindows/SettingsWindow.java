@@ -11,6 +11,7 @@ import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.ui.components.PathField;
 import com.mas6y6.musmeta.ui.subwindows.settings.FFmpegSettingsTab;
+import com.mas6y6.musmeta.ui.subwindows.settings.UpdatesTab;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,7 @@ public class SettingsWindow extends JDialog {
         tabs.addTab("Appearance", appearanceTab());
         tabs.addTab("Music", musicTab());
         tabs.addTab("FFmpeg", ffmpegTab());
+        tabs.addTab("Updates", updatesTab());
 
         Registries.SETTING_TABS.getAll().forEach(tab -> {
             if (tab.getValue().icon() != null) {
@@ -318,5 +320,9 @@ public class SettingsWindow extends JDialog {
 
     private JPanel ffmpegTab() {
         return new FFmpegSettingsTab();
+    }
+
+    private JPanel updatesTab() {
+        return new UpdatesTab();
     }
 }

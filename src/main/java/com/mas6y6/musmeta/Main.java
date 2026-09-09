@@ -29,7 +29,22 @@ import java.util.List;
 
 public class Main {
 
-    public static final Path appDir = Paths.get(System.getProperty("user.home"), ".musmeta");
+    public static Path getAppDir() {
+        String home = System.getProperty("musmeta.home");
+        if (home != null && !home.isBlank()) {
+            return Path.of(home);
+        }
+        if (ConfigManager.isTestEnvironment()) {
+            String testDir = System.getProperty("musmeta.test.dir");
+            if (testDir != null && !testDir.isBlank()) {
+                return Path.of(testDir);
+            }
+            return Paths.get(System.getProperty("java.io.tmpdir"), "musmeta-test");
+        }
+        return Paths.get(System.getProperty("user.home"), ".musmeta");
+    }
+
+    public static final Path appDir = getAppDir();
     public static Font outfitMedium;
     public static Font outfitExtraBold;
 

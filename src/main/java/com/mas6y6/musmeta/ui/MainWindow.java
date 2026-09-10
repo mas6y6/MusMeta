@@ -36,6 +36,7 @@ public class MainWindow extends MainAppFrame {
 
     private final JTabbedPane tabs = new JTabbedPane(SwingConstants.TOP);
     private final MusicPlayerPanel musicPlayer = new MusicPlayerPanel();
+    private final JToolBar toolbar = new JToolBar();
 
     private List<Song> selectedSongs = List.of();
     private LibraryUI libraryUI = new LibraryUI();
@@ -65,6 +66,32 @@ public class MainWindow extends MainAppFrame {
                 "Confirmation",
                 JOptionPane.YES_NO_OPTION
         );
+    }
+
+    private void registerMacAppMenuHandlers() {
+        if (!Desktop.isDesktopSupported()) {
+            return;
+        }
+        Desktop desktop = Desktop.getDesktop();
+        if (desktop.isSupported(Desktop.Action.APP_ABOUT)) {
+            desktop.setAboutHandler(e ->
+                    new AboutWindow(this).setVisible(true)
+            );
+        }
+        if (desktop.isSupported(Desktop.Action.APP_PREFERENCES)) {
+            desktop.setPreferencesHandler(e ->
+                    new SettingsWindow(this).setVisible(true)
+            );
+        }
+        if (desktop.isSupported(Desktop.Action.APP_QUIT_HANDLER)) {
+            desktop.setQuitHandler((e, response) -> {
+                if (onClose(this)) {
+                    response.performQuit();
+                } else {
+                    response.cancelQuit();
+                }
+            });
+        }
     }
 
     /**
@@ -182,13 +209,6 @@ public class MainWindow extends MainAppFrame {
 
         JMenuBar menuBar = new JMenuBar();
 
-        if (SystemInfo.isMacOS) {
-            Dimension dim = menuBar.getPreferredSize();
-            dim.height = 50;
-            menuBar.setPreferredSize(dim);
-
-            menuBar.add(Box.createHorizontalStrut( 100 ), 0);
-        }
         menuBar.setOpaque(false);
         menuBar.setBorder(
                 BorderFactory.createEmptyBorder()
@@ -243,8 +263,15 @@ public class MainWindow extends MainAppFrame {
         aboutItem.addActionListener(e ->
                 new AboutWindow(this).setVisible(true)
         );
+
+        if (SystemInfo.isMacOS) {
+            aboutItem.setVisible(false);
+            exitItem.setVisible(false);
+            registerMacAppMenuHandlers();
+        }
         //endregion
 
+        //region
 
         // Edit
 
@@ -343,6 +370,29 @@ public class MainWindow extends MainAppFrame {
         //endregion
 
 
+        //region Title Bar / Toolbar
+
+        toolbar.setFloatable(false);
+        toolbar.setOpaque(true);
+        toolbar.setBorder(
+                BorderFactory.createEmptyBorder()
+        );
+
+        Dimension titleBarSize = new Dimension(0, SystemInfo.isMacOS ? 48 : 38);
+        toolbar.setPreferredSize(titleBarSize);
+        toolbar.setMinimumSize(titleBarSize);
+        toolbar.setBackground(getBackground().darker());
+        toolbar.setMaximumSize(new Dimension(Integer.MAX_VALUE, SystemInfo.isMacOS ? 48 : 38));
+
+        if (SystemInfo.isMacOS) {
+            toolbar.add(Box.createHorizontalStrut(80));
+        }
+
+        add(toolbar, BorderLayout.NORTH);
+
+        //endregion
+
+
         //region Tabs
 
         tabs.putClientProperty(
@@ -400,5 +450,8 @@ public class MainWindow extends MainAppFrame {
     }
     public LibraryUI getLibraryUI() {
         return libraryUI;
+    }
+    public JToolBar getToolbar() {
+        return toolbar;
     }
 }

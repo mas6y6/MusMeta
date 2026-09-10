@@ -16,6 +16,7 @@ import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.launch.LaunchScreen;
 import com.mas6y6.musmeta.ui.dialogs.MissingSongsDialog;
 import com.mas6y6.musmeta.ui.dialogs.PostInstallationDialog;
+import com.mas6y6.musmeta.utils.PlatformSetup;
 import org.slf4j.Logger;
 
 import javax.swing.*;
@@ -56,9 +57,7 @@ public class Main {
     public static void main() {
         LOGGER.info("com.mas6y6.musmeta.Main.main()");
 
-        if (SystemInfo.isMacOS) {
-            System.setProperty( "apple.awt.application.name", "MusMeta" );
-        }
+        PlatformSetup.applyMacPlatformSettings();
 
         if (!Files.exists(appDir)) {
             try {
@@ -164,14 +163,30 @@ public class Main {
         if (!isSetupCompleted) {
             SwingUtilities.invokeLater(() -> {
                 LaunchScreen.closeIfOpen();
+                configureDockIcon();
                 new PostInstallationDialog();
             });
         } else {
             SwingUtilities.invokeLater(() -> {
                 LaunchScreen.closeIfOpen();
+                configureDockIcon();
                 MainWindow.INSTANCE.setVisible(true);
                 showMissingSongsPromptIfAny();
             });
+        }
+    }
+
+    private static void configureDockIcon() {
+        if (!SystemInfo.isMacOS || !Taskbar.isTaskbarSupported()) {
+            return;
+        }
+        try {
+            Taskbar taskbar = Taskbar.getTaskbar();
+            if (taskbar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
+                taskbar.setIconImage(Constants.APP_ICON);
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Failed to set dock icon", e);
         }
     }
 

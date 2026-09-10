@@ -6,6 +6,7 @@ import com.mas6y6.musmeta.plugin.PluginManager;
 import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.launch.LaunchScreen;
+import com.mas6y6.musmeta.utils.PlatformSetup;
 import com.mas6y6.musmeta.utils.Utils;
 import com.mas6y6.musmeta.utils.Version;
 import org.slf4j.Logger;
@@ -113,6 +114,7 @@ public class Bootstrap implements Runnable {
     }
 
     public static void main(String[] args) {
+        PlatformSetup.applyMacPlatformSettings();
         LogSystem.init(args);
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler::handle);
 

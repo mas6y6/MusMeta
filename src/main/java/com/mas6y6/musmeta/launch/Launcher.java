@@ -2,12 +2,14 @@ package com.mas6y6.musmeta.launch;
 
 import com.mas6y6.musmeta.CrashHandler;
 import com.mas6y6.musmeta.logging.LogSystem;
+import com.mas6y6.musmeta.utils.PlatformSetup;
 
 public final class Launcher {
     private Launcher() {
     }
 
     public static void main(String[] args) {
+        PlatformSetup.applyMacPlatformSettings();
         LogSystem.init(args);
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler::handle);
         KnotClassLoader knot = new KnotClassLoader(ClassLoader.getSystemClassLoader());

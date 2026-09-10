@@ -372,23 +372,31 @@ public class MainWindow extends MainAppFrame {
 
         //region Title Bar / Toolbar
 
-        toolbar.setFloatable(false);
-        toolbar.setOpaque(true);
-        toolbar.setBorder(
-                BorderFactory.createEmptyBorder()
-        );
-
-        Dimension titleBarSize = new Dimension(0, SystemInfo.isMacOS ? 48 : 38);
-        toolbar.setPreferredSize(titleBarSize);
-        toolbar.setMinimumSize(titleBarSize);
-        toolbar.setBackground(getBackground().darker());
-        toolbar.setMaximumSize(new Dimension(Integer.MAX_VALUE, SystemInfo.isMacOS ? 48 : 38));
-
         if (SystemInfo.isMacOS) {
-            toolbar.add(Box.createHorizontalStrut(80));
-        }
+            toolbar.setFloatable(false);
+            toolbar.setOpaque(true);
+            toolbar.setBorder(BorderFactory.createEmptyBorder());
 
-        add(toolbar, BorderLayout.NORTH);
+            Dimension titleBarSize = new Dimension(0, 48);
+            toolbar.setPreferredSize(titleBarSize);
+            toolbar.setMinimumSize(titleBarSize);
+            toolbar.setMaximumSize(
+                    new Dimension(Integer.MAX_VALUE, 48)
+            );
+
+            toolbar.setBackground(getBackground().darker());
+
+            toolbar.add(Box.createHorizontalStrut(80));
+
+            add(toolbar, BorderLayout.NORTH);
+        } else {
+            toolbar.setFloatable(false);
+            toolbar.setOpaque(false);
+            toolbar.setBorder(BorderFactory.createEmptyBorder());
+
+            menuBar.add(Box.createHorizontalGlue());
+            menuBar.add(toolbar);
+        }
 
         //endregion
 

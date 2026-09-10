@@ -18,15 +18,17 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Core {
     static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Core.class);
 
-    public record ScanResult(List<Song> musicFiles, List<UntaggedSong> untaggedSongs, List<Album> albums) {}
+    public record ScanResult(List<Song> musicFiles, List<Album> albums) {}
 
     public static List<Album> getAlbums() {
         return Library.getInstance().getAlbums();
@@ -45,8 +47,10 @@ public class Core {
     }
 
     /**
-     * Scans a directory tree for music, rebuilds the library from the tagged
-     * songs found, and persists it.
+     * Scans a directory tree for music, incrementally syncing the library:
+     * songs already in the library are kept, newly discovered songs are added,
+     * and songs whose files no longer exist on disk are removed. Persists only
+     * when the library actually changed.
      */
     public static ScanResult scanForMusicFiles(Path musicDir, List<Path> ignorePaths) {
         LOGGER.info("Scanning for music files...");
@@ -64,7 +68,6 @@ public class Core {
         Path musMetaDirectory = musicDirectory.resolve("MusMeta");
 
         ArrayList<Song> musicFiles = new ArrayList<>();
-        ArrayList<UntaggedSong> untaggedSongs = new ArrayList<>();
 
         try {
             Files.walkFileTree(musicDirectory, new SimpleFileVisitor<>() {
@@ -101,10 +104,6 @@ public class Core {
                         try {
                             AudioFile audioFile = AudioFileIO.read(file.toFile());
                             Song song = new Song(audioFile);
-
-                            if (audioFile.getTag() == null) {
-                                untaggedSongs.add(new UntaggedSong(audioFile));
-                            }
                             musicFiles.add(song);
 
                             LOGGER.info("Processing file: {}", file);
@@ -130,7 +129,7 @@ public class Core {
                 ) {
                     LOGGER.error("{}{}", "Skipping unreadable item: "
                             + file
-                            + " due to ", exc.getMessage());
+                            + " due to ", exc);
 
                     return FileVisitResult.CONTINUE;
                 }
@@ -140,12 +139,38 @@ public class Core {
         }
 
         Library library = Library.getInstance();
-        library.clear();
-        for (Song song : musicFiles) {
-            library.addSong(song);
-        }
-        library.save();
 
-        return new ScanResult(List.copyOf(musicFiles), List.copyOf(untaggedSongs), library.getAlbums());
+        Map<Path, Song> existingByPath = new HashMap<>();
+        for (Song song : library.getSongs()) {
+            existingByPath.put(
+                    song.getAudioFile().getFile().toPath().toAbsolutePath().normalize(),
+                    song
+            );
+        }
+
+        int removed = 0;
+        for (Map.Entry<Path, Song> entry : existingByPath.entrySet()) {
+            if (!Files.exists(entry.getKey())) {
+                library.removeSong(entry.getValue());
+                removed++;
+            }
+        }
+
+        int added = 0;
+        for (Song song : musicFiles) {
+            Path path = song.getAudioFile().getFile().toPath().toAbsolutePath().normalize();
+            if (!existingByPath.containsKey(path)) {
+                library.addSong(song);
+                added++;
+            }
+        }
+
+        if (added > 0 || removed > 0) {
+            library.save();
+        }
+
+        LOGGER.info("Scan complete: {} new song(s) added, {} song(s) removed", added, removed);
+
+        return new ScanResult(List.copyOf(musicFiles), library.getAlbums());
     }
 }

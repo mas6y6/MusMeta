@@ -1,8 +1,10 @@
 package com.mas6y6.musmeta.ui.album;
 
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.ui.MainWindow;
+import com.mas6y6.musmeta.ui.components.MusicPlayerPanel;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.mas6y6.musmeta.ui.dialogs.EditAlbumDialog;
 import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
@@ -18,11 +20,22 @@ public class AlbumUI extends JPanel {
     private static final int ARTWORK_SIZE = 180;
     private static final Color HOVER_TINT = new Color(255, 255, 255, 70);
     private static final int HOVER_PADDING = 20;
+    private static final Icon ICON_MORE = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/more-vertical.svg"))).derive(16, 16);
 
     private final Album album;
     private final AlbumArtwork artwork;
     private final JLabel title;
     private final JLabel artist;
+
+    private final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    private final JButton editButton = new JButton(ICON_MORE);
+
+    private boolean isMouseInside() {
+        Point mouse = MouseInfo.getPointerInfo().getLocation();
+        SwingUtilities.convertPointFromScreen(mouse, this);
+
+        return contains(mouse);
+    }
 
     public AlbumUI(Album album, Image artworkImage) {
         super(new BorderLayout(0, 6));
@@ -61,24 +74,39 @@ public class AlbumUI extends JPanel {
                         )
                 );
 
+                editButton.setVisible(true);
                 setHovered(true);
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                setCursor(
-                        Cursor.getDefaultCursor()
-                );
+                if (!isMouseInside()) {
+                    setCursor(
+                            Cursor.getDefaultCursor()
+                    );
 
-                setHovered(false);
+                    editButton.setVisible(false);
+                    setHovered(false);
+                }
             }
 
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     MainWindow.INSTANCE.openAlbumTab(album);
-                } else if (SwingUtilities.isRightMouseButton(e)) {
-                    handleRightClickMenu(e);
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    Point point = SwingUtilities.convertPoint(
+                            e.getComponent(),
+                            e.getPoint(),
+                            AlbumUI.this
+                    );
+
+                    handleRightClickMenu(point);
                 }
             }
         };
@@ -104,7 +132,10 @@ public class AlbumUI extends JPanel {
 
         add(artwork, BorderLayout.NORTH);
 
-        // Text container
+        JPanel bottom = new JPanel(new BorderLayout(8, 0));
+        bottom.setOpaque(false);
+
+// Text container
         JPanel text = new JPanel();
 
         text.setOpaque(false);
@@ -116,8 +147,9 @@ public class AlbumUI extends JPanel {
                 )
         );
 
-        // Album title
+// Album title
         title = new JLabel(album.getTitle());
+
 
         title.setAlignmentX(
                 Component.LEFT_ALIGNMENT
@@ -130,7 +162,7 @@ public class AlbumUI extends JPanel {
                 )
         );
 
-        // Artist
+// Artist
         this.artist = new JLabel(artist);
 
         this.artist.setAlignmentX(
@@ -153,11 +185,41 @@ public class AlbumUI extends JPanel {
         text.add(title);
         text.add(this.artist);
 
+// IMPORTANT: add text to bottom, NOT AlbumUI
+        bottom.add(text, BorderLayout.CENTER);
+
+
+// Buttons
+        buttons.setOpaque(false);
+        buttons.setBorder(BorderFactory.createEmptyBorder());
+
+        editButton.setFocusable(false);
+        editButton.setVisible(false);
+        editButton.addActionListener((e) -> {
+            Point point = SwingUtilities.convertPoint(
+                    editButton,
+                    new Point(editButton.getWidth() / 2, editButton.getHeight()),
+                    AlbumUI.this
+            );
+
+            handleRightClickMenu(point);
+        });
+
+        buttons.add(editButton);
+
+// Buttons go on the right
+        bottom.add(buttons, BorderLayout.EAST);
+
+
+// Mouse listeners
+        bottom.addMouseListener(mouseAdapter);
         text.addMouseListener(mouseAdapter);
         title.addMouseListener(mouseAdapter);
         this.artist.addMouseListener(mouseAdapter);
 
-        add(text, BorderLayout.CENTER);
+
+// Add the entire bottom row to AlbumUI
+        add(bottom, BorderLayout.SOUTH);
     }
 
     @Override
@@ -216,7 +278,7 @@ public class AlbumUI extends JPanel {
         return album;
     }
 
-    private void handleRightClickMenu(MouseEvent mouseEvent) {
+    private void handleRightClickMenu(Point mouse) {
         var popupMenu = new JPopupMenu();
 
         var openInNewTab = new JMenuItem("Open In New Tab");
@@ -248,6 +310,6 @@ public class AlbumUI extends JPanel {
         });
         popupMenu.add(deleteAlbum);
 
-        popupMenu.show(this, mouseEvent.getX(), mouseEvent.getY());
+        popupMenu.show(this, mouse.x, mouse.y);
     }
 }

@@ -281,6 +281,9 @@ public class AlbumUI extends JPanel {
     private void handleRightClickMenu(Point mouse) {
         var popupMenu = new JPopupMenu();
 
+        var play = new JMenuItem("Play");
+        popupMenu.add(play);
+
         var openInNewTab = new JMenuItem("Open In New Tab");
         popupMenu.add(openInNewTab);
         openInNewTab.addActionListener(e -> {MainWindow.INSTANCE.openAlbumTab(album);});

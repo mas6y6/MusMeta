@@ -212,7 +212,13 @@ public class AlbumDetailUI extends JPanel {
 
         meta.add(reformatButton);
 
-        meta.add(Box.createVerticalStrut(8));
+        meta.add(Box.createVerticalStrut(4));
+
+        JButton playButton = new JButton("Play");
+        playButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        playButton.addActionListener((e) -> {});
+
+        meta.add(playButton);
 
         header.add(meta, BorderLayout.CENTER);
 
@@ -397,6 +403,10 @@ public class AlbumDetailUI extends JPanel {
         return minutes + ":" + (sec < 10 ? "0" : "") + sec;
     }
 
+    public boolean isManyArtists() {
+        return manyArtists;
+    }
+
     /**
      * A label that word-wraps its text across multiple lines when its text is
      * wider than the available space (the width of its parent container), so
@@ -455,6 +465,12 @@ public class AlbumDetailUI extends JPanel {
         }
 
         if (!songsToEdit.isEmpty()) {
+            JMenuItem playSong = new JMenuItem("Play");
+            playSong.addActionListener(e -> {
+
+            });
+            popupMenu.add(playSong);
+
             String label = songsToEdit.size() > 1
                     ? "Get Info (" + songsToEdit.size() + " Songs)..."
                     : "Get Info...";

@@ -135,7 +135,48 @@ public final class AlbumFormatNormalizer {
         if (ffmpeg == null) {
             throw new IllegalStateException("FFmpeg is required to convert album audio formats.");
         }
-        return normalize(album, targetFormat, ffmpeg);
+        return normalize(songsIn(album), targetFormat, null);
+    }
+
+    /**
+     * Converts every song in {@code songs} that is not already in
+     * {@code targetFormat}, in place. Source files are only removed after
+     * FFmpeg has successfully written and validated their replacement.
+     * Progress is reported as completed/total over the supplied collection.
+     */
+    public static ConversionResult normalize(
+            Collection<Song> songs,
+            AudioFormat targetFormat,
+            ConversionProgress progress
+    ) {
+        Path ffmpeg = FFmpegUtils.getFFmpegExecutable();
+        if (ffmpeg == null) {
+            throw new IllegalStateException("FFmpeg is required to convert album audio formats.");
+        }
+
+        int converted = 0;
+        int completed = 0;
+        int total = songs.size();
+        List<Path> failures = new ArrayList<>();
+        for (Song song : songs) {
+            Path source = song.getAudioFile().getFile().toPath();
+            if (extensionOf(source).equals(targetFormat.extension())) {
+                continue;
+            }
+
+            try {
+                convert(song, source, targetFormat, ffmpeg);
+                converted++;
+            } catch (Exception exception) {
+                LOGGER.error("Could not convert {} to {}", source, targetFormat, exception);
+                failures.add(source);
+            }
+            completed++;
+            if (progress != null) {
+                progress.update(completed, total, source.getFileName().toString());
+            }
+        }
+        return new ConversionResult(converted, List.copyOf(failures));
     }
 
     /**

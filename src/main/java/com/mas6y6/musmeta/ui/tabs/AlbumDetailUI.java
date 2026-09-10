@@ -3,11 +3,15 @@ package com.mas6y6.musmeta.ui.tabs;
 import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
+import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.mas6y6.musmeta.ui.dialogs.EditAlbumDialog;
 import com.mas6y6.musmeta.ui.dialogs.EditSongDialog;
+import com.mas6y6.musmeta.ui.dialogs.ReformatMusicDialog;
 import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
+import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
+import com.mas6y6.musmeta.utils.FFmpegUtils;
 import org.jaudiotagger.tag.FieldKey;
 
 import javax.swing.*;
@@ -84,6 +88,83 @@ public class AlbumDetailUI extends JPanel {
         return List.copyOf(selectedSongs);
     }
 
+    /**
+     * Asks for a target format (and, when songs are selected, whether only
+     * those songs or the entire album should be converted), then runs the
+     * conversion behind a progress dialog.
+     */
+    private void reformatSongs() {
+        List<Song> allSongs = album.getSongs();
+        if (allSongs.isEmpty()) {
+            EXTDialog.showMessageDialog(
+                    MainWindow.INSTANCE,
+                    "This album has no songs to reformat.",
+                    "Reformat Songs",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+
+        if (FFmpegUtils.getFFmpegExecutable() == null) {
+            EXTDialog.showMessageDialog(
+                    MainWindow.INSTANCE,
+                    "FFmpeg is required to convert audio formats.\n"
+                            + "Set up an FFmpeg binary in Settings > FFmpeg first.",
+                    "FFmpeg Required",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        List<Song> selected = getSelectedSongs();
+        JComboBox<String> scopePicker = new JComboBox<>();
+        if (selected.isEmpty()) {
+            scopePicker.addItem("All songs in album (" + allSongs.size() + ")");
+        } else {
+            scopePicker.addItem("Selected songs (" + selected.size() + ")");
+            scopePicker.addItem("All songs in album (" + allSongs.size() + ")");
+        }
+
+        JComboBox<AlbumFormatNormalizer.AudioFormat> formatPicker =
+                new JComboBox<>(AlbumFormatNormalizer.AudioFormat.values());
+        formatPicker.setSelectedItem(
+                AlbumFormatNormalizer.fromSetting(Settings.AUDIO_TARGET_FORMAT.get())
+        );
+
+        Object[] message = {
+                "Target format:", formatPicker,
+                "Songs:", scopePicker
+        };
+        int choice = EXTDialog.showConfirmDialog(
+                MainWindow.INSTANCE,
+                message,
+                "Reformat Songs",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+        if (choice != JOptionPane.OK_OPTION) {
+            return;
+        }
+
+        AlbumFormatNormalizer.AudioFormat target =
+                (AlbumFormatNormalizer.AudioFormat) formatPicker.getSelectedItem();
+        if (target == null) {
+            return;
+        }
+
+        List<Song> scope;
+        if (selected.isEmpty() || scopePicker.getSelectedIndex() == 1) {
+            scope = allSongs;
+        } else {
+            scope = selected;
+        }
+
+        new ReformatMusicDialog(MainWindow.INSTANCE, scope, target).startAndShow();
+
+        reloadTrackTable();
+        MainWindow.INSTANCE.getLibraryUI().refresh();
+    }
+
     private JPanel header() {
         JPanel header = new JPanel(new BorderLayout(24, 0));
         header.setOpaque(false);
@@ -122,6 +203,14 @@ public class AlbumDetailUI extends JPanel {
         });
 
         meta.add(editbutton);
+
+        meta.add(Box.createVerticalStrut(4));
+
+        JButton reformatButton = new JButton("Reformat...");
+        reformatButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        reformatButton.addActionListener(e -> reformatSongs());
+
+        meta.add(reformatButton);
 
         meta.add(Box.createVerticalStrut(8));
 

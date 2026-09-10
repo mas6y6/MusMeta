@@ -52,6 +52,9 @@ public class Settings {
     public static ConfigContainer<Integer> FFMPEG_CONVERSION_THREADS =
             ConfigManager.getInstance().getConfig("app").register("ffmpeg_conversion_threads", 1);
 
+    public static ConfigContainer<Boolean> SHOW_MUSIC_PLAYER =
+            ConfigManager.getInstance().getConfig("app").register("show_music_player", true);
+
     private Settings() {}
 
     public static void registerConfigs() {

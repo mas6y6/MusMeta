@@ -11,6 +11,7 @@ import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.ui.components.MainAppFrame;
 import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Song;
+import com.mas6y6.musmeta.ui.components.MusicPlayerPanel;
 import com.mas6y6.musmeta.ui.dialogs.ProcessMusicDialog;
 import com.mas6y6.musmeta.ui.tabs.AlbumDetailUI;
 
@@ -34,6 +35,7 @@ public class MainWindow extends MainAppFrame {
     public static final MainWindow INSTANCE = new MainWindow();
 
     private final JTabbedPane tabs = new JTabbedPane(SwingConstants.TOP);
+    private final MusicPlayerPanel musicPlayer = new MusicPlayerPanel();
 
     private List<Song> selectedSongs = List.of();
     private LibraryUI libraryUI = new LibraryUI();
@@ -300,6 +302,16 @@ public class MainWindow extends MainAppFrame {
         JMenu viewMenu =
                 new JMenu("View");
 
+        JCheckBoxMenuItem showPlayerItem = new JCheckBoxMenuItem("Show Music Player");
+        showPlayerItem.addActionListener(e -> {
+            Settings.SHOW_MUSIC_PLAYER.set(showPlayerItem.isSelected());
+            musicPlayer.setVisible(showPlayerItem.isSelected());
+        });
+
+        showPlayerItem.setSelected(Settings.SHOW_MUSIC_PLAYER.get());
+
+        viewMenu.add(showPlayerItem);
+
         // Library
 
         JMenu libraryMenu =
@@ -357,6 +369,8 @@ public class MainWindow extends MainAppFrame {
                         }
         );
 
+        tabs.putClientProperty("TabbedPane.tabLayoutPolicy", "scroll");
+
         tabs.addChangeListener(e -> refreshSelectionForActiveTab());
 
         tabs.setTabLayoutPolicy(
@@ -371,6 +385,11 @@ public class MainWindow extends MainAppFrame {
         add(
                 tabs,
                 BorderLayout.CENTER
+        );
+
+        add(
+                musicPlayer,
+                BorderLayout.SOUTH
         );
 
         //endregion

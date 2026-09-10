@@ -5,7 +5,7 @@ import com.mas6y6.musmeta.logging.LogSystem;
 import com.mas6y6.musmeta.plugin.PluginManager;
 import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.settings.Settings;
-import com.mas6y6.musmeta.ui.components.LaunchScreen;
+import com.mas6y6.musmeta.launch.LaunchScreen;
 import com.mas6y6.musmeta.utils.Utils;
 import com.mas6y6.musmeta.utils.Version;
 import org.slf4j.Logger;

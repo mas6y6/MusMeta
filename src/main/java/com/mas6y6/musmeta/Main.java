@@ -13,7 +13,7 @@ import com.mas6y6.musmeta.settings.ConfigCodecs;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.ui.MainWindow;
-import com.mas6y6.musmeta.ui.components.LaunchScreen;
+import com.mas6y6.musmeta.launch.LaunchScreen;
 import com.mas6y6.musmeta.ui.dialogs.MissingSongsDialog;
 import com.mas6y6.musmeta.ui.dialogs.PostInstallationDialog;
 import org.slf4j.Logger;

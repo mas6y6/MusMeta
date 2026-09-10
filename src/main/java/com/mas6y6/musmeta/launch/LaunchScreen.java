@@ -1,10 +1,10 @@
-package com.mas6y6.musmeta.ui.components;
+package com.mas6y6.musmeta.launch;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import com.mas6y6.musmeta.utils.Version;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;

@@ -39,7 +39,7 @@ public class MainWindow extends MainAppFrame {
     private final JToolBar toolbar = new JToolBar();
 
     private List<Song> selectedSongs = List.of();
-    private LibraryUI libraryUI = new LibraryUI();
+    private final LibraryUI libraryUI = new LibraryUI();
 
     private MainWindow() {
         if (SystemInfo.isMacOS) {

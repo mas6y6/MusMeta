@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'application'
+    id 'maven-publish'
     id 'org.beryx.runtime' version '2.0.1'
     id 'org.jetbrains.gradle.plugin.idea-ext' version '1.4.1'
     id 'com.gradleup.shadow' version '9.6.1'
@@ -149,6 +150,30 @@ tasks.register('fatJar') {
     group = 'distribution'
     description = 'Builds the self-contained MusMeta JAR.'
     dependsOn tasks.named('shadowJar')
+}
+
+// ============================================================
+// Publishing (app + framework fat JAR to JitPack / Maven)
+//
+// JitPack resolves this as `com.github.mas6y6:MusMeta:<tag>`.
+// Publishing the shadow component keeps the app classes and the
+// plugin framework together so plugins can use `compileOnly`
+// against a single artifact.
+// ============================================================
+
+publishing {
+    publications {
+        musmeta(MavenPublication) {
+            artifactId = 'MusMeta'
+            artifact(tasks.named('shadowJar')) {
+                classifier = ''
+            }
+            pom {
+                name = 'MusMeta'
+                description = 'MusMeta music metadata editor and plugin framework.'
+            }
+        }
+    }
 }
 
 

@@ -2,45 +2,42 @@ package com.mas6y6.musmeta.ui.subwindows.settings;
 
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Updates;
+import com.mas6y6.musmeta.ui.subwindows.settings.base.SettingTab;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class UpdatesTab extends JPanel {
+public class UpdatesTab extends SettingTab {
     private final JRadioButton promptOnlyRadio =
             new JRadioButton("Prompt Only");
     private final JRadioButton disabledRadio =
             new JRadioButton("Disabled");
 
     public UpdatesTab() {
-        super(new BorderLayout());
-        setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-
-        JPanel content = new JPanel();
-        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        super();
 
         JLabel title = new JLabel("Updates");
         title.setFont(title.getFont().deriveFont(Font.BOLD, 20f));
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(title);
+        CONTENT.add(title);
 
-        content.add(Box.createVerticalStrut(5));
+        CONTENT.add(Box.createVerticalStrut(5));
 
         JLabel description = new JLabel(
                 "Configure how the application checks for updates."
         );
         description.setForeground(UIManager.getColor("Label.disabledForeground"));
         description.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(description);
+        CONTENT.add(description);
 
-        content.add(Box.createVerticalStrut(12));
+        CONTENT.add(Box.createVerticalStrut(12));
 
         ButtonGroup buttonGroup = new ButtonGroup();
         buttonGroup.add(promptOnlyRadio);
         buttonGroup.add(disabledRadio);
 
-        content.add(promptOnlyRadio);
-        content.add(disabledRadio);
+        CONTENT.add(promptOnlyRadio);
+        CONTENT.add(disabledRadio);
 
         promptOnlyRadio.addActionListener(e -> {
             Settings.UPDATES.set(Updates.PROMPT_ONLY);
@@ -50,8 +47,6 @@ public class UpdatesTab extends JPanel {
         });
 
         configureInitState();
-
-        add(content, BorderLayout.CENTER);
     }
 
     public void configureInitState() {

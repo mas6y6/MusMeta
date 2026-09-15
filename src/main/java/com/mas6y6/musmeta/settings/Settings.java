@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import javax.swing.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Settings {
@@ -54,6 +55,9 @@ public class Settings {
 
     public static ConfigContainer<Boolean> SHOW_MUSIC_PLAYER =
             ConfigManager.getInstance().getConfig("app").register("show_music_player", true);
+
+    public static ConfigContainer<List<String>> DISABLED_PLUGINS =
+            ConfigManager.getInstance().getConfig("app").register("show_music_player", List.of());
 
     private Settings() {}
 

@@ -4,6 +4,7 @@ import com.mas6y6.musmeta.Main;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.dialogs.FFmpegDownloadProcessingDialog;
 import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
+import com.mas6y6.musmeta.ui.subwindows.settings.base.SettingTab;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
 import com.formdev.flatlaf.util.SystemFileChooser;
 
@@ -12,7 +13,7 @@ import java.awt.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class FFmpegSettingsTab extends JPanel {
+public class FFmpegSettingsTab extends SettingTab {
 
     private final JRadioButton automaticRadio =
             new JRadioButton("Manage automatically");
@@ -34,23 +35,19 @@ public class FFmpegSettingsTab extends JPanel {
     );
 
     public FFmpegSettingsTab() {
-        super(new BorderLayout());
-        setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-
-        JPanel content = new JPanel();
-        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        super();
 
         JLabel title = new JLabel("FFmpeg");
         title.setFont(title.getFont().deriveFont(Font.BOLD, 20f));
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(title);
+        CONTENT.add(title);
 
-        content.add(Box.createVerticalStrut(20));
+        CONTENT.add(Box.createVerticalStrut(20));
 
         automaticRadio.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(automaticRadio);
+        CONTENT.add(automaticRadio);
 
-        content.add(Box.createVerticalStrut(5));
+        CONTENT.add(Box.createVerticalStrut(5));
 
         JLabel autoDescription = new JLabel(
                 "MusMeta downloads and keeps FFmpeg up to date for you. "
@@ -58,30 +55,30 @@ public class FFmpegSettingsTab extends JPanel {
         );
         autoDescription.setForeground(UIManager.getColor("Label.disabledForeground"));
         autoDescription.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(autoDescription);
+        CONTENT.add(autoDescription);
 
-        content.add(Box.createVerticalStrut(12));
+        CONTENT.add(Box.createVerticalStrut(12));
 
         JPanel autoActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         autoActions.setAlignmentX(Component.LEFT_ALIGNMENT);
         autoActions.add(repairButton);
-        content.add(autoActions);
+        CONTENT.add(autoActions);
 
-        content.add(Box.createVerticalStrut(20));
+        CONTENT.add(Box.createVerticalStrut(20));
 
         manualRadio.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(manualRadio);
+        CONTENT.add(manualRadio);
 
-        content.add(Box.createVerticalStrut(5));
+        CONTENT.add(Box.createVerticalStrut(5));
 
         JLabel manualDescription = new JLabel(
                 "Point MusMeta at an existing FFmpeg installation."
         );
         manualDescription.setForeground(UIManager.getColor("Label.disabledForeground"));
         manualDescription.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(manualDescription);
+        CONTENT.add(manualDescription);
 
-        content.add(Box.createVerticalStrut(12));
+        CONTENT.add(Box.createVerticalStrut(12));
 
         JPanel pathPanel = new JPanel(new BorderLayout(10, 0));
         pathPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
@@ -90,43 +87,41 @@ public class FFmpegSettingsTab extends JPanel {
         JButton browseButton = new JButton("Browse...");
         pathPanel.add(pathField, BorderLayout.CENTER);
         pathPanel.add(browseButton, BorderLayout.EAST);
-        content.add(pathPanel);
+        CONTENT.add(pathPanel);
 
-        content.add(Box.createVerticalStrut(20));
+        CONTENT.add(Box.createVerticalStrut(20));
 
         JLabel threadLabel = new JLabel("Maximum conversion threads");
         threadLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(threadLabel);
+        CONTENT.add(threadLabel);
 
-        content.add(Box.createVerticalStrut(5));
+        CONTENT.add(Box.createVerticalStrut(5));
 
         JLabel threadDescription = new JLabel(
                 "How many songs FFmpeg may convert at the same time during a scan."
         );
         threadDescription.setForeground(UIManager.getColor("Label.disabledForeground"));
         threadDescription.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(threadDescription);
+        CONTENT.add(threadDescription);
 
         JLabel threadLabelWarning = new JLabel("Values beyond 5 are not recommended as your machine may start to lag.");
         threadLabelWarning.setForeground(Color.RED);
         threadLabelWarning.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(threadLabelWarning);
+        CONTENT.add(threadLabelWarning);
 
-        content.add(Box.createVerticalStrut(10));
+        CONTENT.add(Box.createVerticalStrut(10));
 
         JPanel threadPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         threadPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         threadPanel.add(threadCountSpinner);
-        content.add(threadPanel);
+        CONTENT.add(threadPanel);
 
-        content.add(Box.createVerticalStrut(20));
+        CONTENT.add(Box.createVerticalStrut(20));
 
         statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(statusLabel);
+        CONTENT.add(statusLabel);
 
-        content.add(Box.createVerticalGlue());
-
-        add(content, BorderLayout.NORTH);
+        CONTENT.add(Box.createVerticalGlue());
 
         ButtonGroup group = new ButtonGroup();
         group.add(automaticRadio);

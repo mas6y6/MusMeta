@@ -283,7 +283,7 @@ public class PostInstallationDialog extends MusMetaFrame {
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 
-        JLabel title = new JLabel("Welcome to MusMeta");
+        JLabel title = new JLabel("Welcome to MusMeta!");
         if (com.mas6y6.musmeta.Main.outfitExtraBold != null) {
             title.setFont(com.mas6y6.musmeta.Main.outfitExtraBold.deriveFont(28f));
         } else {
@@ -291,6 +291,7 @@ public class PostInstallationDialog extends MusMetaFrame {
         }
 
         // YOU CAN USE HTML?! -Batista
+        // yeah but its kinda limited -mas
         JLabel description = new JLabel("""
 <html>
     Before you can start using MusMeta, we need to configure a few things.
@@ -374,6 +375,8 @@ public class PostInstallationDialog extends MusMetaFrame {
         ButtonGroup buttonGroup = new ButtonGroup();
         buttonGroup.add(promptOnlyUpdateBtn);
         buttonGroup.add(disableUpdatesBtn);
+
+        promptOnlyUpdateBtn.setSelected(true);
 
         promptOnlyUpdateBtn.addActionListener(
                 e -> {

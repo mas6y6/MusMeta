@@ -1,0 +1,19 @@
+# JitPack build config for MusMeta.
+#
+# MusMeta is a desktop app; its default `build` runs jpackage / appimage
+# which does not belong on JitPack's servers. We only publish the
+# Maven artifacts (MusMeta fat JAR + plugins:framework) via publishToMavenLocal.
+#
+# Artifacts served by JitPack (tag `1.0.0` → version `1.0.0`):
+#   com.github.mas6y6:MusMeta:<tag>
+#   com.github.mas6y6:framework:<tag>
+
+jdk:
+  - openjdk25
+
+before_install:
+  - sdk install java 25-open
+  - sdk use java 25-open
+
+install:
+  - ./gradlew publishToMavenLocal --no-daemon

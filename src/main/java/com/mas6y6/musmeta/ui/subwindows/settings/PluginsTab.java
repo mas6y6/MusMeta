@@ -9,15 +9,21 @@ public class PluginsTab extends SettingTab {
     public PluginsTab() {
         super();
 
-        String[] columns = {"Enabled","Plugin Name"};
+        String[] columns = {"Enabled", "Plugin Name"};
         Object[][] data = {
                 {true, "Plugin 1"}
         };
 
-        JTable table = new JTable(data,columns);
-        CONTENT.add(table);
+        JTable table = new JTable(data, columns);
 
         table.getColumnModel().getColumn(0).setPreferredWidth(50);
         table.getColumnModel().getColumn(0).setMaxWidth(50);
+
+        table.setRowHeight(30);
+        table.setFillsViewportHeight(true);
+
+        JScrollPane scrollPane = new JScrollPane(table);
+
+        CONTENT.add(scrollPane);
     }
 }

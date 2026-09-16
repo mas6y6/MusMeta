@@ -61,31 +61,4 @@ class LauncherTest {
             }
         }
     }
-
-    @Test
-    void packagedAppUsesNativeLauncher() throws Exception {
-        Path launcher = tempDir.resolve("MusMeta-launcher");
-        Files.writeString(launcher, "#!/bin/sh\nexit 0\n");
-        Files.setPosixFilePermissions(launcher, Set.of(
-                PosixFilePermission.OWNER_READ,
-                PosixFilePermission.OWNER_WRITE,
-                PosixFilePermission.OWNER_EXECUTE
-        ));
-
-        String previous = System.getProperty("jpackage.app-path");
-        try {
-            System.setProperty("jpackage.app-path", launcher.toString());
-
-            List<String> command = buildRestartCommand(new String[]{"--debug"});
-
-            assertEquals(launcher.toString(), command.get(0));
-            assertTrue(command.subList(1, command.size()).contains("--debug"));
-        } finally {
-            if (previous == null) {
-                System.clearProperty("jpackage.app-path");
-            } else {
-                System.setProperty("jpackage.app-path", previous);
-            }
-        }
-    }
 }

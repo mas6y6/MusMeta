@@ -57,7 +57,7 @@ public class Settings {
             ConfigManager.getInstance().getConfig("app").register("show_music_player", true);
 
     public static ConfigContainer<List<String>> DISABLED_PLUGINS =
-            ConfigManager.getInstance().getConfig("app").register("show_music_player", List.of());
+            ConfigManager.getInstance().getConfig("app").register("disabled_plugins", List.of());
 
     private Settings() {}
 

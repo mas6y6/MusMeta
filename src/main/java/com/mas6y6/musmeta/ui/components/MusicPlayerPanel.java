@@ -2,6 +2,7 @@ package com.mas6y6.musmeta.ui.components;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.mas6y6.musmeta.audio.AudioManager;
+import com.mas6y6.musmeta.audio.AudioStream;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.musicplayer.MusicPlayer;
 import com.mas6y6.musmeta.settings.Settings;
@@ -12,7 +13,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.time.Duration;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 public class MusicPlayerPanel extends JPanel {
 
@@ -21,10 +21,11 @@ public class MusicPlayerPanel extends JPanel {
     private static final int SEEK_MAX = 1000;
 
     private static final Icon ICON_PLAY = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/play.svg"))).derive(16, 16);
-    private static final Icon ICON_STOP = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/square.svg"))).derive(16, 16);
+    private static final Icon ICON_QUEUE = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/list.svg"))).derive(16, 16);
     private static final Icon ICON_PAUSE = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/pause.svg"))).derive(16, 16);
     private static final Icon ICON_PREV = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/skip-back.svg"))).derive(16, 16);
     private static final Icon ICON_NEXT = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/skip-forward.svg"))).derive(16, 16);
+    private static final Icon ICON_STOP = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/square.svg"))).derive(16, 16);
     private static final Icon ICON_VOL_NONE = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/volume-x.svg"))).derive(14, 14);
     private static final Icon ICON_VOL_LOW = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/volume.svg"))).derive(14, 14);
     private static final Icon ICON_VOL_MED = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/volume-1.svg"))).derive(14, 14);
@@ -36,7 +37,9 @@ public class MusicPlayerPanel extends JPanel {
 
     private JButton previousButton;
     private JButton playPauseButton;
+    private JButton stopButton;
     private JButton nextButton;
+    private JButton queueButton;
 
     private JSlider seekBar;
     private JLabel currentTimeLabel;
@@ -44,6 +47,8 @@ public class MusicPlayerPanel extends JPanel {
 
     private JLabel volumeIconLabel;
     private JSlider volumeSlider;
+
+    private boolean updatingSeekBar;
 
     public MusicPlayerPanel() {
         super(new BorderLayout(10, 0));
@@ -53,7 +58,9 @@ public class MusicPlayerPanel extends JPanel {
 
         add(trackInfo(), BorderLayout.WEST);
         add(controls(), BorderLayout.CENTER);
-        add(volume(), BorderLayout.EAST);
+        add(rightControls(), BorderLayout.EAST);
+
+        bindListeners();
     }
 
     private JComponent trackInfo() {
@@ -86,55 +93,28 @@ public class MusicPlayerPanel extends JPanel {
         info.add(Box.createHorizontalStrut(8));
         info.add(text);
 
-        AudioManager.getInstance().addListener(new AudioManager.Listener() {
-            @Override
-            public void onPosition(Duration position) {
-                currentTimeLabel.setText(formatTime((int) position.toSeconds()));
-            }
-        });
-
-        MusicPlayer.getInstance().addListener(new MusicPlayer.Listener() {
-            @Override
-            public void songChanged(Song song) {
-                titleLabel.setText(song.getTitle());
-                artistLabel.setText(song.getArtist());
-                artwork.setArtwork(song.getArtworkImage());
-            }
-
-            @Override
-            public void musicPlayerStopped() {
-                titleLabel.setText("No track selected");
-                artistLabel.setText("");
-                artwork.setArtwork(null);
-                setPlaying(false,true);
-            }
-        });
-
         return info;
     }
 
     private JComponent controls() {
         previousButton = transportButton(ICON_PREV, "Previous");
         previousButton.addActionListener(e -> MusicPlayer.getInstance().previous());
+
         nextButton = transportButton(ICON_NEXT, "Next");
         nextButton.addActionListener(e -> MusicPlayer.getInstance().next());
-        playPauseButton = transportButton(ICON_PLAY, "Play");
-        playPauseButton.addActionListener(e -> {
-            if (MusicPlayer.getInstance().isStopped()) {
-               MusicPlayer.getInstance().start();
-            } else {
-                if (MusicPlayer.getInstance().isPlaying()) {
-                    MusicPlayer.getInstance().pause();
-                } else {
-                    MusicPlayer.getInstance().resume();
-                }
-            }
-        });
+
+        playPauseButton = transportButton(ICON_PLAY, "Start music player");
+        playPauseButton.addActionListener(e -> togglePlayback());
+
+        stopButton = transportButton(ICON_STOP, "Stop");
+        stopButton.setEnabled(false);
+        stopButton.addActionListener(e -> MusicPlayer.getInstance().stop());
 
         JPanel transport = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 0));
         transport.setOpaque(false);
         transport.add(previousButton);
         transport.add(playPauseButton);
+        transport.add(stopButton);
         transport.add(nextButton);
 
         seekBar = new JSlider(0, SEEK_MAX, 0);
@@ -142,22 +122,7 @@ public class MusicPlayerPanel extends JPanel {
         seekBar.setEnabled(false);
         seekBar.setFocusable(false);
         seekBar.setPreferredSize(new Dimension(300, 20));
-        seekBar.addChangeListener(e -> {
-            int value = Math.clamp(seekBar.getValue(), 0, SEEK_MAX);
-
-            if (seekBar.getValueIsAdjusting()) {
-                return;
-            }
-
-            Duration duration = AudioManager.getInstance().getDuration();
-            if (duration == null) {
-                return;
-            }
-
-            long positionMillis = duration.toMillis() * value / SEEK_MAX;
-
-            AudioManager.getInstance().seek(Duration.ofMillis(positionMillis));
-        });
+        seekBar.addChangeListener(e -> onSeekChange());
 
         currentTimeLabel = timeLabel("0:00");
         totalTimeLabel = timeLabel("0:00");
@@ -175,21 +140,58 @@ public class MusicPlayerPanel extends JPanel {
         center.add(Box.createVerticalStrut(2));
         center.add(seek);
 
-        MusicPlayer.getInstance().addListener(new MusicPlayer.Listener() {
-            @Override
-            public void stateUpdated(boolean isPlaying, boolean isPaused, boolean isStopped) {
-                setPlaying(isPlaying, isStopped);
-            }
-        });
-
         return center;
+    }
+
+    private void onSeekChange() {
+        if (updatingSeekBar) {
+            return;
+        }
+
+        Duration duration = AudioManager.getInstance().getDuration();
+        if (duration == null || duration.toSeconds() <= 0) {
+            return;
+        }
+
+        int value = Math.clamp(seekBar.getValue(), 0, SEEK_MAX);
+        long seconds = duration.toSeconds() * value / SEEK_MAX;
+
+        if (seekBar.getValueIsAdjusting()) {
+            currentTimeLabel.setText(formatTime((int) seconds));
+            return;
+        }
+
+        AudioManager.getInstance().seek(Duration.ofSeconds(seconds));
+    }
+
+    private void togglePlayback() {
+        MusicPlayer player = MusicPlayer.getInstance();
+
+        if (player.isStopped()) {
+            player.start();
+        } else if (player.isPlaying()) {
+            player.pause();
+        } else {
+            player.resume();
+        }
+    }
+
+    private JComponent rightControls() {
+        queueButton = transportButton(ICON_QUEUE, "Queue");
+
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        right.setOpaque(false);
+        right.add(volume());
+        right.add(queueButton);
+
+        return right;
     }
 
     private JComponent volume() {
         volumeIconLabel = new JLabel(ICON_VOL_HIGH);
         volumeIconLabel.setPreferredSize(new Dimension(16, 16));
 
-        volumeSlider = new JSlider(0, 100, 80);
+        volumeSlider = new JSlider(0, 100, AudioManager.getInstance().getVolume());
         volumeSlider.setOpaque(false);
         volumeSlider.setFocusable(false);
         volumeSlider.setPreferredSize(new Dimension(90, 20));
@@ -205,6 +207,76 @@ public class MusicPlayerPanel extends JPanel {
         panel.add(volumeSlider, BorderLayout.CENTER);
 
         return panel;
+    }
+
+    private void bindListeners() {
+        MusicPlayer player = MusicPlayer.getInstance();
+        AudioManager audio = AudioManager.getInstance();
+
+        player.addListener(new MusicPlayer.Listener() {
+            @Override
+            public void stateUpdated(boolean isPlaying, boolean isPaused, boolean isStopped) {
+                runOnEDT(() -> {
+                    setPlaying(isPlaying, isStopped);
+                    seekBar.setEnabled(!isStopped);
+                });
+            }
+
+            @Override
+            public void songChanged(Song song) {
+                runOnEDT(() -> {
+                    if (song == null) {
+                        clearTrack();
+                        return;
+                    }
+                    titleLabel.setText(song.getTitle());
+                    artistLabel.setText(song.getArtist());
+                    artwork.setArtwork(song.getArtworkImage());
+                    currentTimeLabel.setText("0:00");
+                    setSeekValue(0);
+                });
+            }
+
+            @Override
+            public void musicPlayerStopped() {
+                runOnEDT(MusicPlayerPanel.this::clearTrack);
+            }
+        });
+
+        audio.addListener(new AudioManager.Listener() {
+            @Override
+            public void onStart(AudioStream stream) {
+                runOnEDT(() -> {
+                    currentTimeLabel.setText("0:00");
+                    setSeekValue(0);
+                    totalTimeLabel.setText(formatDuration(audio.getDuration()));
+                });
+            }
+
+            @Override
+            public void onPosition(Duration position) {
+                runOnEDT(() -> updatePosition(position));
+            }
+        });
+    }
+
+    private void updatePosition(Duration position) {
+        int seconds = (int) position.toSeconds();
+        currentTimeLabel.setText(formatTime(seconds));
+
+        Duration duration = AudioManager.getInstance().getDuration();
+        if (duration != null && duration.toSeconds() > 0) {
+            setSeekValue((int) Math.round(seconds * SEEK_MAX / (double) duration.toSeconds()));
+        }
+    }
+
+    private void setSeekValue(int value) {
+        updatingSeekBar = true;
+        try {
+            seekBar.setValue(value);
+        } finally {
+            updatingSeekBar = false;
+        }
     }
 
     private void updateVolumeIcon() {
@@ -266,6 +338,7 @@ public class MusicPlayerPanel extends JPanel {
     }
 
     public void setPlaying(boolean playing, boolean stopped) {
+        stopButton.setEnabled(!stopped);
         if (stopped) {
             playPauseButton.setIcon(ICON_PLAY);
             playPauseButton.setToolTipText("Start music player");
@@ -282,17 +355,8 @@ public class MusicPlayerPanel extends JPanel {
         currentTimeLabel.setText(formatTime((int) seconds));
         totalTimeLabel.setText(formatTime((int) totalSeconds));
         if (totalSeconds > 0 && !seekBar.getValueIsAdjusting()) {
-            seekBar.setValue((int) Math.round(seconds * SEEK_MAX / (double) totalSeconds));
+            setSeekValue((int) Math.round(seconds * SEEK_MAX / (double) totalSeconds));
         }
-    }
-
-    public void setVolume(int percent) {
-        volumeSlider.setValue(Math.clamp(percent, 0, 100));
-        updateVolumeIcon();
-    }
-
-    public int getVolume() {
-        return volumeSlider.getValue();
     }
 
     private static String formatTime(int totalSeconds) {
@@ -300,5 +364,20 @@ public class MusicPlayerPanel extends JPanel {
             return "0:00";
         }
         return (totalSeconds / 60) + ":" + String.format("%02d", totalSeconds % 60);
+    }
+
+    private static String formatDuration(Duration duration) {
+        if (duration == null || duration.isNegative()) {
+            return "0:00";
+        }
+        return formatTime((int) duration.toSeconds());
+    }
+
+    private static void runOnEDT(Runnable runnable) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            runnable.run();
+        } else {
+            SwingUtilities.invokeLater(runnable);
+        }
     }
 }

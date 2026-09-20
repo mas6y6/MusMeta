@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 public class Album {
@@ -235,9 +236,19 @@ public class Album {
     public record ArtistInfo(String artist, boolean variousArtists) {
     }
 
+    /**
+     * Determines the album's artist from the songs' actual tags. A single
+     * shared artist is reported directly; genuinely different artists collapse
+     * into "Various Artists". A literal "Various Artists" album-artist tag is
+     * not trusted on its own — the songs' artist tags are always checked
+     * first, so an album whose tracks all share one artist is never presented
+     * as a compilation. Comparisons are trimmed and case-insensitive so equal
+     * names with different casing or padding are not mistaken for different
+     * artists.
+     */
     public ArtistInfo getArtist() {
         String firstAlbumArtist = null;
-        boolean foundMultipleArtists = false;
+        boolean multipleAlbumArtists = false;
 
         for (Disc disc : discs) {
             for (Song song : disc.getSongs()) {
@@ -245,19 +256,30 @@ public class Album {
                 if (!albumArtist.isBlank() && !UNKNOWN_ARTIST.equalsIgnoreCase(albumArtist)) {
                     if (firstAlbumArtist == null) {
                         firstAlbumArtist = albumArtist;
-                    } else if (!firstAlbumArtist.equals(albumArtist)) {
-                        foundMultipleArtists = true;
+                    } else if (!normalizeArtist(albumArtist).equals(normalizeArtist(firstAlbumArtist))) {
+                        multipleAlbumArtists = true;
                     }
                 }
             }
         }
 
-        if (firstAlbumArtist != null) {
-            boolean various = foundMultipleArtists || "Various Artists".equalsIgnoreCase(firstAlbumArtist);
-            return new ArtistInfo(various ? "Various Artists" : firstAlbumArtist, various);
+        if (firstAlbumArtist != null && !multipleAlbumArtists
+                && !"Various Artists".equalsIgnoreCase(firstAlbumArtist)) {
+            return new ArtistInfo(firstAlbumArtist, false);
         }
 
+        return resolveFromSongArtists();
+    }
+
+    /**
+     * Derives the album artist from the songs' artist tags. Returns the shared
+     * artist when every song has the same artist, "Various Artists" when the
+     * songs belong to different artists, and "Unknown Artist" when no usable
+     * artist tag exists.
+     */
+    private ArtistInfo resolveFromSongArtists() {
         String firstArtist = null;
+        boolean multipleArtists = false;
 
         for (Disc disc : discs) {
             for (Song song : disc.getSongs()) {
@@ -265,19 +287,24 @@ public class Album {
                 if (!artist.isBlank() && !UNKNOWN_ARTIST.equalsIgnoreCase(artist)) {
                     if (firstArtist == null) {
                         firstArtist = artist;
-                    } else if (!firstArtist.equals(artist)) {
-                        foundMultipleArtists = true;
+                    } else if (!normalizeArtist(artist).equals(normalizeArtist(firstArtist))) {
+                        multipleArtists = true;
                     }
                 }
             }
         }
 
-        if (firstArtist != null) {
-            boolean various = foundMultipleArtists || "Various Artists".equalsIgnoreCase(firstArtist);
-            return new ArtistInfo(various ? "Various Artists" : firstArtist, various);
+        if (firstArtist == null) {
+            return new ArtistInfo(UNKNOWN_ARTIST, false);
         }
 
-        return new ArtistInfo(UNKNOWN_ARTIST, false);
+        boolean various = multipleArtists
+                || "Various Artists".equalsIgnoreCase(firstArtist);
+        return new ArtistInfo(various ? "Various Artists" : firstArtist, various);
+    }
+
+    private static String normalizeArtist(String artist) {
+        return artist == null ? "" : artist.trim().toLowerCase(Locale.ROOT);
     }
 
     public List<Disc> getDiscs() {

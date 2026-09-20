@@ -1,5 +1,6 @@
 package com.mas6y6.musmeta.ui.dialogs;
 
+import com.mas6y6.musmeta.Main;
 import com.mas6y6.musmeta.core.Core;
 import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
@@ -27,11 +28,15 @@ public class MusicScanProcessingDialog extends ProcessingDialog {
     protected boolean process() throws Exception {
         updateProgress("Scanning for music", null, "");
 
-        Core.scanForMusicFiles(path, Settings.MUSIC_SCAN_IGNORE_PATHS.get());
+        Core.scanForMusicFiles(
+                path,
+                Settings.MUSIC_SCAN_IGNORE_PATHS.get(),
+                groups -> DuplicateImportDialog.showAndResolve(getDialog(), groups)
+        );
 
         List<Song> songs = Core.getLibrary();
         Path musicDir = path.toAbsolutePath().normalize();
-        Path musMetaDir = musicDir.resolve("MusMeta");
+        Path musMetaDir = Main.musMetaDirectory;
 
         int converted = AlbumFormatNormalizer.convertIncompatibleToFolder(
                 songs,

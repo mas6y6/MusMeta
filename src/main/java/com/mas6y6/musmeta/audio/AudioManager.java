@@ -1,5 +1,8 @@
 package com.mas6y6.musmeta.audio;
 
+import com.mas6y6.musmeta.musicplayer.MusicPlayer;
+import com.mas6y6.musmeta.settings.Settings;
+
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.FloatControl;
@@ -41,7 +44,7 @@ public class AudioManager {
     private volatile Duration duration;
 
     private volatile SourceDataLine sourceDataLine;
-    private volatile int volumePercent = 80;
+    private volatile int volumePercent = Settings.MUSIC_PLAYER_VOLUME.get();
 
     private long lastPositionNotify;
 
@@ -200,6 +203,8 @@ public class AudioManager {
     public void setVolume(int percent) {
         volumePercent = Math.clamp(percent, 0, 100);
 
+        Settings.MUSIC_PLAYER_VOLUME.set(volumePercent);
+
         SourceDataLine line = sourceDataLine;
         if (line != null && line.isOpen()) {
             applyVolume(line, volumePercent);
@@ -233,11 +238,16 @@ public class AudioManager {
                     if (stopped) {
                         break;
                     }
-                    while (paused && !stopped) {
-                        lock.wait();
-                    }
-                    if (stopped) {
-                        break;
+
+                    if (paused) {
+                        line.stop();
+                        while (paused && !stopped) {
+                            lock.wait();
+                        }
+                        if (stopped) {
+                            break;
+                        }
+                        line.start();
                     }
                 }
 

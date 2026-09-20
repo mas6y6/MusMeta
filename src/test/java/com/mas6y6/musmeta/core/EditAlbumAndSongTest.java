@@ -190,6 +190,47 @@ public class EditAlbumAndSongTest {
     }
 
     @Test
+    void testAlbumWithSameArtistIsNotVariousDespiteVariousArtistsAlbumTag() throws Exception {
+        Song s1 = new Song(AudioFileIO.read(createDummyMp3("same1.mp3")));
+        Song s2 = new Song(AudioFileIO.read(createDummyMp3("same2.mp3")));
+
+        s1.setTagField(FieldKey.ALBUM, "Same Band Album");
+        s1.setTagField(FieldKey.ARTIST, "The Band");
+        s1.setTagField(FieldKey.ALBUM_ARTIST, "Various Artists");
+        s2.setTagField(FieldKey.ALBUM, "Same Band Album");
+        s2.setTagField(FieldKey.ARTIST, "The Band");
+        s2.setTagField(FieldKey.ALBUM_ARTIST, "Various Artists");
+
+        Album album = new Album("Same Band Album");
+        album.addSong(s1);
+        album.addSong(s2);
+
+        Album.ArtistInfo info = album.getArtist();
+        assertEquals("The Band", info.artist());
+        assertFalse(info.variousArtists());
+        assertFalse(album.isCompilation());
+    }
+
+    @Test
+    void testAlbumArtistComparisonIsCaseInsensitiveAndTrimsWhitespace() throws Exception {
+        Song s1 = new Song(AudioFileIO.read(createDummyMp3("case1.mp3")));
+        Song s2 = new Song(AudioFileIO.read(createDummyMp3("case2.mp3")));
+
+        s1.setTagField(FieldKey.ALBUM, "Casey Album");
+        s1.setTagField(FieldKey.ARTIST, "Daft Punk");
+        s2.setTagField(FieldKey.ALBUM, "Casey Album");
+        s2.setTagField(FieldKey.ARTIST, " daft punk ");
+
+        Album album = new Album("Casey Album");
+        album.addSong(s1);
+        album.addSong(s2);
+
+        Album.ArtistInfo info = album.getArtist();
+        assertEquals("Daft Punk", info.artist());
+        assertFalse(info.variousArtists());
+    }
+
+    @Test
     void testProcessTagsForAlbum() throws Exception {
         File f1 = createDummyMp3("alb1.mp3");
         File f2 = createDummyMp3("alb2.mp3");

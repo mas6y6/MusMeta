@@ -56,6 +56,9 @@ public class Settings {
     public static ConfigContainer<Boolean> SHOW_MUSIC_PLAYER =
             ConfigManager.getInstance().getConfig("app").register("show_music_player", true);
 
+    public static ConfigContainer<Integer> MUSIC_PLAYER_VOLUME =
+            ConfigManager.getInstance().getConfig("app").register("music_player_volume", 80);
+
     public static ConfigContainer<List<String>> DISABLED_PLUGINS =
             ConfigManager.getInstance().getConfig("app").register("disabled_plugins", List.of());
 

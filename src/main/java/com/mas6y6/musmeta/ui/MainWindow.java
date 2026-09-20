@@ -11,6 +11,7 @@ import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.ui.components.MainAppFrame;
 import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Song;
+import com.mas6y6.musmeta.musicplayer.MusicPlayer;
 import com.mas6y6.musmeta.ui.components.MusicPlayerPanel;
 import com.mas6y6.musmeta.ui.dialogs.ProcessMusicDialog;
 import com.mas6y6.musmeta.ui.tabs.AlbumDetailTab;
@@ -27,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import java.util.Set;
 
 public class MainWindow extends MainAppFrame {
     public static final Logger LOGGER =
@@ -60,12 +62,18 @@ public class MainWindow extends MainAppFrame {
     public boolean onClose(JFrame frame) {
         LOGGER.debug("Closing main window");
 
-        return JOptionPane.YES_OPTION == EXTDialog.showConfirmDialog(
+        boolean close = JOptionPane.YES_OPTION == EXTDialog.showConfirmDialog(
                 frame,
                 "Do you want to close MusMeta?",
                 "Confirmation",
                 JOptionPane.YES_NO_OPTION
         );
+
+        if (close) {
+            MusicPlayer.getInstance().stop();
+        }
+
+        return close;
     }
 
     private void registerMacAppMenuHandlers() {
@@ -332,10 +340,12 @@ public class MainWindow extends MainAppFrame {
         JCheckBoxMenuItem showPlayerItem = new JCheckBoxMenuItem("Show Music Player");
         showPlayerItem.addActionListener(e -> {
             Settings.SHOW_MUSIC_PLAYER.set(showPlayerItem.isSelected());
-            musicPlayer.setVisible(showPlayerItem.isSelected());
         });
 
         showPlayerItem.setSelected(Settings.SHOW_MUSIC_PLAYER.get());
+
+        Settings.SHOW_MUSIC_PLAYER.addListener(showPlayerItem::setSelected);
+        Settings.SHOW_MUSIC_PLAYER.addListener(musicPlayer::setVisible);
 
         viewMenu.add(showPlayerItem);
 

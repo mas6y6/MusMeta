@@ -10,17 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,16 +19,9 @@ public class MusicPlayer {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(MusicPlayer.class);
 
-    /**
-     * How far into a track the user must be before {@link #previous()}
-     * restarts the current track instead of going to the previous track.
-     */
     private static final Duration RESTART_THRESHOLD =
             Duration.ofSeconds(3);
 
-    /**
-     * Indicates that there is no pending skip request.
-     */
     private static final int NO_SKIP = Integer.MIN_VALUE;
 
     private static MusicPlayer instance;
@@ -57,24 +39,12 @@ public class MusicPlayer {
         default void musicPlayerStopped() {}
     }
 
-    /*
-     * CopyOnWriteArrayList works well here because the queue is generally
-     * read much more often than it is modified.
-     */
     private final CopyOnWriteArrayList<Song> queue =
             new CopyOnWriteArrayList<>();
 
-    /*
-     * Listeners are typically read on every state update but only added or
-     * removed occasionally.
-     */
     private final CopyOnWriteArrayList<Listener> listeners =
             new CopyOnWriteArrayList<>();
 
-    /**
-     * The track that should be played after the currently-blocking
-     * AudioManager.play() call returns.
-     */
     private final AtomicInteger pendingSkipIndex =
             new AtomicInteger(NO_SKIP);
 
@@ -86,6 +56,7 @@ public class MusicPlayer {
     private volatile int currentSongIndex = -1;
 
     private MusicPlayer() {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
     }
 
     public static MusicPlayer getInstance() {
@@ -96,15 +67,6 @@ public class MusicPlayer {
         return instance;
     }
 
-    // -------------------------------------------------------------------------
-    // Queue
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns a snapshot of the current queue.
-     *
-     * @return an immutable snapshot of the queue
-     */
     public List<Song> getQueue() {
         return List.copyOf(queue);
     }
@@ -131,15 +93,6 @@ public class MusicPlayer {
         return currentSongIndex;
     }
 
-    // -------------------------------------------------------------------------
-    // Playback controls
-    // -------------------------------------------------------------------------
-
-    /**
-     * Starts playback.
-     *
-     * @return true if a playback thread was started
-     */
     public boolean start() {
         if (isLoopRunning()) {
             return false;
@@ -155,12 +108,6 @@ public class MusicPlayer {
 
         pendingSkipIndex.set(NO_SKIP);
 
-        /*
-         * If playback has never started, begin at the first song.
-         *
-         * If playback was previously stopped, also start from the current
-         * index if it is still valid.
-         */
         if (currentSongIndex < 0 || currentSongIndex >= queue.size()) {
             currentSongIndex = 0;
         }
@@ -172,35 +119,20 @@ public class MusicPlayer {
         return true;
     }
 
-    /**
-     * Main blocking playback loop.
-     *
-     * AudioManager.play() is intentionally blocking. It returns when the
-     * track finishes naturally or when AudioManager.stop() is called.
-     */
     private void playbackLoop() {
         try {
             while (!stopped) {
-
-                // Queue was emptied while we were playing.
                 if (queue.isEmpty()) {
                     stopInternal();
                     break;
                 }
 
-                /*
-                 * A skip may have been requested while the previous
-                 * AudioManager.play() call was blocking.
-                 */
                 int pending = pendingSkipIndex.getAndSet(NO_SKIP);
 
                 if (pending != NO_SKIP) {
                     currentSongIndex = normalizeIndex(pending);
                 }
 
-                /*
-                 * Make sure the current index is still valid.
-                 */
                 if (currentSongIndex < 0
                         || currentSongIndex >= queue.size()) {
                     currentSongIndex = 0;
@@ -223,27 +155,12 @@ public class MusicPlayer {
                     );
 
                     notifyStateUpdated();
-
-                    /*
-                     * Don't completely kill the player because one broken
-                     * file was encountered. Move to the next track.
-                     */
                 }
 
-                /*
-                 * play() has returned.
-                 *
-                 * If stop() was called, we're done.
-                 */
                 if (stopped) {
                     break;
                 }
 
-                /*
-                 * If next()/previous() requested a specific track while
-                 * play() was blocking, use that track instead of advancing
-                 * normally.
-                 */
                 pending = pendingSkipIndex.getAndSet(NO_SKIP);
 
                 if (pending != NO_SKIP) {
@@ -251,17 +168,8 @@ public class MusicPlayer {
                     continue;
                 }
 
-                /*
-                 * The song finished naturally, so advance to the next one.
-                 */
                 currentSongIndex++;
 
-                /*
-                 * End of queue.
-                 *
-                 * This version stops at the end rather than automatically
-                 * looping back to the first song.
-                 */
                 if (currentSongIndex >= queue.size()) {
                     stopInternal();
                     break;
@@ -282,10 +190,6 @@ public class MusicPlayer {
         } finally {
             isPlaying = false;
 
-            /*
-             * Only clear the stopped state if the player naturally reached
-             * the end of the queue.
-             */
             stopped = true;
 
             notifyStateUpdated();
@@ -296,11 +200,6 @@ public class MusicPlayer {
         }
     }
 
-    /**
-     * Actually plays a song.
-     *
-     * This method is intentionally blocking.
-     */
     private void play(Song song) throws IOException {
         notifySongChanged(song);
 
@@ -314,9 +213,6 @@ public class MusicPlayer {
         );
     }
 
-    /**
-     * Stops playback completely.
-     */
     public void stop() {
         if (stopped && !isLoopRunning()) {
             return;
@@ -325,17 +221,11 @@ public class MusicPlayer {
         stopped = true;
         isPlaying = false;
 
-        /*
-         * This MUST cause AudioManager.play() to return.
-         */
         AudioManager.getInstance().stop();
 
         notifyStateUpdated();
     }
 
-    /**
-     * Internal stop used by the playback thread.
-     */
     private void stopInternal() {
         stopped = true;
         isPlaying = false;
@@ -343,9 +233,6 @@ public class MusicPlayer {
         notifyStateUpdated();
     }
 
-    /**
-     * Pauses the current track.
-     */
     public void pause() {
         if (!isPlaying) {
             return;
@@ -357,9 +244,6 @@ public class MusicPlayer {
         notifyStateUpdated();
     }
 
-    /**
-     * Resumes playback if the player loop is still alive.
-     */
     public void resume() {
         if (isPlaying || !isLoopRunning()) {
             return;
@@ -375,15 +259,6 @@ public class MusicPlayer {
         notifyStateUpdated();
     }
 
-    // -------------------------------------------------------------------------
-    // Navigation
-    // -------------------------------------------------------------------------
-
-    /**
-     * Skips to the next track.
-     *
-     * Wraps around to the beginning of the queue.
-     */
     public void next() {
         if (queue.isEmpty() || !everStarted) {
             return;
@@ -398,12 +273,6 @@ public class MusicPlayer {
         skipTo(target);
     }
 
-    /**
-     * Goes to the previous track.
-     *
-     * If the current track has played for more than
-     * {@link #RESTART_THRESHOLD}, the current track is restarted instead.
-     */
     public void previous() {
         if (queue.isEmpty() || !everStarted) {
             return;
@@ -427,13 +296,6 @@ public class MusicPlayer {
         skipTo(target);
     }
 
-    /**
-     * Moves to a specific track.
-     *
-     * If playback is currently active, AudioManager.stop() unblocks the
-     * blocking play() call. The playback loop then sees pendingSkipIndex
-     * and immediately starts the requested track.
-     */
     private void skipTo(int targetIndex) {
         if (queue.isEmpty()) {
             return;
@@ -444,28 +306,15 @@ public class MusicPlayer {
         currentSongIndex = targetIndex;
 
         if (isLoopRunning()) {
-
-            /*
-             * Tell the playback loop where to go next.
-             */
             pendingSkipIndex.set(targetIndex);
 
-            /*
-             * This should synchronously cause AudioManager.play() to return.
-             */
             AudioManager.getInstance().stop();
 
         } else {
-            /*
-             * No playback loop exists, so start one.
-             */
             start();
         }
     }
 
-    /**
-     * Normalizes an index so that it wraps around the queue.
-     */
     private int normalizeIndex(int index) {
         int size = queue.size();
 
@@ -475,10 +324,6 @@ public class MusicPlayer {
 
         return Math.floorMod(index, size);
     }
-
-    // -------------------------------------------------------------------------
-    // State
-    // -------------------------------------------------------------------------
 
     private boolean isLoopRunning() {
         Thread currentThread = thread;
@@ -497,10 +342,6 @@ public class MusicPlayer {
     public boolean isPaused() {
         return AudioManager.getInstance().isPaused();
     }
-
-    // -------------------------------------------------------------------------
-    // Listeners
-    // -------------------------------------------------------------------------
 
     public void addListener(Listener listener) {
         if (listener == null) {

@@ -282,6 +282,9 @@ public class AlbumUI extends JPanel {
         var popupMenu = new JPopupMenu();
 
         var play = new JMenuItem("Play");
+        play.addActionListener(e -> {
+
+        });
         popupMenu.add(play);
 
         var openInNewTab = new JMenuItem("Open In New Tab");

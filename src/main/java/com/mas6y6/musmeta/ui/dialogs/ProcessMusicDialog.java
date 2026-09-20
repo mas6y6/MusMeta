@@ -1,6 +1,8 @@
 package com.mas6y6.musmeta.ui.dialogs;
 
 import com.mas6y6.musmeta.Constants;
+import com.mas6y6.musmeta.Main;
+import com.mas6y6.musmeta.core.Duplicates;
 import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.settings.Settings;
@@ -21,8 +23,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class ProcessMusicDialog extends ProcessingDialog {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessMusicDialog.class);
@@ -91,7 +96,7 @@ public class ProcessMusicDialog extends ProcessingDialog {
 
         Path musicDirSetting = Settings.MUSIC_DIRECTORY_PATH.get();
         Path musicDir = musicDirSetting != null ? musicDirSetting.toAbsolutePath().normalize() : null;
-        Path musMetaDir = musicDir != null ? musicDir.resolve("MusMeta") : null;
+        Path musMetaDir = Main.musMetaDirectory;
 
         for (int i = 0; i < audioFiles.size(); i++) {
             File file = audioFiles.get(i);
@@ -119,15 +124,53 @@ public class ProcessMusicDialog extends ProcessingDialog {
             }
         }
 
-        if (!processedSongs.isEmpty()) {
-            for (Song song : processedSongs) {
-                Library.getInstance().addSong(song);
+        Library library = Library.getInstance();
+
+        Map<Duplicates.Group, Song> choices = Map.of();
+        List<Duplicates.Group> groups = Duplicates.findGroups(processedSongs, library.getSongs());
+        if (!groups.isEmpty()) {
+            choices = DuplicateImportDialog.showAndResolve(getDialog(), groups);
+            if (choices == null) {
+                LOGGER.info("Import cancelled during duplicate resolution");
+                return true;
+            }
+        }
+
+        Map<Song, Duplicates.Group> incomingToGroup = new IdentityHashMap<>();
+        for (Duplicates.Group group : groups) {
+            for (Song incoming : group.incoming()) {
+                incomingToGroup.put(incoming, group);
+            }
+        }
+
+        List<Song> toImport = new ArrayList<>();
+        Set<Duplicates.Group> handled = Collections.newSetFromMap(new IdentityHashMap<>());
+        for (Song song : processedSongs) {
+            Duplicates.Group group = incomingToGroup.get(song);
+            if (group == null) {
+                toImport.add(song);
+                continue;
+            }
+            if (!handled.add(group)) {
+                continue;
+            }
+            Song chosen = choices.get(group);
+            if (chosen != null && group.incoming().contains(chosen)) {
+                for (Song existing : group.existing()) {
+                    library.removeSong(existing);
+                }
+                toImport.add(chosen);
+            }
+        }
+
+        if (!toImport.isEmpty()) {
+            for (Song song : toImport) {
+                library.addSong(song);
             }
 
-            int converted = 0;
             if (musicDir != null) {
-                converted = AlbumFormatNormalizer.convertIncompatibleToFolder(
-                        processedSongs,
+                AlbumFormatNormalizer.convertIncompatibleToFolder(
+                        toImport,
                         AlbumFormatNormalizer.fromSetting(Settings.AUDIO_TARGET_FORMAT.get()),
                         musicDir,
                         musMetaDir,
@@ -144,7 +187,7 @@ public class ProcessMusicDialog extends ProcessingDialog {
                 );
             }
 
-            Library.getInstance().save();
+            library.save();
         }
 
         MainWindow.INSTANCE.getLibraryUI().refresh();

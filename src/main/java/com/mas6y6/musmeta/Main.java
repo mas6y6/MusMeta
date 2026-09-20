@@ -46,6 +46,7 @@ public class Main {
     }
 
     public static final Path appDir = getAppDir();
+    public static final Path musMetaDirectory = appDir.resolve("MusMeta");
     public static Font outfitMedium;
     public static Font outfitExtraBold;
 

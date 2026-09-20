@@ -66,7 +66,7 @@ public class MusicTab extends SettingTab {
         CONTENT.add(formatPicker);
 
         CONTENT.add(Box.createVerticalStrut(10));
-        CONTENT.add(new JLabel("Incompatible songs are converted into <music directory>/MusMeta."));
+        CONTENT.add(new JLabel("Incompatible songs are converted into the MusMeta folder in your user directory (~/.musmeta/MusMeta)."));
         CONTENT.add(Box.createVerticalStrut(10));
 
         CONTENT.add(Box.createVerticalStrut(10));

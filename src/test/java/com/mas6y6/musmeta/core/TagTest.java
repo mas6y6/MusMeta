@@ -5,6 +5,8 @@ import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.mp3.MP3File;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.TagField;
+import org.jaudiotagger.tag.TagTextField;
 import org.jaudiotagger.tag.id3.ID3v23Tag;
 import org.jaudiotagger.tag.images.Artwork;
 import org.jaudiotagger.tag.images.ArtworkFactory;
@@ -14,6 +16,8 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -123,5 +127,55 @@ public class TagTest {
         assertEquals("10", reloadedTag.getFirst(FieldKey.TRACK_TOTAL));
         assertEquals("1", reloadedTag.getFirst(FieldKey.DISC_NO));
         assertEquals("2", reloadedTag.getFirst(FieldKey.DISC_TOTAL));
+    }
+
+    @Test
+    void testMultipleArtistAndComposerValuesSurvive() throws Exception {
+        File file = createDummyMp3("multi_artist.mp3");
+        AudioFile audioFile = AudioFileIO.read(file);
+        Tag tag = audioFile.getTagOrCreateAndSetDefault();
+        tag.setField(FieldKey.TITLE, "Collab Song");
+        tag.addField(FieldKey.ARTIST, "Artist One");
+        tag.addField(FieldKey.ARTIST, "Artist Two");
+        tag.addField(FieldKey.ALBUM_ARTIST, "Album Artist A");
+        tag.addField(FieldKey.ALBUM_ARTIST, "Album Artist B");
+        tag.addField(FieldKey.COMPOSER, "Composer X");
+        tag.addField(FieldKey.COMPOSER, "Composer Y");
+        AudioFileIO.write(audioFile);
+
+        AudioFile reloaded = AudioFileIO.read(file);
+        Song song = new Song(reloaded);
+        assertEquals("Artist One; Artist Two", song.getArtist());
+        assertEquals("Artist One; Artist Two", song.getRawArtist());
+        assertEquals("Album Artist A; Album Artist B", song.getAlbumArtist());
+        assertEquals("Composer X; Composer Y", song.getComposer());
+
+        song.setTagField(FieldKey.ARTIST, "Artist One; Artist Three");
+        song.setTagField(FieldKey.COMPOSER, "Composer X; Composer Z");
+        song.saveToFile();
+
+        AudioFile rewritten = AudioFileIO.read(file);
+        Song rewrittenSong = new Song(rewritten);
+        assertEquals("Artist One; Artist Three", rewrittenSong.getArtist());
+        assertEquals("Composer X; Composer Z", rewrittenSong.getComposer());
+        assertEquals(List.of("Artist One", "Artist Three"), storedValues(rewritten.getTag(), FieldKey.ARTIST));
+        assertEquals(List.of("Composer X", "Composer Z"), storedValues(rewritten.getTag(), FieldKey.COMPOSER));
+    }
+
+    private static List<String> storedValues(Tag tag, FieldKey key) {
+        List<String> values = new ArrayList<>();
+        for (TagField field : tag.getFields(key)) {
+            String raw = field instanceof TagTextField textField ? textField.getContent() : field.toString();
+            if (raw == null) {
+                continue;
+            }
+            for (String part : raw.split("\u0000|;")) {
+                String trimmed = part.trim();
+                if (!trimmed.isBlank() && !values.contains(trimmed)) {
+                    values.add(trimmed);
+                }
+            }
+        }
+        return values;
     }
 }

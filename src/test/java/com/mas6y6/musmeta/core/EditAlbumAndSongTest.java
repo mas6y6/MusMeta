@@ -148,6 +148,48 @@ public class EditAlbumAndSongTest {
     }
 
     @Test
+    void testAlbumWithVariousArtistsIsDetected() throws Exception {
+        Song s1 = new Song(AudioFileIO.read(createDummyMp3("va1.mp3")));
+        Song s2 = new Song(AudioFileIO.read(createDummyMp3("va2.mp3")));
+
+        s1.setTagField(FieldKey.ALBUM, "Now That's Music");
+        s1.setTagField(FieldKey.ARTIST, "Artist One");
+        s1.setTagField(FieldKey.ALBUM_ARTIST, "Various Artists");
+        s2.setTagField(FieldKey.ALBUM, "Now That's Music");
+        s2.setTagField(FieldKey.ARTIST, "Artist Two");
+        s2.setTagField(FieldKey.ALBUM_ARTIST, "Various Artists");
+
+        Album album = new Album("Now That's Music");
+        album.addSong(s1);
+        album.addSong(s2);
+
+        Album.ArtistInfo info = album.getArtist();
+        assertEquals("Various Artists", info.artist());
+        assertTrue(info.variousArtists());
+        assertTrue(album.isCompilation());
+    }
+
+    @Test
+    void testAlbumWithSingleArtistIsNotVarious() throws Exception {
+        Song s1 = new Song(AudioFileIO.read(createDummyMp3("single1.mp3")));
+        Song s2 = new Song(AudioFileIO.read(createDummyMp3("single2.mp3")));
+
+        s1.setTagField(FieldKey.ALBUM, "Solid");
+        s1.setTagField(FieldKey.ARTIST, "The Band");
+        s2.setTagField(FieldKey.ALBUM, "Solid");
+        s2.setTagField(FieldKey.ARTIST, "The Band");
+
+        Album album = new Album("Solid");
+        album.addSong(s1);
+        album.addSong(s2);
+
+        Album.ArtistInfo info = album.getArtist();
+        assertEquals("The Band", info.artist());
+        assertFalse(info.variousArtists());
+        assertFalse(album.isCompilation());
+    }
+
+    @Test
     void testProcessTagsForAlbum() throws Exception {
         File f1 = createDummyMp3("alb1.mp3");
         File f2 = createDummyMp3("alb2.mp3");

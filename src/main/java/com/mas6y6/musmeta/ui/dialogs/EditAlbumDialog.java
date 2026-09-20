@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 
 public class EditAlbumDialog extends JDialog {
     private static final Dimension DIALOG_SIZE = new Dimension(880, 540);
@@ -53,6 +54,14 @@ public class EditAlbumDialog extends JDialog {
 
     private final Album album;
     private final String initialAlbumTitle;
+
+    /**
+     * Whether this album holds songs from more than one artist (a compilation
+     * or a mixed-artist album). In that case the album-wide Artist field is
+     * disabled and per-track artists are preserved instead of overwritten.
+     */
+    private boolean variousArtistsAlbum;
+    private String sharedArtist = "";
 
     // Fields
     private JTextField titleField;
@@ -91,28 +100,33 @@ public class EditAlbumDialog extends JDialog {
     private void initFields() {
         titleField = new JTextField(album.getTitle());
 
-        String initialAlbumArtist = "";
-        for (Song song : album.getSongs()) {
-            String aa = song.getRawAlbumArtist();
-            if (!aa.isBlank()) {
-                initialAlbumArtist = aa;
-                break;
+        List<Song> songs = album.getSongs();
+        sharedArtist = commonValue(songs, Song::getRawArtist);
+        boolean compilation = album.isCompilation();
+        variousArtistsAlbum = compilation || valuesDiffer(songs, Song::getRawArtist);
+
+        artistField = new JTextField(variousArtistsAlbum ? "" : sharedArtist);
+
+        String initialAlbumArtist;
+        if (variousArtistsAlbum) {
+            initialAlbumArtist = "Various Artists";
+        } else {
+            initialAlbumArtist = commonValue(songs, Song::getRawAlbumArtist);
+            if (initialAlbumArtist.isBlank()) {
+                initialAlbumArtist = sharedArtist;
             }
-        }
-        if (initialAlbumArtist.isBlank() && !album.getArtist().variousArtists()) {
-            initialAlbumArtist = album.getArtist().artist();
         }
         albumArtistField = new JTextField(initialAlbumArtist);
 
-        String initialArtist = album.getArtist().variousArtists() ? "" : album.getArtist().artist();
-        artistField = new JTextField(initialArtist);
-
-        compilationCheck = new JCheckBox("Compilation of various artists", album.isCompilation());
+        compilationCheck = new JCheckBox("Compilation of various artists", compilation);
         compilationCheck.addActionListener(e -> {
+            variousArtistsAlbum = compilationCheck.isSelected();
             if (compilationCheck.isSelected() && albumArtistField.getText().isBlank()) {
                 albumArtistField.setText("Various Artists");
             }
+            updateArtistFieldState();
         });
+        updateArtistFieldState();
 
         genreCombo = new JComboBox<>(GENRES);
         genreCombo.setEditable(true);
@@ -135,6 +149,43 @@ public class EditAlbumDialog extends JDialog {
         trackTotalSpinner = new JSpinner(new SpinnerNumberModel(Math.max(0, currentTrackTotal), 0, 999, 1));
 
         commentField = new JTextField(album.getComment());
+    }
+
+    private void updateArtistFieldState() {
+        boolean various = variousArtistsAlbum;
+        artistField.setEnabled(!various);
+        artistField.setForeground(various
+                ? UIManager.getColor("Label.disabledForeground")
+                : UIManager.getColor("TextField.foreground"));
+        artistField.setToolTipText(various
+                ? "This album contains songs from different artists. Edit the artist on each track instead."
+                : null);
+    }
+
+    private static String commonValue(List<Song> songs, Function<Song, String> extractor) {
+        if (songs.isEmpty()) {
+            return "";
+        }
+        String first = extractor.apply(songs.get(0));
+        for (Song song : songs) {
+            if (!Objects.equals(first, extractor.apply(song))) {
+                return "";
+            }
+        }
+        return first != null ? first : "";
+    }
+
+    private static boolean valuesDiffer(List<Song> songs, Function<Song, String> extractor) {
+        if (songs.size() < 2) {
+            return false;
+        }
+        String first = extractor.apply(songs.get(0));
+        for (Song song : songs) {
+            if (!Objects.equals(first, extractor.apply(song))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void initComponents() {
@@ -375,13 +426,18 @@ public class EditAlbumDialog extends JDialog {
 
             toSet.put(FieldKey.ALBUM, newTitle);
 
-            if (!albumArtist.isBlank()) {
+            if (compilation) {
+                toSet.put(FieldKey.ALBUM_ARTIST, albumArtist.isBlank() ? "Various Artists" : albumArtist);
+            } else if (!albumArtist.isBlank()) {
                 toSet.put(FieldKey.ALBUM_ARTIST, albumArtist);
             } else {
                 toDelete.add(FieldKey.ALBUM_ARTIST);
             }
 
-            if (!artist.isBlank()) {
+            // Only albums that really belong to a single artist get their
+            // track artists rewritten; mixed-artist albums keep each song's
+            // own artist, just like iTunes does.
+            if (!variousArtistsAlbum && !artist.isBlank()) {
                 toSet.put(FieldKey.ARTIST, artist);
             }
 

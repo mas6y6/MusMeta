@@ -1,13 +1,16 @@
 package com.mas6y6.musmeta.ui.components;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.mas6y6.musmeta.audio.AudioManager;
 import com.mas6y6.musmeta.core.Song;
+import com.mas6y6.musmeta.musicplayer.MusicPlayer;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.mas6y6.musmeta.utils.ColorWrapper;
 
 import javax.swing.*;
 import java.awt.*;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -18,6 +21,7 @@ public class MusicPlayerPanel extends JPanel {
     private static final int SEEK_MAX = 1000;
 
     private static final Icon ICON_PLAY = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/play.svg"))).derive(16, 16);
+    private static final Icon ICON_STOP = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/square.svg"))).derive(16, 16);
     private static final Icon ICON_PAUSE = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/pause.svg"))).derive(16, 16);
     private static final Icon ICON_PREV = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/skip-back.svg"))).derive(16, 16);
     private static final Icon ICON_NEXT = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/skip-forward.svg"))).derive(16, 16);
@@ -40,13 +44,6 @@ public class MusicPlayerPanel extends JPanel {
 
     private JLabel volumeIconLabel;
     private JSlider volumeSlider;
-
-    private boolean playing;
-    private Runnable onPrevious;
-    private Runnable onNext;
-    private Consumer<Boolean> onPlayStateChange;
-    private Consumer<Integer> onSeek;
-    private Consumer<Integer> onVolumeChange;
 
     public MusicPlayerPanel() {
         super(new BorderLayout(10, 0));
@@ -89,23 +86,48 @@ public class MusicPlayerPanel extends JPanel {
         info.add(Box.createHorizontalStrut(8));
         info.add(text);
 
+        AudioManager.getInstance().addListener(new AudioManager.Listener() {
+            @Override
+            public void onPosition(Duration position) {
+                currentTimeLabel.setText(formatTime((int) position.toSeconds()));
+            }
+        });
+
+        MusicPlayer.getInstance().addListener(new MusicPlayer.Listener() {
+            @Override
+            public void songChanged(Song song) {
+                titleLabel.setText(song.getTitle());
+                artistLabel.setText(song.getArtist());
+                artwork.setArtwork(song.getArtworkImage());
+            }
+
+            @Override
+            public void musicPlayerStopped() {
+                titleLabel.setText("No track selected");
+                artistLabel.setText("");
+                artwork.setArtwork(null);
+                setPlaying(false,true);
+            }
+        });
+
         return info;
     }
 
     private JComponent controls() {
         previousButton = transportButton(ICON_PREV, "Previous");
+        previousButton.addActionListener(e -> MusicPlayer.getInstance().previous());
         nextButton = transportButton(ICON_NEXT, "Next");
+        nextButton.addActionListener(e -> MusicPlayer.getInstance().next());
         playPauseButton = transportButton(ICON_PLAY, "Play");
-        playPauseButton.addActionListener(e -> setPlaying(!playing));
-
-        previousButton.addActionListener(e -> {
-            if (onPrevious != null) {
-                onPrevious.run();
-            }
-        });
-        nextButton.addActionListener(e -> {
-            if (onNext != null) {
-                onNext.run();
+        playPauseButton.addActionListener(e -> {
+            if (MusicPlayer.getInstance().isStopped()) {
+               MusicPlayer.getInstance().start();
+            } else {
+                if (MusicPlayer.getInstance().isPlaying()) {
+                    MusicPlayer.getInstance().pause();
+                } else {
+                    MusicPlayer.getInstance().resume();
+                }
             }
         });
 
@@ -117,12 +139,24 @@ public class MusicPlayerPanel extends JPanel {
 
         seekBar = new JSlider(0, SEEK_MAX, 0);
         seekBar.setOpaque(false);
+        seekBar.setEnabled(false);
         seekBar.setFocusable(false);
         seekBar.setPreferredSize(new Dimension(300, 20));
         seekBar.addChangeListener(e -> {
-            if (!seekBar.getValueIsAdjusting() && onSeek != null) {
-                onSeek.accept(seekBar.getValue());
+            int value = Math.clamp(seekBar.getValue(), 0, SEEK_MAX);
+
+            if (seekBar.getValueIsAdjusting()) {
+                return;
             }
+
+            Duration duration = AudioManager.getInstance().getDuration();
+            if (duration == null) {
+                return;
+            }
+
+            long positionMillis = duration.toMillis() * value / SEEK_MAX;
+
+            AudioManager.getInstance().seek(Duration.ofMillis(positionMillis));
         });
 
         currentTimeLabel = timeLabel("0:00");
@@ -141,6 +175,13 @@ public class MusicPlayerPanel extends JPanel {
         center.add(Box.createVerticalStrut(2));
         center.add(seek);
 
+        MusicPlayer.getInstance().addListener(new MusicPlayer.Listener() {
+            @Override
+            public void stateUpdated(boolean isPlaying, boolean isPaused, boolean isStopped) {
+                setPlaying(isPlaying, isStopped);
+            }
+        });
+
         return center;
     }
 
@@ -155,9 +196,7 @@ public class MusicPlayerPanel extends JPanel {
         volumeSlider.setMaximumSize(volumeSlider.getPreferredSize());
         volumeSlider.addChangeListener(e -> {
             updateVolumeIcon();
-            if (!volumeSlider.getValueIsAdjusting() && onVolumeChange != null) {
-                onVolumeChange.accept(volumeSlider.getValue());
-            }
+            AudioManager.getInstance().setVolume(volumeSlider.getValue());
         });
 
         JPanel panel = new JPanel(new BorderLayout(6, 0));
@@ -222,24 +261,21 @@ public class MusicPlayerPanel extends JPanel {
     public void clearTrack() {
         setTrackInfo("No track selected", " ");
         artwork.setArtwork(null);
-        setPlaying(false);
+        setPlaying(false, true);
         setTime(0, 0);
     }
 
-    public void setPlaying(boolean playing) {
-        if (this.playing == playing) {
-            return;
+    public void setPlaying(boolean playing, boolean stopped) {
+        if (stopped) {
+            playPauseButton.setIcon(ICON_PLAY);
+            playPauseButton.setToolTipText("Start music player");
+        } else if (playing) {
+            playPauseButton.setIcon(ICON_PAUSE);
+            playPauseButton.setToolTipText("Pause");
+        } else {
+            playPauseButton.setIcon(ICON_PLAY);
+            playPauseButton.setToolTipText("Play");
         }
-        this.playing = playing;
-        playPauseButton.setIcon(playing ? ICON_PAUSE : ICON_PLAY);
-        playPauseButton.setToolTipText(playing ? "Pause" : "Play");
-        if (onPlayStateChange != null) {
-            onPlayStateChange.accept(playing);
-        }
-    }
-
-    public boolean isPlaying() {
-        return playing;
     }
 
     public void setTime(long seconds, long totalSeconds) {
@@ -257,26 +293,6 @@ public class MusicPlayerPanel extends JPanel {
 
     public int getVolume() {
         return volumeSlider.getValue();
-    }
-
-    public void setOnPrevious(Runnable onPrevious) {
-        this.onPrevious = onPrevious;
-    }
-
-    public void setOnNext(Runnable onNext) {
-        this.onNext = onNext;
-    }
-
-    public void setOnPlayStateChange(Consumer<Boolean> onPlayStateChange) {
-        this.onPlayStateChange = onPlayStateChange;
-    }
-
-    public void setOnSeek(Consumer<Integer> onSeek) {
-        this.onSeek = onSeek;
-    }
-
-    public void setOnVolumeChange(Consumer<Integer> onVolumeChange) {
-        this.onVolumeChange = onVolumeChange;
     }
 
     private static String formatTime(int totalSeconds) {

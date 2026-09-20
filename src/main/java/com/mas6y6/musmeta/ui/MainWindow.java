@@ -13,7 +13,7 @@ import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.ui.components.MusicPlayerPanel;
 import com.mas6y6.musmeta.ui.dialogs.ProcessMusicDialog;
-import com.mas6y6.musmeta.ui.tabs.AlbumDetailUI;
+import com.mas6y6.musmeta.ui.tabs.AlbumDetailTab;
 
 import java.io.File;
 import com.mas6y6.musmeta.ui.album.LibraryUI;
@@ -105,7 +105,7 @@ public class MainWindow extends MainAppFrame {
                 tabs.setSelectedIndex(index);
                 return;
             }
-            AlbumDetailUI detail = new AlbumDetailUI(album);
+            AlbumDetailTab detail = new AlbumDetailTab(album);
             detail.setSelectionListener(this::setSelectedSongs);
             tabs.addTab(album.getTitle(), detail);
             tabs.setSelectedIndex(tabs.getTabCount() - 1);
@@ -120,7 +120,7 @@ public class MainWindow extends MainAppFrame {
         SwingUtilities.invokeLater(() -> {
             for (int i = 0; i < tabs.getTabCount(); i++) {
                 Component comp = tabs.getComponentAt(i);
-                if (comp instanceof AlbumDetailUI detail) {
+                if (comp instanceof AlbumDetailTab detail) {
                     if (detail.getAlbum() == album || (oldTitle != null && oldTitle.equalsIgnoreCase(tabs.getTitleAt(i)))) {
                         tabs.setTitleAt(i, album.getTitle());
                         detail.refresh();
@@ -134,7 +134,7 @@ public class MainWindow extends MainAppFrame {
         SwingUtilities.invokeLater(() -> {
             for (int i = 0; i < tabs.getTabCount(); i++) {
                 Component comp = tabs.getComponentAt(i);
-                if (comp instanceof AlbumDetailUI detail) {
+                if (comp instanceof AlbumDetailTab detail) {
                     tabs.setTitleAt(i, detail.getAlbum().getTitle());
                     detail.refresh();
                 }
@@ -148,7 +148,7 @@ public class MainWindow extends MainAppFrame {
      */
     private void refreshSelectionForActiveTab() {
         Component tab = tabs.getSelectedComponent();
-        if (tab instanceof AlbumDetailUI detail) {
+        if (tab instanceof AlbumDetailTab detail) {
             setSelectedSongs(detail.getSelectedSongs());
         } else {
             setSelectedSongs(List.of());
@@ -285,7 +285,7 @@ public class MainWindow extends MainAppFrame {
                 new com.mas6y6.musmeta.ui.dialogs.EditSongDialog(this, selectedSongs).setVisible(true);
             } else {
                 Component tab = tabs.getSelectedComponent();
-                if (tab instanceof AlbumDetailUI detail) {
+                if (tab instanceof AlbumDetailTab detail) {
                     new com.mas6y6.musmeta.ui.dialogs.EditAlbumDialog(this, detail.getAlbum()).setVisible(true);
                 }
             }
@@ -295,7 +295,7 @@ public class MainWindow extends MainAppFrame {
         JMenuItem editAlbumItem = new JMenuItem("Edit Album Info...");
         editAlbumItem.addActionListener(e -> {
             Component tab = tabs.getSelectedComponent();
-            if (tab instanceof AlbumDetailUI detail) {
+            if (tab instanceof AlbumDetailTab detail) {
                 new com.mas6y6.musmeta.ui.dialogs.EditAlbumDialog(this, detail.getAlbum()).setVisible(true);
             }
         });
@@ -307,7 +307,7 @@ public class MainWindow extends MainAppFrame {
         selectAllItem.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         selectAllItem.addActionListener(e -> {
             Component tab = tabs.getSelectedComponent();
-            if (tab instanceof AlbumDetailUI detail) {
+            if (tab instanceof AlbumDetailTab detail) {
                 detail.selectAllTracks();
             }
         });
@@ -316,7 +316,7 @@ public class MainWindow extends MainAppFrame {
         JMenuItem deselectAllItem = new JMenuItem("Deselect All");
         deselectAllItem.addActionListener(e -> {
             Component tab = tabs.getSelectedComponent();
-            if (tab instanceof AlbumDetailUI detail) {
+            if (tab instanceof AlbumDetailTab detail) {
                 detail.deselectAllTracks();
             }
         });

@@ -5,6 +5,7 @@ import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialog;
+import com.mas6y6.musmeta.ui.tabs.AlbumDetailTab;
 import org.jaudiotagger.tag.FieldKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,6 +138,12 @@ public class ProcessTagsDialog extends ProcessingDialog {
         });
 
         updateProgress("Completed", 100, "All tags applied successfully");
+
+        MainWindow.INSTANCE.getLibraryUI().refresh();
+        if (MainWindow.INSTANCE.getSelectedTab() instanceof AlbumDetailTab tab) {
+            tab.reloadTrackTable();
+        }
+
         return true;
     }
 }

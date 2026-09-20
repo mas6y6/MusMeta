@@ -6,6 +6,8 @@ import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.TagField;
+import org.jaudiotagger.tag.TagTextField;
 import org.jaudiotagger.tag.images.Artwork;
 import org.jaudiotagger.tag.images.ArtworkFactory;
 import org.slf4j.Logger;
@@ -13,13 +15,35 @@ import org.slf4j.Logger;
 import javax.imageio.ImageIO;
 import java.awt.Image;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class Song {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Song.class);
 
     private static final String UNKNOWN_ARTIST = "Unknown Artist";
     public static final String UNKNOWN_ALBUM = "Unknown";
+
+    /**
+     * Separator used when displaying several values of a single tag field,
+     * matching how iTunes and Windows show multiple artists or composers
+     * (e.g. "Artist 1; Artist 2").
+     */
+    private static final String VALUE_SEPARATOR = "; ";
+
+    /**
+     * Tag keys that can legally hold more than one value for a single song
+     * (multiple artists, producers, composers...). These are read back in
+     * full and re-written in full so edits never drop the extra values.
+     */
+    private static final Set<FieldKey> MULTI_VALUE_KEYS = Set.of(
+            FieldKey.ARTIST,
+            FieldKey.ALBUM_ARTIST,
+            FieldKey.COMPOSER
+    );
 
     public static final ConfigCodec<Song> CODEC = ConfigCodec.of(
             Song::serialize,
@@ -36,6 +60,10 @@ public class Song {
         if (song != null && song.getAudioFile() != null && song.getAudioFile().getFile() != null) {
             builder.setString("path", song.getAudioFile().getFile().getAbsolutePath());
         }
+    }
+
+    public File getSourceAudioFile() {
+        return this.getAudioFile().getFile();
     }
 
     private static Song decodeFrom(ConfigBuilder builder) {
@@ -197,12 +225,37 @@ public class Song {
             Tag tag = audioFile.getTagOrCreateAndSetDefault();
             if (value == null || value.isBlank()) {
                 tag.deleteField(key);
+            } else if (MULTI_VALUE_KEYS.contains(key)) {
+                setTagValues(tag, key, value);
             } else {
                 tag.setField(key, value.trim());
             }
         } catch (Exception e) {
             LOGGER.warn("Failed to set tag field {} on {}: {}", key, audioFile.getFile(), e.getMessage());
         }
+    }
+
+    /**
+     * Replaces a multi-value field (artist, album artist, composer) with each
+     * of the supplied values stored separately, so files keep the individual
+     * names besides the joined "Artist 1; Artist 2" string iTunes displays.
+     */
+    private void setTagValues(Tag tag, FieldKey key, String value) throws Exception {
+        tag.deleteField(key);
+        for (String part : splitValues(value)) {
+            tag.addField(key, part);
+        }
+    }
+
+    private static List<String> splitValues(String value) {
+        List<String> parts = new ArrayList<>();
+        for (String part : value.split("\u0000|;")) {
+            String trimmed = part.trim();
+            if (!trimmed.isBlank()) {
+                parts.add(trimmed);
+            }
+        }
+        return parts;
     }
 
     public void setCompilation(boolean compilation) {
@@ -254,11 +307,49 @@ public class Song {
             return fallback;
         }
         try {
+            if (MULTI_VALUE_KEYS.contains(key)) {
+                List<String> values = getAllTagValues(key);
+                return values.isEmpty() ? fallback : String.join(VALUE_SEPARATOR, values);
+            }
             String value = tag.getFirst(key);
-            return value == null || value.isBlank() ? fallback : value.trim();
+            return value == null || value.isBlank() ? fallback : value;
         } catch (UnsupportedOperationException e) {
             // Some tag types (e.g. WAV Info tags) do not support every field key.
             return fallback;
+        }
+    }
+
+    /**
+     * Returns every value stored for a field. Separate frames (e.g. multiple
+     * TPE1 artist fields), null-separated values inside a single frame
+     * (ID3v2.4 / MP4 atoms) and semicolon-joined strings are all split into
+     * their individual values, edge cases some readers expose as mangled
+     * text (e.g. "Artist1Artist2").
+     */
+    private List<String> getAllTagValues(FieldKey key) {
+        Tag tag = getTag();
+        if (tag == null) {
+            return List.of();
+        }
+        try {
+            List<String> values = new ArrayList<>();
+            for (TagField field : tag.getFields(key)) {
+                String raw = field instanceof TagTextField textField
+                        ? textField.getContent()
+                        : field.toString();
+                if (raw == null) {
+                    continue;
+                }
+                for (String part : raw.split("\u0000|;")) {
+                    String trimmed = part.trim();
+                    if (!trimmed.isBlank() && !values.contains(trimmed)) {
+                        values.add(trimmed);
+                    }
+                }
+            }
+            return values;
+        } catch (Exception e) {
+            return List.of();
         }
     }
 

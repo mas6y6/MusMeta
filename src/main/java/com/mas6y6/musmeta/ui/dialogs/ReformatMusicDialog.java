@@ -2,7 +2,9 @@ package com.mas6y6.musmeta.ui.dialogs;
 
 import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
+import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialog;
+import com.mas6y6.musmeta.ui.tabs.AlbumDetailTab;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 
 import java.awt.Window;
@@ -47,6 +49,12 @@ public class ReformatMusicDialog extends ProcessingDialog {
         if (result.converted() > 0) {
             Library.getInstance().save();
         }
+
+        MainWindow.INSTANCE.getLibraryUI().refresh();
+        if (MainWindow.INSTANCE.getSelectedTab() instanceof AlbumDetailTab tab) {
+            tab.reloadTrackTable();
+        }
+
         return result.succeeded();
     }
 

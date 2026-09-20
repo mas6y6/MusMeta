@@ -27,10 +27,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.ToIntFunction;
 
 public class EditSongDialog extends JDialog {
     private static final Dimension DIALOG_SIZE = new Dimension(880, 540);
     private static final int ARTWORK_SIZE = 180;
+    private static final String MULTIPLE_VALUES = "Multiple Values";
 
     private final List<Song> songs;
     private final boolean isSingleSong;
@@ -57,6 +60,7 @@ public class EditSongDialog extends JDialog {
 
     // Multi-select enabled checkboxes
     private final Map<String, JCheckBox> applyCheckboxes = new HashMap<>();
+    private final Set<String> differingFields = new HashSet<>();
 
     // Artwork
     private AlbumArtwork artworkLabel;
@@ -84,9 +88,9 @@ public class EditSongDialog extends JDialog {
     private void initFields() {
         if (isSingleSong) {
             Song song = songs.get(0);
-            titleField = new JTextField(song.getTitle());
-            artistField = new JTextField(song.getRawArtist().isBlank() ? song.getArtist() : song.getRawArtist());
-            albumField = new JTextField(song.getAlbum());
+            titleField = new JTextField(song.getRawTitle());
+            artistField = new JTextField(song.getRawArtist());
+            albumField = new JTextField(song.getRawAlbum());
             albumArtistField = new JTextField(song.getRawAlbumArtist());
 
             trackNoSpinner = new JSpinner(new SpinnerNumberModel(Math.max(0, song.getTrackNumber()), 0, 999, 1));
@@ -109,41 +113,90 @@ public class EditSongDialog extends JDialog {
             compilationCheck = new JCheckBox("Part of a compilation", song.isCompilation());
             commentField = new JTextField(song.getComment());
         } else {
-            // Multi song mode
-            String commonArtist = getCommonValue(songs, Song::getRawArtist);
-            artistField = new JTextField(commonArtist);
-
-            String commonAlbum = getCommonValue(songs, Song::getAlbum);
-            albumField = new JTextField(commonAlbum);
-
-            String commonAlbumArtist = getCommonValue(songs, Song::getRawAlbumArtist);
-            albumArtistField = new JTextField(commonAlbumArtist);
-
-            genreCombo = new JComboBox<>(EditAlbumDialog.GENRES);
-            genreCombo.setEditable(true);
-            String commonGenre = getCommonValue(songs, Song::getGenre);
-            genreCombo.setSelectedItem(commonGenre);
-
-            yearField = new JTextField(getCommonValue(songs, Song::getYear));
-            composerField = new JTextField(getCommonValue(songs, Song::getComposer));
-            groupingField = new JTextField(getCommonValue(songs, Song::getGrouping));
-
-            ratingCombo = new JComboBox<>(EditAlbumDialog.RATINGS);
-            ratingCombo.setSelectedItem(ratingToLabel(getCommonValue(songs, Song::getRating)));
-
-            bpmField = new JTextField(getCommonValue(songs, Song::getBpm));
-
-            boolean allCompilation = songs.stream().allMatch(Song::isCompilation);
-            compilationCheck = new JCheckBox("Part of a compilation", allCompilation);
-
-            discTotalSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 99, 1));
-            trackTotalSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 999, 1));
-
-            commentField = new JTextField(getCommonValue(songs, Song::getComment));
+            initMultiFields();
         }
     }
 
-    private static String getCommonValue(List<Song> songs, java.util.function.Function<Song, String> extractor) {
+    private void initMultiFields() {
+        artistField = newMultipleTextField(songs, Song::getRawArtist, "artist");
+        albumField = newMultipleTextField(songs, Song::getRawAlbum, "album");
+        albumArtistField = newMultipleTextField(songs, Song::getRawAlbumArtist, "albumArtist");
+
+        genreCombo = new JComboBox<>(EditAlbumDialog.GENRES);
+        genreCombo.setEditable(true);
+        initMultipleCombo(genreCombo, songs, Song::getGenre, "genre");
+
+        yearField = newMultipleTextField(songs, Song::getYear, "year");
+        composerField = newMultipleTextField(songs, Song::getComposer, "composer");
+        groupingField = newMultipleTextField(songs, Song::getGrouping, "grouping");
+
+        ratingCombo = new JComboBox<>(EditAlbumDialog.RATINGS);
+        initMultipleCombo(ratingCombo, songs, s -> ratingToLabel(s.getRating()), "rating");
+
+        bpmField = newMultipleTextField(songs, Song::getBpm, "bpm");
+
+        discTotalSpinner = new JSpinner(new SpinnerNumberModel(Math.max(1, commonInt(songs, Song::getDiscTotal)), 1, 99, 1));
+        trackTotalSpinner = new JSpinner(new SpinnerNumberModel(Math.max(0, commonInt(songs, Song::getTrackTotal)), 0, 999, 1));
+
+        boolean anyCompilation = songs.stream().anyMatch(Song::isCompilation);
+        boolean allCompilation = songs.stream().allMatch(Song::isCompilation);
+        compilationCheck = new JCheckBox("Part of a compilation", allCompilation);
+        if (anyCompilation != allCompilation) {
+            differingFields.add("compilation");
+            compilationCheck.setSelected(false);
+        }
+
+        commentField = newMultipleTextField(songs, Song::getComment, "comment");
+    }
+
+    private JTextField newMultipleTextField(List<Song> songs, Function<Song, String> extractor, String key) {
+        JTextField field = new JTextField(getCommonValue(songs, extractor));
+        if (!isCommon(songs, extractor)) {
+            differingFields.add(key);
+            field.setText(MULTIPLE_VALUES);
+            field.setForeground(UIManager.getColor("Label.disabledForeground"));
+            field.setToolTipText("The selected songs have different values. Type a value to apply it to all of them.");
+        }
+        return field;
+    }
+
+    private void initMultipleCombo(JComboBox<String> combo, List<Song> songs, Function<Song, String> extractor, String key) {
+        if (isCommon(songs, extractor)) {
+            combo.setSelectedItem(getCommonValue(songs, extractor));
+        } else {
+            differingFields.add(key);
+            combo.insertItemAt(MULTIPLE_VALUES, 0);
+            combo.setSelectedIndex(0);
+        }
+    }
+
+    private static boolean isCommon(List<Song> songs, Function<Song, String> extractor) {
+        if (songs.isEmpty()) {
+            return true;
+        }
+        String first = extractor.apply(songs.get(0));
+        for (Song song : songs) {
+            if (!Objects.equals(first, extractor.apply(song))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static int commonInt(List<Song> songs, ToIntFunction<Song> extractor) {
+        if (songs.isEmpty()) {
+            return 0;
+        }
+        int first = extractor.applyAsInt(songs.get(0));
+        for (Song song : songs) {
+            if (extractor.applyAsInt(song) != first) {
+                return 0;
+            }
+        }
+        return first;
+    }
+
+    private static String getCommonValue(List<Song> songs, Function<Song, String> extractor) {
         if (songs.isEmpty()) return "";
         String first = extractor.apply(songs.get(0));
         for (Song s : songs) {
@@ -345,6 +398,7 @@ public class EditSongDialog extends JDialog {
             // Compilation toggle
             JCheckBox applyCompCheck = new JCheckBox();
             applyCheckboxes.put("compilation", applyCompCheck);
+            compilationCheck.addActionListener(e -> applyCompCheck.setSelected(true));
             JPanel compPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
             compPanel.setOpaque(false);
             compPanel.add(applyCompCheck);
@@ -382,9 +436,9 @@ public class EditSongDialog extends JDialog {
             // Auto-check apply box when user changes the component
             if (comp instanceof JTextField tf) {
                 tf.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-                    public void insertUpdate(javax.swing.event.DocumentEvent e) { applyCheck.setSelected(true); }
-                    public void removeUpdate(javax.swing.event.DocumentEvent e) { applyCheck.setSelected(true); }
-                    public void changedUpdate(javax.swing.event.DocumentEvent e) { applyCheck.setSelected(true); }
+                    public void insertUpdate(javax.swing.event.DocumentEvent e) { fieldEdited(tf, applyCheck); }
+                    public void removeUpdate(javax.swing.event.DocumentEvent e) { fieldEdited(tf, applyCheck); }
+                    public void changedUpdate(javax.swing.event.DocumentEvent e) { fieldEdited(tf, applyCheck); }
                 });
             } else if (comp instanceof JComboBox<?> cb) {
                 cb.addActionListener(e -> applyCheck.setSelected(true));
@@ -542,32 +596,34 @@ public class EditSongDialog extends JDialog {
                     newArtworkMimeType
             ));
         } else {
-            // Multi song mode: check apply boxes
-            boolean applyArtist = isFieldChecked("artist");
+            // Multi song mode. Fields that differ across the selection display
+            // "Multiple Values" and are only written when the user actually
+            // changes them (and ticks the apply box), matching iTunes' Get Info.
+            boolean applyArtist = shouldApply("artist", artistField);
             String artist = artistField.getText().trim();
 
-            boolean applyAlbum = isFieldChecked("album");
+            boolean applyAlbum = shouldApply("album", albumField);
             String album = albumField.getText().trim();
 
-            boolean applyAlbumArtist = isFieldChecked("albumArtist");
+            boolean applyAlbumArtist = shouldApply("albumArtist", albumArtistField);
             String albumArtist = albumArtistField.getText().trim();
 
-            boolean applyGenre = isFieldChecked("genre");
+            boolean applyGenre = shouldApply("genre", genreCombo);
             String genre = genreCombo.getSelectedItem() != null ? genreCombo.getSelectedItem().toString().trim() : "";
 
-            boolean applyYear = isFieldChecked("year");
+            boolean applyYear = shouldApply("year", yearField);
             String year = yearField.getText().trim();
 
-            boolean applyComposer = isFieldChecked("composer");
+            boolean applyComposer = shouldApply("composer", composerField);
             String composer = composerField.getText().trim();
 
-            boolean applyGrouping = isFieldChecked("grouping");
+            boolean applyGrouping = shouldApply("grouping", groupingField);
             String grouping = groupingField.getText().trim();
 
-            boolean applyRating = isFieldChecked("rating");
+            boolean applyRating = shouldApply("rating", ratingCombo);
             String rating = labelToRating(ratingCombo.getSelectedItem() != null ? ratingCombo.getSelectedItem().toString() : "");
 
-            boolean applyBpm = isFieldChecked("bpm");
+            boolean applyBpm = shouldApply("bpm", bpmField);
             String bpm = bpmField.getText().trim();
 
             boolean applyTotals = isFieldChecked("totals");
@@ -577,7 +633,7 @@ public class EditSongDialog extends JDialog {
             boolean applyCompilation = isFieldChecked("compilation");
             boolean compilation = compilationCheck.isSelected();
 
-            boolean applyComment = isFieldChecked("comment");
+            boolean applyComment = shouldApply("comment", commentField);
             String comment = commentField.getText().trim();
 
             for (Song song : songs) {
@@ -654,6 +710,32 @@ public class EditSongDialog extends JDialog {
     private boolean isFieldChecked(String key) {
         JCheckBox cb = applyCheckboxes.get(key);
         return cb != null && cb.isSelected();
+    }
+
+    /**
+     * A field is written only when its apply box is ticked and it does not
+     * still show the "Multiple Values" placeholder, so browsing a multi-song
+     * selection never overwrites values the user did not touch.
+     */
+    private boolean shouldApply(String key, JTextField field) {
+        if (!isFieldChecked(key)) {
+            return false;
+        }
+        return !(differingFields.contains(key) && MULTIPLE_VALUES.equals(field.getText().trim()));
+    }
+
+    private boolean shouldApply(String key, JComboBox<String> combo) {
+        if (!isFieldChecked(key)) {
+            return false;
+        }
+        Object selected = combo.getSelectedItem();
+        boolean placeholder = selected != null && MULTIPLE_VALUES.equals(selected.toString().trim());
+        return !(differingFields.contains(key) && placeholder);
+    }
+
+    private void fieldEdited(JTextField field, JCheckBox applyCheck) {
+        applyCheck.setSelected(true);
+        field.setForeground(UIManager.getColor("TextField.foreground"));
     }
 
     private static String ratingToLabel(String rating) {

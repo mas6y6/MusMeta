@@ -48,6 +48,15 @@ public class Bootstrap implements Runnable {
             PluginManager.defaultPluginsDirectory()
     );
 
+    private static boolean isSkipBootstrap = false;
+    private static boolean isDebugMode = false;
+    public static boolean isSkipBootstrap() {
+        return isSkipBootstrap;
+    }
+    public static boolean isDebugMode() {
+        return isDebugMode;
+    }
+
     @Override
     public void run() {
         LogSystem.init();
@@ -57,6 +66,7 @@ public class Bootstrap implements Runnable {
         LOGGER.info("MusMeta - {}", Version.get());
         LOGGER.info("Log file: {}", LogSystem.getLatestLogPath().toAbsolutePath());
         if (debug) {
+            isDebugMode = true;
             LOGGER.info("Running in debug mode");
             System.setProperty(
                     "org.slf4j.simpleLogger.defaultLogLevel",
@@ -71,12 +81,16 @@ public class Bootstrap implements Runnable {
         LaunchScreen.showSplash();
 
         if (!skipbootstrap) {
+            isSkipBootstrap = false;
             LOGGER.info("Running MusMeta bootstrap...");
 
             LaunchScreen.setStatus("Loading plugins...");
+            pluginManager.setDisabledPluginIds(Settings.DISABLED_PLUGINS.get());
             pluginManager.discover();
             LaunchScreen.setStatus("Initializing plugins...");
             pluginManager.boot();
+        } else {
+            isSkipBootstrap = true;
         }
 
         Registries.freezeAll();

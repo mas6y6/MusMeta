@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,11 +38,21 @@ public final class PluginManager {
     private final Path pluginsDirectory;
     private final Gson gson = new Gson();
     private final List<PluginContainer> containers = new ArrayList<>();
+    private final Set<String> disabledPluginIds = new HashSet<>();
     private boolean booted;
     private boolean shutDown;
+    private static PluginManager instance;
 
     public PluginManager(Path pluginsDirectory) {
+        instance = this;
         this.pluginsDirectory = pluginsDirectory;
+    }
+
+    public static PluginManager getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("PluginManager instance not initialized");
+        }
+        return instance;
     }
 
     public static Path defaultPluginsDirectory() {
@@ -104,11 +115,22 @@ public final class PluginManager {
     private void loadPlugin(Path jar) {
         try {
             PluginDescriptor descriptor = readDescriptor(jar);
+            if (disabledPluginIds.contains(descriptor.id())) {
+                LOGGER.info("Skipping disabled plugin '{}' (configured not to load on startup).", descriptor.id());
+                return;
+            }
             PluginClassLoader classLoader = new PluginClassLoader(descriptor.id(), jar, PluginManager.class.getClassLoader());
             containers.add(new PluginContainer(descriptor, jar, classLoader));
             LOGGER.info("Discovered plugin '{}' v{} from {}", descriptor.id(), descriptor.version(), jar.getFileName());
         } catch (Exception e) {
             LOGGER.error("Skipping invalid plugin {}: {}", jar.getFileName(), e.getMessage());
+        }
+    }
+
+    public void setDisabledPluginIds(Collection<String> ids) {
+        disabledPluginIds.clear();
+        if (ids != null) {
+            disabledPluginIds.addAll(ids);
         }
     }
 

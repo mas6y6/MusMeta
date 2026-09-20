@@ -253,7 +253,8 @@ public class Album {
         }
 
         if (firstAlbumArtist != null) {
-            return new ArtistInfo(foundMultipleArtists ? "Various Artists" : firstAlbumArtist, foundMultipleArtists);
+            boolean various = foundMultipleArtists || "Various Artists".equalsIgnoreCase(firstAlbumArtist);
+            return new ArtistInfo(various ? "Various Artists" : firstAlbumArtist, various);
         }
 
         String firstArtist = null;
@@ -272,7 +273,8 @@ public class Album {
         }
 
         if (firstArtist != null) {
-            return new ArtistInfo(foundMultipleArtists ? "Various Artists" : firstArtist, foundMultipleArtists);
+            boolean various = foundMultipleArtists || "Various Artists".equalsIgnoreCase(firstArtist);
+            return new ArtistInfo(various ? "Various Artists" : firstArtist, various);
         }
 
         return new ArtistInfo(UNKNOWN_ARTIST, false);

@@ -12,7 +12,6 @@ import com.mas6y6.musmeta.ui.dialogs.ReformatMusicDialog;
 import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
-import org.jaudiotagger.tag.FieldKey;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -21,16 +20,14 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 
 /**
  * An iTunes-style detailed view of a single album, opened as its own tab.
  * Shows the artwork, album metadata and a list of its tracks.
  */
-public class AlbumDetailUI extends JPanel {
+public class AlbumDetailTab extends JPanel {
 
     private static final int ARTWORK_SIZE = 260;
 
@@ -42,7 +39,7 @@ public class AlbumDetailUI extends JPanel {
 
     private Consumer<List<Song>> selectionListener;
 
-    public AlbumDetailUI(Album album) {
+    public AlbumDetailTab(Album album) {
         super(new BorderLayout());
         this.album = album;
 

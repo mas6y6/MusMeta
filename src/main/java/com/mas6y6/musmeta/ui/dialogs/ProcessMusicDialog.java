@@ -4,7 +4,9 @@ import com.mas6y6.musmeta.Constants;
 import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.settings.Settings;
+import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialog;
+import com.mas6y6.musmeta.ui.tabs.AlbumDetailTab;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -143,6 +145,11 @@ public class ProcessMusicDialog extends ProcessingDialog {
             }
 
             Library.getInstance().save();
+        }
+
+        MainWindow.INSTANCE.getLibraryUI().refresh();
+        if (MainWindow.INSTANCE.getSelectedTab() instanceof AlbumDetailTab tab) {
+            tab.reloadTrackTable();
         }
 
         return true;

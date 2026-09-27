@@ -7,9 +7,12 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.Set;
 
 public class Utils {
     private static final int ARTWORK_SIZE = 180;
+
+    private Utils() {}
 
     public static boolean isRunningAsRoot() {
         String user = System.getProperty("user.name");
@@ -84,5 +87,38 @@ public class Utils {
         }
 
         return result;
+    }
+
+    private static final Set<String> WINDOWS_RESERVED_NAMES = Set.of(
+            "CON", "PRN", "AUX", "NUL",
+            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+    );
+
+
+    public static String toSafeFilename(String input) {
+        if (input == null || input.isBlank()) {
+            return "untitled";
+        }
+
+        String name = input
+                .replaceAll("[<>:\"/\\\\|?*\\x00-\\x1F]", "_")
+                .replaceAll("[ .]+$", "");
+
+        if (name.equals(".") || name.equals("..") || name.isBlank()) {
+            return "untitled";
+        }
+
+        String baseName = name;
+        int dot = baseName.indexOf('.');
+        if (dot >= 0) {
+            baseName = baseName.substring(0, dot);
+        }
+
+        if (WINDOWS_RESERVED_NAMES.contains(baseName.toUpperCase())) {
+            name = "_" + name;
+        }
+
+        return name;
     }
 }

@@ -1,5 +1,6 @@
 package com.mas6y6.musmeta.ui.tabs;
 
+import com.formdev.flatlaf.util.SystemFileChooser;
 import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Disc;
 import com.mas6y6.musmeta.core.Library;
@@ -8,11 +9,7 @@ import com.mas6y6.musmeta.musicplayer.MusicPlayer;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
-import com.mas6y6.musmeta.ui.dialogs.EditAlbumDialog;
-import com.mas6y6.musmeta.ui.dialogs.EditSongDialog;
-import com.mas6y6.musmeta.ui.dialogs.ImportSongsDialog;
-import com.mas6y6.musmeta.ui.dialogs.ProcessTagsDialog;
-import com.mas6y6.musmeta.ui.dialogs.ReformatMusicDialog;
+import com.mas6y6.musmeta.ui.dialogs.*;
 import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
@@ -27,6 +24,7 @@ import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -253,6 +251,22 @@ public class AlbumDetailTab extends JPanel {
 
         meta.add(Box.createVerticalStrut(4));
 
+        JButton exportButton = new JButton("Export Album...");
+        exportButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        exportButton.addActionListener((_) -> {
+            SystemFileChooser fc = new SystemFileChooser();
+            fc.setAcceptAllFileFilterUsed(false);
+            fc.setFileFilter(new SystemFileChooser.FileNameExtensionFilter("Zip Files", "zip"));
+            if( fc.showSaveDialog( this ) == SystemFileChooser.APPROVE_OPTION ) {
+                File file = fc.getSelectedFile();
+                new ExportMusicProcessingDialog(MainWindow.INSTANCE, album.getSongs(),file).startAndShow();
+            }
+        });
+
+        meta.add(exportButton);
+
+        meta.add(Box.createVerticalStrut(4));
+
         JButton playButton = new JButton("Play");
         playButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         playButton.addActionListener((_) -> {
@@ -381,14 +395,15 @@ public class AlbumDetailTab extends JPanel {
                 : "Disc " + disc.getDiscIndex();
     }
 
-    private JScrollPane createDiscTable(Disc disc) {
+    private JComponent createDiscTable(Disc disc) {
         List<Song> songs = disc.getSongs();
         String[] columns = {"", "#", "Title", "Artist", "Time"};
 
         DefaultTableModel model = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 1;
+                // The checkbox that selects the track, and the track number.
+                return column == 0 || column == 1;
             }
 
             @Override
@@ -415,22 +430,30 @@ public class AlbumDetailTab extends JPanel {
 
         discTables.add(discTable);
 
-        return createScrollPane(table, songs);
+        return createTablePanel(table, songs);
     }
 
-    private static @NonNull JScrollPane createScrollPane(JTable table, List<Song> songs) {
-        JScrollPane scrollPane = new JScrollPane(table);
+    /**
+     * Wraps a track table in a plain panel rather than a scroll pane of its
+     * own. The table is sized to show all of its own rows and the enclosing
+     * scroll frame is what scrolls, so a scroll pane here would never have
+     * anything to scroll and would claim the mouse wheel, leaving the page
+     * stuck wherever the pointer is over a table.
+     */
+    private static @NonNull JComponent createTablePanel(JTable table, List<Song> songs) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+        panel.add(table.getTableHeader(), BorderLayout.NORTH);
+        panel.add(table, BorderLayout.CENTER);
+
         int height = table.getTableHeader().getPreferredSize().height
                 + table.getRowHeight() * Math.max(songs.size(), 1)
                 + 4;
-        scrollPane.setPreferredSize(new Dimension(0, height));
-        scrollPane.setMinimumSize(new Dimension(0, height));
-        scrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
-        scrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-        // The table is sized to show all of its own rows; the enclosing scroll
-        // frame is what scrolls vertically, so no scrollbar is shown here.
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
-        return scrollPane;
+        panel.setPreferredSize(new Dimension(0, height));
+        panel.setMinimumSize(new Dimension(0, height));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return panel;
     }
 
     private JFormattedTextField newTrackNumberField() {
@@ -446,7 +469,6 @@ public class AlbumDetailTab extends JPanel {
     private void configureTable(DiscTable discTable) {
         JTable table = discTable.table();
 
-        table.setFillsViewportHeight(true);
         table.setShowVerticalLines(false);
         table.setRowHeight(26);
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);

@@ -13,6 +13,7 @@ import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.musicplayer.MusicPlayer;
 import com.mas6y6.musmeta.ui.components.MusicPlayerPanel;
+import com.mas6y6.musmeta.ui.dialogs.ExportMusicProcessingDialog;
 import com.mas6y6.musmeta.ui.dialogs.ProcessMusicDialog;
 import com.mas6y6.musmeta.ui.tabs.AlbumDetailTab;
 
@@ -327,7 +328,22 @@ public class MainWindow extends MainAppFrame {
                 new com.mas6y6.musmeta.ui.dialogs.EditAlbumDialog(this, detail.getAlbum()).setVisible(true);
             }
         });
+
         editMenu.add(editAlbumItem);
+
+        JMenuItem exportSongs = new JMenuItem("Export Songs...");
+        exportSongs.addActionListener((_) -> {
+            if (getSelectedSongs().isEmpty()) return;
+
+            SystemFileChooser fc = new SystemFileChooser();
+            fc.setAcceptAllFileFilterUsed(false);
+            fc.setFileFilter(new SystemFileChooser.FileNameExtensionFilter("Zip Files", "zip"));
+            if( fc.showSaveDialog( this ) == SystemFileChooser.APPROVE_OPTION ) {
+                File file = fc.getSelectedFile();
+                new ExportMusicProcessingDialog(this, getSelectedSongs(),file).startAndShow();
+            }
+        });
+        editMenu.add(exportSongs);
 
         editMenu.addSeparator();
 

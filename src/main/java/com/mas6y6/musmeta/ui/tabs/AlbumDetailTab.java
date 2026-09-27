@@ -24,8 +24,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.NumberFormat;
@@ -45,9 +43,7 @@ public class AlbumDetailTab extends JPanel {
     private static final int CONTENT_PADDING_H = 40;
     private static final int CONTENT_PADDING_V = 30;
 
-    private static final int MIN_ARTWORK_SIZE = 140;
-    private static final int MAX_ARTWORK_SIZE = 360;
-    private static final double ARTWORK_SIZE_RATIO = 0.32;
+    private static final int ARTWORK_SIZE = 260;
 
     private final Album album;
 
@@ -65,15 +61,6 @@ public class AlbumDetailTab extends JPanel {
     public AlbumDetailTab(Album album) {
         super(new BorderLayout());
         this.album = album;
-
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                if (layoutArtwork()) {
-                    revalidate();
-                }
-            }
-        });
 
         add(scrollableContent(), BorderLayout.CENTER);
     }
@@ -206,11 +193,16 @@ public class AlbumDetailTab extends JPanel {
         JPanel header = new JPanel(new BorderLayout(24, 0));
         header.setOpaque(false);
 
-        if (artworkImage == null) {
-            artworkImage = album.getArtworkImage();
-        }
-        layoutArtwork();
-        header.add(artwork, BorderLayout.WEST);
+        artworkImage = album.getArtworkImage();
+        artwork.setPreferredSize(new Dimension(ARTWORK_SIZE, ARTWORK_SIZE));
+        artwork.setMinimumSize(artwork.getPreferredSize());
+        artwork.setMaximumSize(artwork.getPreferredSize());
+        artwork.setArtwork(artworkImage);
+
+        JPanel artworkWrapper = new JPanel(new BorderLayout());
+        artworkWrapper.setOpaque(false);
+        artworkWrapper.add(artwork, BorderLayout.NORTH);
+        header.add(artworkWrapper, BorderLayout.WEST);
 
         // Metadata column
         JPanel meta = new JPanel();
@@ -261,46 +253,6 @@ public class AlbumDetailTab extends JPanel {
         header.add(meta, BorderLayout.CENTER);
 
         return header;
-    }
-
-    /**
-     * Gives the artwork a square area whose edge follows the tab's own size, so
-     * the album art grows and shrinks with the window instead of being a fixed
-     * box. The width and the height of the tab are both taken into account, and
-     * the result stays within readable bounds.
-     *
-     * @return {@code true} if the artwork's size changed, and the tab has to be
-     *         laid out again
-     */
-    private boolean layoutArtwork() {
-        int side = artworkSide();
-        Dimension square = new Dimension(side, side);
-
-        if (square.equals(artwork.getPreferredSize())) {
-            return false;
-        }
-
-        artwork.setPreferredSize(square);
-        artwork.setMinimumSize(square);
-        artwork.setMaximumSize(square);
-        artwork.setArtwork(artworkImage);
-
-        return true;
-    }
-
-    private int artworkSide() {
-        int available = Math.min(
-                getWidth() - CONTENT_PADDING_H * 2,
-                getHeight() - CONTENT_PADDING_V * 2
-        );
-        if (available <= 0) {
-            return MIN_ARTWORK_SIZE;
-        }
-        return (int) Math.clamp(
-                available * ARTWORK_SIZE_RATIO,
-                MIN_ARTWORK_SIZE,
-                MAX_ARTWORK_SIZE
-        );
     }
 
     private String subtitle() {
@@ -362,6 +314,7 @@ public class AlbumDetailTab extends JPanel {
 
         JPanel albumHeader = header();
         albumHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+        albumHeader.setMaximumSize(new Dimension(Integer.MAX_VALUE, albumHeader.getPreferredSize().height));
         content.add(albumHeader);
 
         content.add(Box.createVerticalStrut(20));

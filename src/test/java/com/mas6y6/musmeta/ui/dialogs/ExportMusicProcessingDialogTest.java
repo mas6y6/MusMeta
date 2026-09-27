@@ -153,7 +153,8 @@ class ExportMusicProcessingDialogTest {
 
         assertTrue(dialog.process());
 
-        assertTrue(Files.exists(tempDir.resolve("album.ZIP")));
+        assertTrue(Files.exists(tempDir.resolve("album.zip")));
+        assertFalse(Files.exists(tempDir.resolve("album.ZIP.zip")));
     }
 
     @Test

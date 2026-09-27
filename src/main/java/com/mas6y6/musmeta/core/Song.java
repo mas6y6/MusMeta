@@ -258,6 +258,24 @@ public class Song {
         return parts;
     }
 
+    /**
+     * Keeps both artist tags in step the way iTunes does. A song carries a song
+     * artist (who made the song) and an album artist (who made the whole album),
+     * and whichever of the two is missing is filled in from the other, so a file
+     * is never left with only one of them. Values that are already present are
+     * left untouched.
+     */
+    public void completeArtistTags() {
+        String artist = getRawArtist();
+        String albumArtist = getRawAlbumArtist();
+
+        if (artist.isBlank() && !albumArtist.isBlank()) {
+            setTagField(FieldKey.ARTIST, albumArtist);
+        } else if (albumArtist.isBlank() && !artist.isBlank()) {
+            setTagField(FieldKey.ALBUM_ARTIST, artist);
+        }
+    }
+
     public void setCompilation(boolean compilation) {
         try {
             Tag tag = audioFile.getTagOrCreateAndSetDefault();

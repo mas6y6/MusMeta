@@ -56,6 +56,12 @@ public class AlbumArtwork extends JLabel {
         repaint();
     }
 
+    /**
+     * Paints the artwork as a square centred in the component, using the
+     * shorter side as its edge length. A layout manager is free to hand this
+     * component a non-square area, and the art is then fitted into the largest
+     * square that fits rather than stretched out of its proportions.
+     */
     @Override
     protected void paintComponent(Graphics g) {
         int width = getWidth();
@@ -64,6 +70,10 @@ public class AlbumArtwork extends JLabel {
         if (width <= 0 || height <= 0) {
             return;
         }
+
+        int side = Math.min(width, height);
+        int x = (width - side) / 2;
+        int y = (height - side) / 2;
 
         Graphics2D g2 = (Graphics2D) g.create();
 
@@ -81,18 +91,18 @@ public class AlbumArtwork extends JLabel {
                     RenderingHints.VALUE_RENDER_QUALITY
             );
 
-            BufferedImage artwork = artwork(g2, width, height);
+            BufferedImage artwork = artwork(g2, side, side);
 
             if (artwork != null) {
-                g2.drawImage(artwork, 0, 0, width, height, null);
+                g2.drawImage(artwork, x, y, side, side, null);
             }
 
             g2.clip(
                     new RoundRectangle2D.Float(
-                            0,
-                            0,
-                            width,
-                            height,
+                            x,
+                            y,
+                            side,
+                            side,
                             radius,
                             radius
                     )
@@ -159,7 +169,7 @@ public class AlbumArtwork extends JLabel {
     }
 
     private static int clampDeviceSize(double size) {
-        return (int) Math.clamp(Math.round(size), 1,
+        return Math.clamp(Math.round(size), 1,
                 MAX_DEVICE_SIZE);
     }
 

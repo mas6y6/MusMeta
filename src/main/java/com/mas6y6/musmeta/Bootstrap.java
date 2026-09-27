@@ -129,7 +129,7 @@ public class Bootstrap implements Runnable {
         }
     }
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         PlatformSetup.applyMacPlatformSettings();
         LogSystem.init(args);
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler::handle);

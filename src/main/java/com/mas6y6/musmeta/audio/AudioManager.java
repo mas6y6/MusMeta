@@ -335,11 +335,34 @@ public class AudioManager {
         try {
             if (line.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
                 FloatControl gain = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
-                float min = gain.getMinimum();
-                gain.setValue(min + (gain.getMaximum() - min) * percent / 100f);
+                gain.setValue(decibelsFor(percent, gain));
             }
         } catch (IllegalArgumentException ignored) {
         }
+    }
+
+    /**
+     * Converts a 0 - 100 volume percentage into a master gain value.
+     * <p>
+     * A slider is a linear control but loudness is perceived on a logarithmic
+     * scale, so spreading the slider evenly over the line's decibel range
+     * squeezes nearly all of the audible range into the last few percent of the
+     * travel: everything below about -40 dB is inaudible, which left the whole
+     * top of the slider covering a huge jump in volume and made it feel far too
+     * sensitive. Squaring the fader position and converting that amplitude back
+     * to decibels instead gives 0 dB at 100% and an even, natural-feeling taper
+     * of roughly -6 dB per quarter of the slider, while 0% stays silent.
+     */
+    private static float decibelsFor(int percent, FloatControl gain) {
+        if (percent <= 0) {
+            return gain.getMinimum();
+        }
+
+        float amplitude = percent / 100f;
+        amplitude *= amplitude;
+
+        float decibels = (float) (20.0 * Math.log10(amplitude));
+        return Math.clamp(decibels, gain.getMinimum(), gain.getMaximum());
     }
 
     private void notifyStart(AudioStream stream) {

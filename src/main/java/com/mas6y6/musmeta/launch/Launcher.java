@@ -28,7 +28,7 @@ public final class Launcher {
     private Launcher() {
     }
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         if (args != null) {
             launchArgs = args.clone();
         }

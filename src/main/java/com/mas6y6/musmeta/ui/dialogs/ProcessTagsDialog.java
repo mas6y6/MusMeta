@@ -5,7 +5,6 @@ import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialog;
-import com.mas6y6.musmeta.ui.tabs.AlbumDetailTab;
 import org.jaudiotagger.tag.FieldKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,16 +38,27 @@ public class ProcessTagsDialog extends ProcessingDialog {
     private final List<SongTagUpdate> updates;
     private final Album targetAlbum;
     private final String oldAlbumTitle;
+    private final Map<String, byte[]> albumArtwork;
 
     public ProcessTagsDialog(Window owner, List<SongTagUpdate> updates) {
-        this(owner, updates, null, null);
+        this(owner, updates, null, null, null);
     }
 
     public ProcessTagsDialog(Window owner, List<SongTagUpdate> updates, Album targetAlbum, String oldAlbumTitle) {
+        this(owner, updates, targetAlbum, oldAlbumTitle, null);
+    }
+
+    /**
+     * @param albumArtwork artwork bytes to store on the album of the given
+     *                     titles once the songs have been moved into them
+     */
+    public ProcessTagsDialog(Window owner, List<SongTagUpdate> updates, Album targetAlbum,
+                             String oldAlbumTitle, Map<String, byte[]> albumArtwork) {
         super(owner, "Applying Tags", ProgressMode.DETERMINATE);
         this.updates = updates != null ? updates : List.of();
         this.targetAlbum = targetAlbum;
         this.oldAlbumTitle = oldAlbumTitle;
+        this.albumArtwork = albumArtwork != null ? albumArtwork : Map.of();
     }
 
     @Override
@@ -96,6 +106,8 @@ public class ProcessTagsDialog extends ProcessingDialog {
                     song.deleteArtwork();
                 }
 
+                song.completeArtistTags();
+
                 song.saveToFile();
             } catch (Exception e) {
                 LOGGER.error("Failed to write tags for song {}", song.getTitle(), e);
@@ -127,23 +139,36 @@ public class ProcessTagsDialog extends ProcessingDialog {
             }
         }
 
+        applyAlbumArtwork();
+
         Library.getInstance().save();
+
+        updateProgress("Completed", 100, "All tags applied successfully");
 
         SwingUtilities.invokeLater(() -> {
             if (targetAlbum != null) {
                 MainWindow.INSTANCE.updateAlbumTabs(targetAlbum, oldAlbumTitle);
-            } else {
-                MainWindow.INSTANCE.refreshAllDetailTabs();
             }
+            MainWindow.INSTANCE.refreshLibraryAndTabs();
         });
 
-        updateProgress("Completed", 100, "All tags applied successfully");
-
-        MainWindow.INSTANCE.getLibraryUI().refresh();
-        if (MainWindow.INSTANCE.getSelectedTab() instanceof AlbumDetailTab tab) {
-            tab.reloadTrackTable();
-        }
-
         return true;
+    }
+
+    /**
+     * Stores artwork on albums the songs were just moved into, for instance
+     * when the user chose to carry the artwork of the old album over.
+     */
+    private void applyAlbumArtwork() {
+        for (Map.Entry<String, byte[]> entry : albumArtwork.entrySet()) {
+            byte[] data = entry.getValue();
+            if (data == null || data.length == 0) {
+                continue;
+            }
+            Album album = Library.getInstance().getAlbum(entry.getKey());
+            if (album != null) {
+                album.setArtworkBytes(data);
+            }
+        }
     }
 }

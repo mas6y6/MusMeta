@@ -312,7 +312,7 @@ public class AlbumUI extends JPanel {
                 )
                      == JOptionPane.YES_OPTION) {
                  Library.getInstance().removeAlbum(album.getTitle());
-             };
+             }
         });
         popupMenu.add(deleteAlbum);
 

@@ -163,7 +163,7 @@ public class AddAlbumUI extends JPanel {
     }
 
     private void handleClick() {
-        NewAlbumDialog prompt = new NewAlbumDialog((Frame) SwingUtilities.getWindowAncestor(this));
+        NewAlbumDialog prompt = new NewAlbumDialog(SwingUtilities.getWindowAncestor(this));
         prompt.setVisible(true);
     }
 }

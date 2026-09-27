@@ -191,6 +191,31 @@ public class Album {
         return "";
     }
 
+    /**
+     * Returns the album artist (the artist of the whole album) shared by this
+     * album's songs, i.e. the value that belongs in a song's album artist tag
+     * when it is moved onto this album. Returns an empty string when the songs
+     * disagree or none of them carry an album artist tag of their own, so the
+     * value is never guessed from the song artists.
+     */
+    public String getAlbumArtist() {
+        String first = null;
+        for (Disc disc : discs) {
+            for (Song song : disc.getSongs()) {
+                String albumArtist = song.getRawAlbumArtist();
+                if (albumArtist.isBlank() || UNKNOWN_ARTIST.equalsIgnoreCase(albumArtist)) {
+                    continue;
+                }
+                if (first == null) {
+                    first = albumArtist;
+                } else if (!normalizeArtist(albumArtist).equals(normalizeArtist(first))) {
+                    return "";
+                }
+            }
+        }
+        return first == null ? "" : first;
+    }
+
     public boolean isCompilation() {
         if (getArtist().variousArtists()) {
             return true;

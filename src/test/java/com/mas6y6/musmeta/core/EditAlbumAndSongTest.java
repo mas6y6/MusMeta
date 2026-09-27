@@ -376,4 +376,92 @@ public class EditAlbumAndSongTest {
         assertNotNull(loadedWithNewArt.getArtworkData());
         assertEquals(4, loadedWithNewArt.getArtworkData().length);
     }
+
+    @Test
+    void testAlbumArtistIsSharedByAllSongsOfAnAlbum() throws Exception {
+        Library library = Library.getInstance();
+
+        Song s1 = new Song(AudioFileIO.read(createDummyMp3("shared1.mp3")));
+        Song s2 = new Song(AudioFileIO.read(createDummyMp3("shared2.mp3")));
+        s1.setTagField(FieldKey.ALBUM, "Shared Album");
+        s1.setTagField(FieldKey.ARTIST, "Artist A");
+        s1.setTagField(FieldKey.ALBUM_ARTIST, "The Album Artist");
+        s2.setTagField(FieldKey.ALBUM, "Shared Album");
+        s2.setTagField(FieldKey.ARTIST, "Artist B");
+        s2.setTagField(FieldKey.ALBUM_ARTIST, "The Album Artist");
+        library.addSong(s1);
+        library.addSong(s2);
+
+        assertEquals("The Album Artist", library.getAlbum("Shared Album").getAlbumArtist());
+    }
+
+    @Test
+    void testAlbumArtistIsBlankWhenSongsDisagreeOrHaveNone() throws Exception {
+        Library library = Library.getInstance();
+
+        Song s1 = new Song(AudioFileIO.read(createDummyMp3("disagree1.mp3")));
+        Song s2 = new Song(AudioFileIO.read(createDummyMp3("disagree2.mp3")));
+        s1.setTagField(FieldKey.ALBUM, "Disagreeing Album");
+        s1.setTagField(FieldKey.ALBUM_ARTIST, "One Album Artist");
+        s2.setTagField(FieldKey.ALBUM, "Disagreeing Album");
+        s2.setTagField(FieldKey.ALBUM_ARTIST, "Another Album Artist");
+        library.addSong(s1);
+        library.addSong(s2);
+
+        assertEquals("", library.getAlbum("Disagreeing Album").getAlbumArtist());
+
+        Song s3 = new Song(AudioFileIO.read(createDummyMp3("untagged.mp3")));
+        s3.setTagField(FieldKey.ALBUM, "Untagged Album");
+        s3.setTagField(FieldKey.ARTIST, "Artist C");
+        library.addSong(s3);
+
+        assertEquals("", library.getAlbum("Untagged Album").getAlbumArtist());
+    }
+
+    @Test
+    void testMissingAlbumArtistFallsBackToSongArtist() throws Exception {
+        File file = createDummyMp3("artist_only.mp3");
+        Song song = new Song(AudioFileIO.read(file));
+        song.setTagField(FieldKey.ARTIST, "Song Artist");
+        song.setTagField(FieldKey.ALBUM, "Album");
+        song.setTagField(FieldKey.ALBUM_ARTIST, null);
+
+        song.completeArtistTags();
+        song.saveToFile();
+
+        Song reloaded = new Song(AudioFileIO.read(file));
+        assertEquals("Song Artist", reloaded.getRawArtist());
+        assertEquals("Song Artist", reloaded.getRawAlbumArtist());
+    }
+
+    @Test
+    void testMissingSongArtistFallsBackToAlbumArtist() throws Exception {
+        File file = createDummyMp3("album_artist_only.mp3");
+        Song song = new Song(AudioFileIO.read(file));
+        song.setTagField(FieldKey.ARTIST, null);
+        song.setTagField(FieldKey.ALBUM, "Album");
+        song.setTagField(FieldKey.ALBUM_ARTIST, "The Album Artist");
+
+        song.completeArtistTags();
+        song.saveToFile();
+
+        Song reloaded = new Song(AudioFileIO.read(file));
+        assertEquals("The Album Artist", reloaded.getRawArtist());
+        assertEquals("The Album Artist", reloaded.getRawAlbumArtist());
+    }
+
+    @Test
+    void testBothArtistTagsAreKeptAndUntouchedWhenPresent() throws Exception {
+        File file = createDummyMp3("both_artists.mp3");
+        Song song = new Song(AudioFileIO.read(file));
+        song.setTagField(FieldKey.ARTIST, "Song Artist");
+        song.setTagField(FieldKey.ALBUM_ARTIST, "The Album Artist");
+
+        song.completeArtistTags();
+        song.saveToFile();
+
+        Song reloaded = new Song(AudioFileIO.read(file));
+        assertEquals("Song Artist", reloaded.getRawArtist());
+        assertEquals("The Album Artist", reloaded.getRawAlbumArtist());
+    }
 }

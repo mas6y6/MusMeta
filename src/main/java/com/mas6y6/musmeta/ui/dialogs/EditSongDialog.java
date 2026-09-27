@@ -1,6 +1,8 @@
 package com.mas6y6.musmeta.ui.dialogs;
 
 import com.formdev.flatlaf.util.SystemFileChooser;
+import com.mas6y6.musmeta.core.Album;
+import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.ui.album.AlbumUI;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
@@ -10,19 +12,26 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDropEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -47,7 +56,7 @@ public class EditSongDialog extends JDialog {
 
     // Common / Shared Fields
     private JTextField artistField;
-    private JTextField albumField;
+    private JComboBox<String> albumCombo;
     private JTextField albumArtistField;
     private JComboBox<String> genreCombo;
     private JTextField yearField;
@@ -61,6 +70,18 @@ public class EditSongDialog extends JDialog {
     // Multi-select enabled checkboxes
     private final Map<String, JCheckBox> applyCheckboxes = new HashMap<>();
     private final Set<String> differingFields = new HashSet<>();
+
+    // Album entry state. {@code lastCommittedAlbum} guards the commit hooks so
+    // programmatic updates and repeated focus events only prompt once, and
+    // {@code suppressAlbumApply} stops those updates from ticking the apply box.
+    private String lastCommittedAlbum = "";
+    private Boolean copyArtworkToNewAlbum;
+    private boolean suppressAlbumApply;
+
+    // One-artist-per-album toggle: when ticked, the artist above is written to
+    // every song of {@code uniformArtistAlbum}, not just the ones being edited.
+    private JCheckBox uniformArtistCheck;
+    private String uniformArtistAlbum;
 
     // Artwork
     private AlbumArtwork artworkLabel;
@@ -86,12 +107,14 @@ public class EditSongDialog extends JDialog {
     }
 
     private void initFields() {
+        initUniformArtistCheck();
+
         if (isSingleSong) {
             Song song = songs.get(0);
             titleField = new JTextField(song.getRawTitle());
             artistField = new JTextField(song.getRawArtist());
-            albumField = new JTextField(song.getRawAlbum());
-            albumArtistField = new JTextField(song.getRawAlbumArtist());
+            initAlbumCombo(song.getRawAlbum());
+            albumArtistField = new JTextField(resolvedAlbumArtist(song));
 
             trackNoSpinner = new JSpinner(new SpinnerNumberModel(Math.max(0, song.getTrackNumber()), 0, 999, 1));
             trackTotalSpinner = new JSpinner(new SpinnerNumberModel(Math.max(0, song.getTrackTotal()), 0, 999, 1));
@@ -119,8 +142,8 @@ public class EditSongDialog extends JDialog {
 
     private void initMultiFields() {
         artistField = newMultipleTextField(songs, Song::getRawArtist, "artist");
-        albumField = newMultipleTextField(songs, Song::getRawAlbum, "album");
-        albumArtistField = newMultipleTextField(songs, Song::getRawAlbumArtist, "albumArtist");
+        initAlbumCombo(null);
+        albumArtistField = newMultipleTextField(songs, EditSongDialog::resolvedAlbumArtist, "albumArtist");
 
         genreCombo = new JComboBox<>(EditAlbumDialog.GENRES);
         genreCombo.setEditable(true);
@@ -147,6 +170,318 @@ public class EditSongDialog extends JDialog {
         }
 
         commentField = newMultipleTextField(songs, Song::getComment, "comment");
+    }
+
+    /**
+     * Builds the album entry as an editable dropdown listing every album in the
+     * library, so an existing album can be picked without typing its name.
+     * Typing a title the library does not know about opens
+     * {@link NewAlbumDialog} to create it, and moving the song off its current
+     * album asks whether the artwork should follow.
+     *
+     * @param currentAlbum the song's album for a single selection, or
+     *                     {@code null} to fall back to the multi-song common value
+     */
+    private void initAlbumCombo(String currentAlbum) {
+        albumCombo = new JComboBox<>();
+        for (Album album : Library.getInstance().getAlbums()) {
+            albumCombo.addItem(album.getTitle());
+        }
+        albumCombo.setEditable(true);
+        albumCombo.setToolTipText("Pick an existing album, or type a new name to create it");
+
+        suppressAlbumApply = true;
+        try {
+            if (isSingleSong) {
+                setComboText(albumCombo, currentAlbum);
+            } else {
+                initMultipleCombo(albumCombo, songs, Song::getRawAlbum, "album");
+            }
+        } finally {
+            suppressAlbumApply = false;
+        }
+
+        lastCommittedAlbum = comboText(albumCombo);
+
+        albumCombo.addActionListener(e -> commitAlbumSelection());
+        if (albumCombo.getEditor().getEditorComponent() instanceof JTextComponent editor) {
+            editor.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusLost(FocusEvent e) {
+                    commitAlbumSelection();
+                }
+            });
+        }
+    }
+
+    /**
+     * Creates the toggle that collapses a whole album onto a single song artist,
+     * the counterpart of iTunes' "Various Artists" switch. Left alone, every
+     * song keeps its own artist; ticked, the artist entered above is written to
+     * every song of the album and doubles as their album artist.
+     */
+    private void initUniformArtistCheck() {
+        uniformArtistCheck = new JCheckBox("One artist for every song in this album");
+        uniformArtistCheck.setToolTipText(
+                "Writes the artist above to every song of the album, and uses it as the album artist too"
+        );
+        uniformArtistCheck.setOpaque(false);
+        uniformArtistCheck.addActionListener(e -> onUniformArtistToggled());
+    }
+
+    private void onUniformArtistToggled() {
+        if (!uniformArtistCheck.isSelected()) {
+            uniformArtistAlbum = null;
+            return;
+        }
+
+        String album = selectedAlbumTitle();
+        if (album.isBlank()) {
+            uniformArtistCheck.setSelected(false);
+            uniformArtistAlbum = null;
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Pick or name the album first, so the artist can be applied to it.",
+                    "No album selected",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        uniformArtistAlbum = album;
+
+        // Offer the album's own artist as the shared one, the way iTunes does
+        // when a compilation is turned into a single artist album.
+        Album target = Library.getInstance().getAlbum(album);
+        String albumArtist = target != null ? target.getAlbumArtist() : "";
+        if (target != null) {
+            uniformArtistCheck.setToolTipText(
+                    "Writes the artist above to all " + target.getSongs().size()
+                            + " songs of \"" + album + "\""
+            );
+        }
+        if (!albumArtist.isBlank()) {
+            setText(artistField, albumArtist);
+            setText(albumArtistField, albumArtist);
+            tickApply("artist");
+        }
+    }
+
+    /**
+     * @return the album the artist should be applied to, falling back to the
+     *         album the selected songs already belong to
+     */
+    private String selectedAlbumTitle() {
+        String title = comboText(albumCombo);
+        if (title.isBlank() || MULTIPLE_VALUES.equals(title)) {
+            return commonAlbumOfSongs(songs);
+        }
+        return title;
+    }
+
+    /**
+     * Fired when the user picks from the dropdown or finishes typing in it.
+     */
+    private void commitAlbumSelection() {        String current = comboText(albumCombo);
+        if (current.equals(lastCommittedAlbum)) {
+            return;
+        }
+
+        String previous = lastCommittedAlbum;
+        lastCommittedAlbum = current;
+        onAlbumCommitted(previous, current);
+    }
+
+    private void onAlbumCommitted(String previous, String current) {
+        if (current.isBlank() || MULTIPLE_VALUES.equals(current)) {
+            return;
+        }
+
+        if (!Library.getInstance().containsAlbum(current)) {
+            current = promptCreateAlbum(previous, current);
+            if (current == null) {
+                return;
+            }
+        }
+
+        if (albumDiffersFromSongs(current)) {
+            if (promptArtworkCopy(current) == CopyArtworkDialog.Choice.CANCEL) {
+                return;
+            }
+            inheritAlbumDetails(current);
+        }
+
+        if (uniformArtistCheck != null && uniformArtistCheck.isSelected()) {
+            onUniformArtistToggled();
+        }
+    }
+
+    /**
+     * Opens {@link NewAlbumDialog} prefilled with the typed title. Returns the
+     * title to continue with, or {@code null} when the user backed out.
+     */
+    private String promptCreateAlbum(String previous, String title) {
+        NewAlbumDialog dialog = new NewAlbumDialog(ownerWindow());
+        dialog.albumNameField.setText(title);
+        dialog.setVisible(true);
+
+        Album created = dialog.getCreatedAlbum();
+        if (created == null) {
+            revertAlbumSelection(previous);
+            return null;
+        }
+
+        suppressAlbumApply = true;
+        try {
+            if (findComboIndex(albumCombo, created.getTitle()) < 0) {
+                albumCombo.addItem(created.getTitle());
+            }
+            setComboText(albumCombo, created.getTitle());
+        } finally {
+            suppressAlbumApply = false;
+        }
+        lastCommittedAlbum = created.getTitle();
+
+        return created.getTitle();
+    }
+
+    private CopyArtworkDialog.Choice promptArtworkCopy(String targetAlbum) {
+        Image artwork = songs.isEmpty() ? null : songs.get(0).getArtworkImage();
+        CopyArtworkDialog.Choice choice = CopyArtworkDialog.ask(ownerWindow(), targetAlbum, artwork);
+
+        if (choice != CopyArtworkDialog.Choice.CANCEL) {
+            copyArtworkToNewAlbum = choice == CopyArtworkDialog.Choice.COPY;
+        } else {
+            copyArtworkToNewAlbum = null;
+            revertAlbumSelection(commonAlbumOfSongs(songs));
+        }
+
+        return choice;
+    }
+
+    /**
+     * Copies the album level details of the album the song is being moved onto,
+     * the way iTunes does: the song picks up that album's album artist, total
+     * tracks and disc layout, so its tags stay consistent with the album it now
+     * belongs to. Only the album name itself, the album artist, the track total
+     * and the disc number and total are taken over; the song's own title,
+     * artist and track number are left alone.
+     */
+    private void inheritAlbumDetails(String targetAlbum) {
+        Album album = Library.getInstance().getAlbum(targetAlbum);
+        if (album == null) {
+            return;
+        }
+
+        // An album without an album artist of its own leaves the field empty,
+        // which is then filled in from the song artist when the tags are written.
+        setText(albumArtistField, album.getAlbumArtist());
+
+        int discTotal = album.getDiscTotal();
+        setSpinner(discTotalSpinner, Math.max(1, discTotal));
+        setSpinner(trackTotalSpinner, Math.max(0, album.getTrackTotal()));
+
+        if (isSingleSong) {
+            int discNo = Math.min(Math.max(1, songs.get(0).getDiscNumber()), discTotal);
+            setSpinner(discNoSpinner, discNo);
+        }
+
+        // A multi-song selection only writes the fields whose apply box is
+        // ticked, so the inherited values need to be ticked as well.
+        tickApply("albumArtist");
+        tickApply("totals");
+    }
+
+    private static void setText(JTextField field, String value) {
+        if (field == null) {
+            return;
+        }
+        field.setText(value == null ? "" : value);
+        field.setForeground(UIManager.getColor("TextField.foreground"));
+    }
+
+    private static void setSpinner(JSpinner spinner, int value) {
+        if (spinner == null) {
+            return;
+        }
+        if (spinner.getModel() instanceof SpinnerNumberModel model) {
+            value = Math.min(Math.max(value, ((Number) model.getMinimum()).intValue()),
+                    ((Number) model.getMaximum()).intValue());
+        }
+        spinner.setValue(value);
+    }
+
+    private void tickApply(String key) {
+        JCheckBox check = applyCheckboxes.get(key);
+        if (check != null) {
+            check.setSelected(true);
+        }
+    }
+
+    private void revertAlbumSelection(String title) {
+        suppressAlbumApply = true;
+        try {
+            setComboText(albumCombo, title);
+        } finally {
+            suppressAlbumApply = false;
+        }
+        lastCommittedAlbum = comboText(albumCombo);
+    }
+
+    private Window ownerWindow() {
+        Window owner = getOwner();
+        return owner != null ? owner : this;
+    }
+
+    /**
+     * @return the album title currently in the combo box, trimmed
+     */
+    private static String comboText(JComboBox<String> combo) {
+        Object selected = combo.getSelectedItem();
+        if (selected == null) {
+            selected = combo.isEditable() ? combo.getEditor().getItem() : null;
+        }
+        return selected == null ? "" : selected.toString().trim();
+    }
+
+    /**
+     * Shows a title in an editable combo box, adding it to the model when it is
+     * a real album that is not already listed. A blank title is only shown in
+     * the editor, never as a list entry.
+     */
+    private static void setComboText(JComboBox<String> combo, String title) {
+        String value = title == null ? "" : title;
+        if (!value.isBlank() && findComboIndex(combo, value) < 0) {
+            combo.addItem(value);
+        }
+        combo.setSelectedItem(value);
+        combo.getEditor().setItem(value);
+    }
+
+    private static int findComboIndex(JComboBox<String> combo, String title) {
+        for (int i = 0; i < combo.getItemCount(); i++) {
+            if (combo.getItemAt(i).equalsIgnoreCase(title)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static String commonAlbumOfSongs(List<Song> songs) {
+        return isCommon(songs, Song::getRawAlbum) ? getCommonValue(songs, Song::getRawAlbum) : "";
+    }
+
+    /**
+     * @return {@code true} when the title is not the album every selected song
+     *         currently belongs to
+     */
+    private boolean albumDiffersFromSongs(String title) {
+        for (Song song : songs) {
+            if (!title.equalsIgnoreCase(song.getRawAlbum())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private JTextField newMultipleTextField(List<Song> songs, Function<Song, String> extractor, String key) {
@@ -340,7 +675,8 @@ public class EditSongDialog extends JDialog {
         if (isSingleSong) {
             addFormRow(panel, gbc, row++, "Title:", titleField, null);
             addFormRow(panel, gbc, row++, "Artist:", artistField, null);
-            addFormRow(panel, gbc, row++, "Album:", albumField, null);
+            addFormRow(panel, gbc, row++, "Album:", albumCombo, null);
+            addAlbumToggleRow(panel, gbc, row++);
             addFormRow(panel, gbc, row++, "Album Artist:", albumArtistField, null);
 
             // Track & Disc numbers
@@ -376,7 +712,8 @@ public class EditSongDialog extends JDialog {
         } else {
             // Multi-item form with enable checkboxes next to fields
             addFormRow(panel, gbc, row++, "Artist:", artistField, "artist");
-            addFormRow(panel, gbc, row++, "Album:", albumField, "album");
+            addFormRow(panel, gbc, row++, "Album:", albumCombo, "album");
+            addAlbumToggleRow(panel, gbc, row++);
             addFormRow(panel, gbc, row++, "Album Artist:", albumArtistField, "albumArtist");
             addFormRow(panel, gbc, row++, "Genre:", genreCombo, "genre");
             addFormRow(panel, gbc, row++, "Year:", yearField, "year");
@@ -441,7 +778,11 @@ public class EditSongDialog extends JDialog {
                     public void changedUpdate(javax.swing.event.DocumentEvent e) { fieldEdited(tf, applyCheck); }
                 });
             } else if (comp instanceof JComboBox<?> cb) {
-                cb.addActionListener(e -> applyCheck.setSelected(true));
+                cb.addActionListener(e -> {
+                    if (!suppressAlbumApply) {
+                        applyCheck.setSelected(true);
+                    }
+                });
             }
         } else {
             gbc.gridx = 0;
@@ -455,6 +796,21 @@ public class EditSongDialog extends JDialog {
         gbc.weightx = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         panel.add(comp, gbc);
+    }
+
+    /**
+     * Places the one-artist-per-album toggle directly below the album entry, in
+     * the field column so it reads as a setting of the album selection.
+     */
+    private void addAlbumToggleRow(JPanel panel, GridBagConstraints gbc, int row) {
+        gbc.gridx = 1;
+        gbc.gridy = row;
+        gbc.gridwidth = 1;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(0, 6, 10, 6);
+        panel.add(uniformArtistCheck, gbc);
+        gbc.insets = new Insets(5, 6, 5, 6);
     }
 
     private JPanel createButtonPanel() {
@@ -480,6 +836,16 @@ public class EditSongDialog extends JDialog {
             return;
         }
 
+        if (uniformArtistCheck.isSelected() && uniformArtistAlbum != null && uniformArtistValue().isBlank()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Enter the artist to use for \"" + uniformArtistAlbum + "\" or untick the option.",
+                    "Artist required",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
         List<ProcessTagsDialog.SongTagUpdate> updates = new ArrayList<>();
 
         if (isSingleSong) {
@@ -499,12 +865,17 @@ public class EditSongDialog extends JDialog {
                 toDelete.add(FieldKey.ARTIST);
             }
 
-            String album = albumField.getText().trim();
+            String album = comboText(albumCombo);
             if (!album.isBlank()) {
                 toSet.put(FieldKey.ALBUM, album);
             }
 
             String albumArtist = albumArtistField.getText().trim();
+            if (albumArtist.isBlank()) {
+                // iTunes treats the song artist as the album artist by default,
+                // so a song is never left with only one of the two tags.
+                albumArtist = artist;
+            }
             if (!albumArtist.isBlank()) {
                 toSet.put(FieldKey.ALBUM_ARTIST, albumArtist);
             } else {
@@ -602,8 +973,8 @@ public class EditSongDialog extends JDialog {
             boolean applyArtist = shouldApply("artist", artistField);
             String artist = artistField.getText().trim();
 
-            boolean applyAlbum = shouldApply("album", albumField);
-            String album = albumField.getText().trim();
+            boolean applyAlbum = shouldApply("album", albumCombo);
+            String album = comboText(albumCombo);
 
             boolean applyAlbumArtist = shouldApply("albumArtist", albumArtistField);
             String albumArtist = albumArtistField.getText().trim();
@@ -648,7 +1019,8 @@ public class EditSongDialog extends JDialog {
                     toSet.put(FieldKey.ALBUM, album);
                 }
                 if (applyAlbumArtist) {
-                    if (!albumArtist.isBlank()) toSet.put(FieldKey.ALBUM_ARTIST, albumArtist);
+                    String resolved = albumArtist.isBlank() ? artist : albumArtist;
+                    if (!resolved.isBlank()) toSet.put(FieldKey.ALBUM_ARTIST, resolved);
                     else toDelete.add(FieldKey.ALBUM_ARTIST);
                 }
                 if (applyGenre) {
@@ -696,15 +1068,118 @@ public class EditSongDialog extends JDialog {
             }
         }
 
+        Map<String, byte[]> albumArtwork = buildAlbumArtwork();
+
+        addUniformArtistUpdates(updates);
+
         dispose();
 
         var processDialog = new ProcessTagsDialog(
                 getOwner(),
                 updates,
                 null,
-                null
+                null,
+                albumArtwork.isEmpty() ? null : albumArtwork
         );
         processDialog.startAndShow();
+    }
+
+    /**
+     * @return the artist that should be shared by every song of the album, or
+     *         an empty string when none has been entered yet
+     */
+    private String uniformArtistValue() {
+        String artist = artistField.getText().trim();
+        return MULTIPLE_VALUES.equals(artist) ? "" : artist;
+    }
+
+    /**
+     * Extends the pending updates so the album's remaining songs pick up the
+     * shared song artist too. The album name is rewritten as well so every song
+     * of the album ends up carrying the same title, matching the album it now
+     * belongs to. Songs already covered by the selection are left untouched so
+     * their own edits are not overwritten, and the compilation flag is left
+     * alone because that is a separate choice in the form.
+     */
+    private void addUniformArtistUpdates(List<ProcessTagsDialog.SongTagUpdate> updates) {
+        if (!uniformArtistCheck.isSelected() || uniformArtistAlbum == null) {
+            return;
+        }
+
+        String artist = uniformArtistValue();
+        if (artist.isBlank()) {
+            return;
+        }
+
+        Album album = Library.getInstance().getAlbum(uniformArtistAlbum);
+        if (album == null) {
+            return;
+        }
+
+        Set<Song> alreadyEdited = Collections.newSetFromMap(new IdentityHashMap<>());
+        for (ProcessTagsDialog.SongTagUpdate update : updates) {
+            alreadyEdited.add(update.song());
+        }
+
+        for (Song song : album.getSongs()) {
+            if (alreadyEdited.contains(song)) {
+                continue;
+            }
+
+            Map<FieldKey, String> toSet = new HashMap<>();
+            toSet.put(FieldKey.ALBUM, uniformArtistAlbum);
+            toSet.put(FieldKey.ARTIST, artist);
+            toSet.put(FieldKey.ALBUM_ARTIST, artist);
+
+            updates.add(new ProcessTagsDialog.SongTagUpdate(
+                    song,
+                    toSet,
+                    Set.of(),
+                    null,
+                    ProcessTagsDialog.ArtworkAction.KEEP,
+                    null,
+                    null
+            ));
+        }
+    }
+
+    /**
+     * Resolves the artwork to hand the destination album when the user chose to
+     * copy it: the embedded art of the song itself, falling back to the cached
+     * artwork of the album it is leaving.
+     */
+    private Map<String, byte[]> buildAlbumArtwork() {
+        if (!Boolean.TRUE.equals(copyArtworkToNewAlbum) || songs.isEmpty()) {
+            return Map.of();
+        }
+
+        String target = comboText(albumCombo);
+        if (target.isBlank() || MULTIPLE_VALUES.equals(target) || !albumDiffersFromSongs(target)) {
+            return Map.of();
+        }
+
+        byte[] artwork = resolveSourceArtwork();
+        return artwork == null ? Map.of() : Map.of(target, artwork);
+    }
+
+    private byte[] resolveSourceArtwork() {
+        Song song = songs.get(0);
+
+        byte[] embedded = song.getArtworkData();
+        if (embedded != null && embedded.length > 0) {
+            return embedded;
+        }
+
+        Album source = Library.getInstance().getAlbum(song.getRawAlbum());
+        Path cached = source != null ? source.getArtworkPath() : null;
+        if (cached != null) {
+            try {
+                return Files.readAllBytes(cached);
+            } catch (IOException ignored) {
+                // Fall through to no artwork.
+            }
+        }
+        return null;
     }
 
     private boolean isFieldChecked(String key) {
@@ -736,6 +1211,17 @@ public class EditSongDialog extends JDialog {
     private void fieldEdited(JTextField field, JCheckBox applyCheck) {
         applyCheck.setSelected(true);
         field.setForeground(UIManager.getColor("TextField.foreground"));
+    }
+
+    /**
+     * The album artist a song actually carries, falling back to its own artist
+     * so the dialog shows the value that will be written rather than an empty
+     * field. The raw tags are used directly to avoid writing a placeholder
+     * artist such as "Unknown Artist" into the file.
+     */
+    private static String resolvedAlbumArtist(Song song) {
+        String albumArtist = song.getRawAlbumArtist();
+        return albumArtist.isBlank() ? song.getRawArtist() : albumArtist;
     }
 
     private static String ratingToLabel(String rating) {

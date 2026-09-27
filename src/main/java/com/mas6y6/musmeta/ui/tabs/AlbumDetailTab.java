@@ -1,6 +1,7 @@
 package com.mas6y6.musmeta.ui.tabs;
 
 import com.mas6y6.musmeta.core.Album;
+import com.mas6y6.musmeta.core.Disc;
 import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.musicplayer.MusicPlayer;
@@ -9,45 +10,72 @@ import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.mas6y6.musmeta.ui.dialogs.EditAlbumDialog;
 import com.mas6y6.musmeta.ui.dialogs.EditSongDialog;
+import com.mas6y6.musmeta.ui.dialogs.ProcessTagsDialog;
 import com.mas6y6.musmeta.ui.dialogs.ReformatMusicDialog;
 import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
+import org.jaudiotagger.tag.FieldKey;
+import org.jspecify.annotations.NonNull;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.NumberFormatter;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 /**
- * An iTunes-style detailed view of a single album, opened as its own tab.
- * Shows the artwork, album metadata and a list of its tracks.
+ * An iTunes-style detailed view of a single album opened as its own tab.
+ * Shows the artwork, album metadata, and a list of its tracks.
  */
 public class AlbumDetailTab extends JPanel {
 
-    private static final int ARTWORK_SIZE = 260;
+    private static final int CONTENT_PADDING_H = 40;
+    private static final int CONTENT_PADDING_V = 30;
+
+    private static final int MIN_ARTWORK_SIZE = 140;
+    private static final int MAX_ARTWORK_SIZE = 360;
+    private static final double ARTWORK_SIZE_RATIO = 0.32;
 
     private final Album album;
-    private boolean manyArtists = false;
 
     private final List<Song> selectedSongs = new ArrayList<>();
-    private DefaultTableModel tableModel;
+    private final List<DiscTable> discTables = new ArrayList<>();
+
+    private final AlbumArtwork artwork = new AlbumArtwork(12);
+    private Image artworkImage;
 
     private Consumer<List<Song>> selectionListener;
+
+    private final AtomicBoolean updating = new AtomicBoolean(false);
+    private final AtomicBoolean bulkSelecting = new AtomicBoolean(false);
 
     public AlbumDetailTab(Album album) {
         super(new BorderLayout());
         this.album = album;
 
-        setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                if (layoutArtwork()) {
+                    revalidate();
+                }
+            }
+        });
 
-        add(header(), BorderLayout.NORTH);
-        add(trackTable(), BorderLayout.CENTER);
+        add(scrollableContent(), BorderLayout.CENTER);
     }
 
     public Album getAlbum() {
@@ -56,26 +84,37 @@ public class AlbumDetailTab extends JPanel {
 
     public void refresh() {
         removeAll();
-        add(header(), BorderLayout.NORTH);
-        add(trackTable(), BorderLayout.CENTER);
+        add(scrollableContent(), BorderLayout.CENTER);
         revalidate();
         repaint();
     }
 
     public void selectAllTracks() {
-        if (tableModel != null) {
-            for (int i = 0; i < tableModel.getRowCount(); i++) {
-                tableModel.setValueAt(true, i, 0);
-            }
-        }
+        setAllTracksChecked(true);
     }
 
     public void deselectAllTracks() {
-        if (tableModel != null) {
-            for (int i = 0; i < tableModel.getRowCount(); i++) {
-                tableModel.setValueAt(false, i, 0);
+        setAllTracksChecked(false);
+    }
+
+    /**
+     * Checks or unchecks the checkbox of every track of every disc in one go,
+     * reporting the resulting selection to the listener only once instead of
+     * once per row.
+     */
+    private void setAllTracksChecked(boolean checked) {
+        bulkSelecting.set(true);
+        try {
+            for (DiscTable discTable : discTables) {
+                DefaultTableModel model = discTable.model();
+                for (int row = 0; row < model.getRowCount(); row++) {
+                    model.setValueAt(checked, row, 0);
+                }
             }
+        } finally {
+            bulkSelecting.set(false);
         }
+        rebuildSelection();
     }
 
     public void setSelectionListener(Consumer<List<Song>> selectionListener) {
@@ -167,10 +206,10 @@ public class AlbumDetailTab extends JPanel {
         JPanel header = new JPanel(new BorderLayout(24, 0));
         header.setOpaque(false);
 
-        AlbumArtwork artwork = new AlbumArtwork(12);
-        artwork.setPreferredSize(new Dimension(ARTWORK_SIZE, ARTWORK_SIZE));
-        artwork.setMaximumSize(artwork.getPreferredSize());
-        artwork.setArtwork(album.getArtworkImage());
+        if (artworkImage == null) {
+            artworkImage = album.getArtworkImage();
+        }
+        layoutArtwork();
         header.add(artwork, BorderLayout.WEST);
 
         // Metadata column
@@ -194,19 +233,17 @@ public class AlbumDetailTab extends JPanel {
 
         meta.add(Box.createVerticalStrut(4));
 
-        JButton editbutton = new JButton("Edit Album Info");
-        editbutton.setAlignmentX(Component.LEFT_ALIGNMENT);
-        editbutton.addActionListener((event) -> {
-            new EditAlbumDialog(MainWindow.INSTANCE, album).setVisible(true);
-        });
+        JButton editButton = new JButton("Edit Album Info");
+        editButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        editButton.addActionListener((_) -> new EditAlbumDialog(MainWindow.INSTANCE, album).setVisible(true));
 
-        meta.add(editbutton);
+        meta.add(editButton);
 
         meta.add(Box.createVerticalStrut(4));
 
         JButton reformatButton = new JButton("Reformat...");
         reformatButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-        reformatButton.addActionListener(e -> reformatSongs());
+        reformatButton.addActionListener(_ -> reformatSongs());
 
         meta.add(reformatButton);
 
@@ -214,7 +251,7 @@ public class AlbumDetailTab extends JPanel {
 
         JButton playButton = new JButton("Play");
         playButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-        playButton.addActionListener((e) -> {
+        playButton.addActionListener((_) -> {
             MusicPlayer.getInstance().addToQueue(album.getSongs().toArray(Song[]::new));
             MusicPlayer.getInstance().start();
         });
@@ -224,6 +261,48 @@ public class AlbumDetailTab extends JPanel {
         header.add(meta, BorderLayout.CENTER);
 
         return header;
+    }
+
+    /**
+     * Gives the artwork a square area whose edge follows the tab's own size, so
+     * the album art grows and shrinks with the window instead of being a fixed
+     * box. The width and the height of the tab are both taken into account, and
+     * the result stays within readable bounds.
+     *
+     * @return {@code true} if the artwork's size changed, and the tab has to be
+     *         laid out again
+     */
+    private boolean layoutArtwork() {
+        int side = artworkSide();
+        Dimension square = new Dimension(side, side);
+
+        if (square.equals(artwork.getPreferredSize())) {
+            return false;
+        }
+
+        artwork.setPreferredSize(square);
+        artwork.setMinimumSize(square);
+        artwork.setMaximumSize(square);
+        // The artwork keeps a copy of the image scaled to the size it last saw,
+        // so it is handed the image again to stay sharp at the new size.
+        artwork.setArtwork(artworkImage);
+
+        return true;
+    }
+
+    private int artworkSide() {
+        int available = Math.min(
+                getWidth() - CONTENT_PADDING_H * 2,
+                getHeight() - CONTENT_PADDING_V * 2
+        );
+        if (available <= 0) {
+            return MIN_ARTWORK_SIZE;
+        }
+        return (int) Math.clamp(
+                available * ARTWORK_SIZE_RATIO,
+                MIN_ARTWORK_SIZE,
+                MAX_ARTWORK_SIZE
+        );
     }
 
     private String subtitle() {
@@ -267,13 +346,86 @@ public class AlbumDetailTab extends JPanel {
         return album.getArtist().artist();
     }
 
-    private JScrollPane trackTable() {
+    /**
+     * Puts the header and the per-disc track tables inside one scroll frame, so
+     * the artwork, the metadata, and every disc scroll together as a single page
+     * instead of the artwork staying pinned while only the tracks move.
+     */
+    private JScrollPane scrollableContent() {
+        JPanel content = new JPanel();
+        content.setOpaque(false);
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setBorder(BorderFactory.createEmptyBorder(
+                CONTENT_PADDING_V,
+                CONTENT_PADDING_H,
+                CONTENT_PADDING_V,
+                CONTENT_PADDING_H
+        ));
+
+        JPanel albumHeader = header();
+        albumHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+        content.add(albumHeader);
+
+        content.add(Box.createVerticalStrut(20));
+        content.add(trackTables());
+
+        JScrollPane scrollPane = new JScrollPane(content);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getVerticalScrollBar().setUnitIncrement(18);
+        return scrollPane;
+    }
+
+    /**
+     * One track table per disc, stacked in disc order. A single-disc album
+     * therefore looks exactly as it always did, while a multi-disc album gets
+     * its own titled table for each disc so the track numbers restart at 1
+     * under the disc they belong to.
+     */
+    private JPanel trackTables() {
+        discTables.clear();
+
+        List<Disc> discs = album.getDiscs();
+        boolean labelled = discs.size() > 1;
+
+        JPanel tables = new JPanel();
+        tables.setOpaque(false);
+        tables.setLayout(new BoxLayout(tables, BoxLayout.Y_AXIS));
+
+        for (Disc disc : discs) {
+            if (labelled) {
+                JLabel discLabel = new JLabel(discLabel(disc, discs.size()));
+                discLabel.setFont(discLabel.getFont().deriveFont(Font.BOLD, 14f));
+                discLabel.setForeground(UIManager.getColor("Label.disabledForeground"));
+                discLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                tables.add(discLabel);
+                tables.add(Box.createVerticalStrut(6));
+            }
+
+            tables.add(createDiscTable(disc));
+
+            if (labelled) {
+                tables.add(Box.createVerticalStrut(16));
+            }
+        }
+
+        return tables;
+    }
+
+    private static String discLabel(Disc disc, int discCount) {
+        int total = Math.max(discCount, disc.getDiscTotal());
+        return total > 1
+                ? "Disc " + disc.getDiscIndex() + " of " + total
+                : "Disc " + disc.getDiscIndex();
+    }
+
+    private JScrollPane createDiscTable(Disc disc) {
+        List<Song> songs = disc.getSongs();
         String[] columns = {"", "#", "Title", "Artist", "Time"};
 
-        tableModel = new DefaultTableModel(columns, 0) {
+        DefaultTableModel model = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 0;
+                return column == 1;
             }
 
             @Override
@@ -281,21 +433,78 @@ public class AlbumDetailTab extends JPanel {
                 return columnIndex == 0 ? Boolean.class : super.getColumnClass(columnIndex);
             }
         };
+        fillModel(model, songs);
 
-        reloadTrackTableData();
+        JTable table = new JTable(model);
+        table.getColumnModel()
+                .getColumn(1)
+                .setCellEditor(new DefaultCellEditor(newTrackNumberField()));
 
-        JTable table = new JTable(tableModel);
+        DiscTable discTable = new DiscTable(disc, songs, model, table);
+        configureTable(discTable);
+
+        model.addTableModelListener(e -> onTrackNumberChanged(discTable, e));
+        model.addTableModelListener(e -> {
+            if (e.getColumn() == 0) {
+                onSelectionChanged();
+            }
+        });
+
+        discTables.add(discTable);
+
+        return createScrollPane(table, songs);
+    }
+
+    private static @NonNull JScrollPane createScrollPane(JTable table, List<Song> songs) {
+        JScrollPane scrollPane = new JScrollPane(table);
+        int height = table.getTableHeader().getPreferredSize().height
+                + table.getRowHeight() * Math.max(songs.size(), 1)
+                + 4;
+        scrollPane.setPreferredSize(new Dimension(0, height));
+        scrollPane.setMinimumSize(new Dimension(0, height));
+        scrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
+        scrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // The table is sized to show all of its own rows; the enclosing scroll
+        // frame is what scrolls vertically, so no scrollbar is shown here.
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        return scrollPane;
+    }
+
+    private JFormattedTextField newTrackNumberField() {
+        NumberFormatter formatter = new NumberFormatter(
+                NumberFormat.getIntegerInstance()
+        );
+        formatter.setValueClass(Integer.class);
+        formatter.setAllowsInvalid(true);
+        formatter.setCommitsOnValidEdit(false);
+        return new JFormattedTextField(formatter);
+    }
+
+    private void configureTable(DiscTable discTable) {
+        JTable table = discTable.table();
+
         table.setFillsViewportHeight(true);
         table.setShowVerticalLines(false);
         table.setRowHeight(26);
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+
+        table.getColumnModel().getColumn(0).setMaxWidth(32);
+        table.getColumnModel().getColumn(1).setPreferredWidth(40);
+        table.getColumnModel().getColumn(2).setPreferredWidth(320);
+        table.getColumnModel().getColumn(3).setPreferredWidth(180);
+        table.getColumnModel().getColumn(4).setPreferredWidth(60);
+
+        DefaultTableCellRenderer right = new DefaultTableCellRenderer();
+        right.setHorizontalAlignment(SwingConstants.RIGHT);
+        table.getColumnModel().getColumn(4).setCellRenderer(right);
+
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
-                    int row = table.rowAtPoint(e.getPoint());
-                    if (row >= 0 && row < album.getSongs().size()) {
-                        new EditSongDialog(MainWindow.INSTANCE, album.getSongs().get(row)).setVisible(true);
+                    Song song = songAt(discTable, e.getPoint());
+                    if (song != null) {
+                        new EditSongDialog(MainWindow.INSTANCE, song).setVisible(true);
                     }
                 }
             }
@@ -314,66 +523,151 @@ public class AlbumDetailTab extends JPanel {
                 if (!e.isPopupTrigger()) {
                     return;
                 }
-                int row = table.rowAtPoint(e.getPoint());
-                if (row >= 0 && row < album.getSongs().size()) {
-                    handleRightClickMenu(e, album.getSongs().get(row));
-                } else {
-                    handleRightClickMenu(e, null);
-                }
+                handleRightClickMenu(e, songAt(discTable, e.getPoint()));
             }
         });
+    }
 
-        tableModel.addTableModelListener(e -> {
-            if (e.getColumn() != 0) {
-                return;
-            }
-            selectedSongs.clear();
-            for (int row = 0; row < tableModel.getRowCount(); row++) {
-                if (Boolean.TRUE.equals(tableModel.getValueAt(row, 0))) {
-                    selectedSongs.add(album.getSongs().get(row));
+    private static Song songAt(DiscTable discTable, Point point) {
+        JTable table = discTable.table();
+        List<Song> songs = discTable.songs();
+        int row = table.rowAtPoint(point);
+        return row >= 0 && row < songs.size() ? songs.get(row) : null;
+    }
+
+    /**
+     * Writes an edited track number back to the song's tags, offering to keep
+     * the edit when the value would break the album's track indexing.
+     */
+    private void onTrackNumberChanged(DiscTable discTable, TableModelEvent e) {
+        if (updating.get() || bulkSelecting.get()) return;
+        if (e.getType() != TableModelEvent.UPDATE || e.getColumn() != 1) return;
+
+        DefaultTableModel model = discTable.model();
+        List<Song> songs = discTable.songs();
+
+        updating.set(true);
+        try {
+            int firstRow = Math.max(e.getFirstRow(), 0);
+            int lastRow = Math.min(e.getLastRow(), model.getRowCount() - 1);
+
+            ArrayList<ProcessTagsDialog.SongTagUpdate> records = new ArrayList<>();
+
+            for (int row = firstRow; row <= lastRow; row++) {
+                Object value = model.getValueAt(row, 1);
+                int trackNumber = cellTrackNumber(value);
+
+                if (trackNumber <= 0) {
+                    if (EXTDialog.showConfirmDialog(
+                            MainWindow.INSTANCE,
+                            "The value you inputted is "+value+" and can break song indexing.\nDo you want to continue?",
+                            "Empty value",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE
+                    ) == JOptionPane.NO_OPTION) {
+                        trackNumber = songs.get(row).getTrackNumber();
+                        model.setValueAt(String.valueOf(trackNumber), row, 1);
+                    }
                 }
-            }
-            if (selectionListener != null) {
-                selectionListener.accept(getSelectedSongs());
-            }
-        });
 
-        if (table.getColumnCount() > 3) {
-            table.getColumnModel().getColumn(0).setMaxWidth(32);
-            table.getColumnModel().getColumn(1).setPreferredWidth(40);
-            table.getColumnModel().getColumn(2).setPreferredWidth(320);
-            table.getColumnModel().getColumn(3).setPreferredWidth(180);
-            table.getColumnModel().getColumn(4).setPreferredWidth(60);
+                int trackTotal = Math.max(album.getTrackTotal(), trackNumber);
+
+                records.add(new ProcessTagsDialog.SongTagUpdate(
+                        songs.get(row),
+                        Map.of(
+                                FieldKey.TRACK,
+                                String.valueOf(trackNumber),
+                                FieldKey.TRACK_TOTAL,
+                                String.valueOf(trackTotal)
+                        ),
+                        Set.of(),
+                        album.isCompilation(),
+                        ProcessTagsDialog.ArtworkAction.KEEP,
+                        songs.get(row).getArtworkData(),
+                        null
+                ));
+            }
+
+            if (!records.isEmpty()) {
+                new ProcessTagsDialog(MainWindow.INSTANCE, records).startAndShow();
+            }
+        } finally {
+            updating.set(false);
         }
+    }
 
-        DefaultTableCellRenderer right = new DefaultTableCellRenderer();
-        right.setHorizontalAlignment(SwingConstants.RIGHT);
-        table.getColumnModel().getColumn(4).setCellRenderer(right);
+    /**
+     * Reads a track number cell as a number. The column is filled in with text,
+     * but the number editor hands back an {@link Integer} when a cell is
+     * committed, so the value is parsed rather than cast, and anything that is
+     * not a positive number reads as 0.
+     */
+    private static int cellTrackNumber(Object value) {
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        if (value == null) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(value.toString().trim());
+        } catch (NumberFormatException ignored) {
+            return 0;
+        }
+    }
 
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
-        return scrollPane;
+    private void onSelectionChanged() {
+        if (bulkSelecting.get()) return;
+        rebuildSelection();
+    }
+
+    /**
+     * Rebuilds the selection from the checkbox column of every disc's table,
+     * so selecting across several discs behaves like selecting in one list.
+     */
+    private void rebuildSelection() {
+        selectedSongs.clear();
+        for (DiscTable discTable : discTables) {
+            DefaultTableModel model = discTable.model();
+            List<Song> songs = discTable.songs();
+            for (int row = 0; row < model.getRowCount() && row < songs.size(); row++) {
+                if (Boolean.TRUE.equals(model.getValueAt(row, 0))) {
+                    selectedSongs.add(songs.get(row));
+                }
+            }
+        }
+        if (selectionListener != null) {
+            selectionListener.accept(getSelectedSongs());
+        }
+    }
+
+    private record DiscTable(Disc disc, List<Song> songs, DefaultTableModel model, JTable table) {
     }
 
     public void reloadTrackTable() {
-        if (tableModel != null) {
-            selectedSongs.clear();
-            reloadTrackTableData();
-        }
-    }
-
-    private void reloadTrackTableData() {
-        if (tableModel == null) {
+        if (discTables.size() != album.getDiscs().size()) {
+            refresh();
             return;
         }
 
-        tableModel.setRowCount(0);
-        List<Song> songs = album.getSongs();
+        bulkSelecting.set(true);
+        try {
+            for (DiscTable discTable : discTables) {
+                fillModel(discTable.model(), discTable.songs());
+            }
+        } finally {
+            bulkSelecting.set(false);
+        }
+        rebuildSelection();
+    }
+
+    private static void fillModel(DefaultTableModel model, List<Song> songs) {
+        model.setRowCount(0);
         for (Song song : songs) {
             String number = song.getTrackNumber() > 0
                     ? String.valueOf(song.getTrackNumber())
                     : "";
-            tableModel.addRow(new Object[]{
+            model.addRow(new Object[]{
                     false,
                     number,
                     song.getTitle(),
@@ -383,7 +677,7 @@ public class AlbumDetailTab extends JPanel {
         }
     }
 
-    private String trackLength(Song song) {
+    private static String trackLength(Song song) {
         try {
             int length = song.getAudioFile().getAudioHeader().getTrackLength();
             if (length > 0) {
@@ -402,10 +696,6 @@ public class AlbumDetailTab extends JPanel {
         int minutes = seconds / 60;
         int sec = seconds % 60;
         return minutes + ":" + (sec < 10 ? "0" : "") + sec;
-    }
-
-    public boolean isManyArtists() {
-        return manyArtists;
     }
 
     /**
@@ -430,10 +720,10 @@ public class AlbumDetailTab extends JPanel {
             StringBuilder current = new StringBuilder();
             int lines = 1;
             for (String word : getText().split("\\s+")) {
-                String probe = current.length() == 0
+                String probe = current.isEmpty()
                         ? word
                         : current + " " + word;
-                if (fm.stringWidth(probe) > available && current.length() > 0) {
+                if (fm.stringWidth(probe) > available && !current.isEmpty()) {
                     lines++;
                     current = new StringBuilder(word);
                 } else {
@@ -467,7 +757,7 @@ public class AlbumDetailTab extends JPanel {
 
         if (!songsToEdit.isEmpty()) {
             JMenuItem playSong = new JMenuItem("Play");
-            playSong.addActionListener(e -> {
+            playSong.addActionListener(_ -> {
                 MusicPlayer.getInstance().addToQueue(songsToEdit.toArray(Song[]::new));
                 MusicPlayer.getInstance().start();
             });
@@ -477,47 +767,29 @@ public class AlbumDetailTab extends JPanel {
                     ? "Get Info (" + songsToEdit.size() + " Songs)..."
                     : "Get Info...";
             JMenuItem editSong = new JMenuItem(label);
-            editSong.addActionListener(e -> new EditSongDialog(MainWindow.INSTANCE, songsToEdit).setVisible(true));
+            editSong.addActionListener(_ -> new EditSongDialog(MainWindow.INSTANCE, songsToEdit).setVisible(true));
             popupMenu.add(editSong);
             popupMenu.addSeparator();
         }
 
         JMenuItem editAlbum = new JMenuItem("Edit Album Info...");
-        editAlbum.addActionListener(e -> new EditAlbumDialog(MainWindow.INSTANCE, album).setVisible(true));
+        editAlbum.addActionListener(_ -> new EditAlbumDialog(MainWindow.INSTANCE, album).setVisible(true));
         popupMenu.add(editAlbum);
 
         popupMenu.addSeparator();
 
         JMenuItem selectAll = new JMenuItem("Select All");
-        selectAll.addActionListener(e -> selectAllTracks());
+        selectAll.addActionListener(_ -> selectAllTracks());
         popupMenu.add(selectAll);
 
         JMenuItem deselectAll = new JMenuItem("Deselect All");
-        deselectAll.addActionListener(e -> deselectAllTracks());
+        deselectAll.addActionListener(_ -> deselectAllTracks());
         popupMenu.add(deselectAll);
 
         if (!songsToEdit.isEmpty()) {
             popupMenu.addSeparator();
 
-            JMenuItem delete = new JMenuItem("Delete");
-            delete.addActionListener(e -> {
-                if (
-                        EXTDialog.showOptionDialog(
-                                MainWindow.INSTANCE,
-                                "Do you want to delete the selected song(s)?",
-                                "Delete Song(s)?",
-                                JOptionPane.YES_NO_OPTION,
-                                JOptionPane.QUESTION_MESSAGE,
-                                null,
-                                null,
-                                null
-                        )
-                                == JOptionPane.YES_OPTION) {
-                    songsToEdit.forEach(Library.getInstance()::removeSong);
-                    reloadTrackTable();
-                    MainWindow.INSTANCE.getLibraryUI().refresh();
-                };
-            });
+            JMenuItem delete = createDelete(songsToEdit);
             popupMenu.add(delete);
         }
 
@@ -526,5 +798,28 @@ public class AlbumDetailTab extends JPanel {
         } else {
             popupMenu.show(mouseEvent.getComponent(), mouseEvent.getX(), mouseEvent.getY());
         }
+    }
+
+    private @NonNull JMenuItem createDelete(List<Song> songsToEdit) {
+        JMenuItem delete = new JMenuItem("Delete");
+        delete.addActionListener(_ -> {
+            if (
+                    EXTDialog.showOptionDialog(
+                            MainWindow.INSTANCE,
+                            "Do you want to delete the selected song(s)?",
+                            "Delete Song(s)?",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE,
+                            null,
+                            null,
+                            null
+                    )
+                            == JOptionPane.YES_OPTION) {
+                songsToEdit.forEach(Library.getInstance()::removeSong);
+                reloadTrackTable();
+                MainWindow.INSTANCE.getLibraryUI().refresh();
+            }
+        });
+        return delete;
     }
 }

@@ -231,7 +231,7 @@ public class ConfigSerializableAdapterFactory implements TypeAdapterFactory {
             if (method != null && !Modifier.isStatic(method.getModifiers())) {
                 method.setAccessible(true);
                 Object result = method.invoke(instance, builder);
-                if (result != null && rawType.isInstance(result)) {
+                if (rawType.isInstance(result)) {
                     return (T) result;
                 }
                 return (T) instance;

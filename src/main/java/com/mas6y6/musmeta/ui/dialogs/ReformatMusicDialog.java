@@ -50,10 +50,7 @@ public class ReformatMusicDialog extends ProcessingDialog {
             Library.getInstance().save();
         }
 
-        MainWindow.INSTANCE.getLibraryUI().refresh();
-        if (MainWindow.INSTANCE.getSelectedTab() instanceof AlbumDetailTab tab) {
-            tab.reloadTrackTable();
-        }
+        MainWindow.INSTANCE.refreshLibraryAndTabs();
 
         return result.succeeded();
     }

@@ -31,9 +31,10 @@ public class NewAlbumDialog extends JDialog {
     public final JTextField albumNameField = new JTextField();
     private final AlbumArtwork dropZone = createDropZone();
     private File albumImageFile = null;
+    private Album createdAlbum = null;
 
-    public NewAlbumDialog(Frame parent) {
-        super(parent, "Create new album", true);
+    public NewAlbumDialog(Window parent) {
+        super(parent, "Create new album", ModalityType.APPLICATION_MODAL);
 
         setSize(DIALOG_SIZE);
         setMinimumSize(DIALOG_SIZE);
@@ -126,6 +127,14 @@ public class NewAlbumDialog extends JDialog {
         return albumImageFile;
     }
 
+    /**
+     * @return the album that was created, or {@code null} when the dialog was
+     *         cancelled or the name was rejected
+     */
+    public Album getCreatedAlbum() {
+        return createdAlbum;
+    }
+
     private void createAlbum() {
         String albumName = albumNameField.getText();
 
@@ -136,9 +145,11 @@ public class NewAlbumDialog extends JDialog {
         if (Library.getInstance().containsAlbum(albumName)) {
             JOptionPane.showMessageDialog(this, "Album with title '" + albumName + "' already exists", "Error", JOptionPane.ERROR_MESSAGE);
         } else {
-            Library.getInstance().registerAlbum(new Album(albumName, storeArtwork(albumName)));
+            Album album = new Album(albumName, storeArtwork(albumName));
+            Library.getInstance().registerAlbum(album);
             Library.getInstance().save();
-            MainWindow.INSTANCE.getLibraryUI().refresh();
+            createdAlbum = album;
+            MainWindow.INSTANCE.refreshLibraryAndTabs();
             dispose();
         }
     }

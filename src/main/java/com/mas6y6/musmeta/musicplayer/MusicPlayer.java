@@ -26,6 +26,14 @@ public class MusicPlayer {
 
     private static MusicPlayer instance;
 
+    public void clearQueue() {
+        if (!isPlaying) {
+            queue.clear();
+        } else {
+            throw new IllegalStateException("Cannot clear queue while playing");
+        }
+    }
+
     public interface Listener {
 
         default void stateUpdated(

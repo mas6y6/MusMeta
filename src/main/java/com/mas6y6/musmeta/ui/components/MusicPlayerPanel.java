@@ -108,7 +108,10 @@ public class MusicPlayerPanel extends JPanel {
 
         stopButton = transportButton(ICON_STOP, "Stop");
         stopButton.setEnabled(false);
-        stopButton.addActionListener(e -> MusicPlayer.getInstance().stop());
+        stopButton.addActionListener((e) -> {
+            MusicPlayer.getInstance().stop();
+            MusicPlayer.getInstance().clearQueue();
+        });
 
         JPanel transport = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 0));
         transport.setOpaque(false);

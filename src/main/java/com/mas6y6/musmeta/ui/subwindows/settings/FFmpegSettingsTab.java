@@ -203,7 +203,7 @@ public class FFmpegSettingsTab extends SettingTab {
 
         Path bin = Paths.get(raw);
         Path exec = FFmpegUtils.findFFmpegExecutable(bin);
-        if (exec != null && FFmpegUtils.validateFFmpegExecutable(exec)) {
+        if (FFmpegUtils.validateFFmpegExecutable(exec)) {
             Settings.FFMPEG_INSTALLATION_PATH.set(exec.toAbsolutePath().toString());
         }
         refreshStatus();

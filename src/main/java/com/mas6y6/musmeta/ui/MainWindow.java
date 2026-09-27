@@ -151,6 +151,26 @@ public class MainWindow extends MainAppFrame {
     }
 
     /**
+     * Brings the library list and every open album tab back in sync with the
+     * library after an operation such as writing tags, moving songs between
+     * albums, importing music or creating an album. Also re-reads the selection
+     * of the active tab so the Edit menu keeps pointing at the right songs.
+     */
+    public void refreshLibraryAndTabs() {
+        SwingUtilities.invokeLater(() -> {
+            libraryUI.refresh();
+            for (int i = 0; i < tabs.getTabCount(); i++) {
+                Component comp = tabs.getComponentAt(i);
+                if (comp instanceof AlbumDetailTab detail) {
+                    tabs.setTitleAt(i, detail.getAlbum().getTitle());
+                    detail.refresh();
+                }
+            }
+            refreshSelectionForActiveTab();
+        });
+    }
+
+    /**
      * Re-reads the selection of the currently visible tab so the Selection
      * menu mirrors whichever tab is active.
      */

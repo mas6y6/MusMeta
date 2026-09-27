@@ -190,10 +190,7 @@ public class ProcessMusicDialog extends ProcessingDialog {
             library.save();
         }
 
-        MainWindow.INSTANCE.getLibraryUI().refresh();
-        if (MainWindow.INSTANCE.getSelectedTab() instanceof AlbumDetailTab tab) {
-            tab.reloadTrackTable();
-        }
+        MainWindow.INSTANCE.refreshLibraryAndTabs();
 
         return true;
     }

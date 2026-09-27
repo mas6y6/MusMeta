@@ -10,6 +10,7 @@ import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.mas6y6.musmeta.ui.dialogs.EditAlbumDialog;
 import com.mas6y6.musmeta.ui.dialogs.EditSongDialog;
+import com.mas6y6.musmeta.ui.dialogs.ImportSongsDialog;
 import com.mas6y6.musmeta.ui.dialogs.ProcessTagsDialog;
 import com.mas6y6.musmeta.ui.dialogs.ReformatMusicDialog;
 import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
@@ -230,6 +231,17 @@ public class AlbumDetailTab extends JPanel {
         editButton.addActionListener((_) -> new EditAlbumDialog(MainWindow.INSTANCE, album).setVisible(true));
 
         meta.add(editButton);
+
+        meta.add(Box.createVerticalStrut(4));
+
+        JButton importButton = new JButton("Import Songs...");
+        importButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        importButton.setToolTipText(
+                "Move songs from elsewhere in your library, or add songs from files, onto this album"
+        );
+        importButton.addActionListener((_) -> new ImportSongsDialog(MainWindow.INSTANCE, album).setVisible(true));
+
+        meta.add(importButton);
 
         meta.add(Box.createVerticalStrut(4));
 

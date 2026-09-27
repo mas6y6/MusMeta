@@ -6,7 +6,9 @@ import com.mas6y6.musmeta.audio.AudioStream;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.musicplayer.MusicPlayer;
 import com.mas6y6.musmeta.settings.Settings;
+import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
+import com.mas6y6.musmeta.ui.dialogs.MusicQueueDialog;
 import com.mas6y6.musmeta.utils.ColorWrapper;
 
 import javax.swing.*;
@@ -186,6 +188,10 @@ public class MusicPlayerPanel extends JPanel {
         right.setOpaque(false);
         right.add(volume());
         right.add(queueButton);
+
+        queueButton.addActionListener((e) -> {
+            new MusicQueueDialog(MainWindow.INSTANCE).setVisible(true);
+        });
 
         return right;
     }

@@ -154,6 +154,15 @@ public class Song {
         return "1".equals(val) || "true".equalsIgnoreCase(val) || "yes".equalsIgnoreCase(val);
     }
 
+    /**
+     * The compilation flag exactly as the file stores it, so a caller can tell
+     * "this file says it is not part of a compilation" apart from "this file
+     * says nothing about compilations at all". Blank means the latter.
+     */
+    public String getRawCompilation() {
+        return tagFirst(FieldKey.IS_COMPILATION, "");
+    }
+
     public String getComposer() {
         return tagFirst(FieldKey.COMPOSER, "");
     }

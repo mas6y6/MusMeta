@@ -29,9 +29,102 @@ public class MusicPlayer {
     public void clearQueue() {
         if (!isPlaying) {
             queue.clear();
+            currentSongIndex = -1;
+            notifyQueueChanged();
         } else {
             throw new IllegalStateException("Cannot clear queue while playing");
         }
+    }
+
+    /**
+     * Takes the song at the given queue position off the queue.
+     *
+     * <p>Whatever happens to the queue positions around the removed song, the
+     * player keeps playing the same song: the one behind it takes over when the
+     * song that was playing is the one removed, and the last song takes over
+     * when the queue ends up shorter than the current position. An emptied
+     * queue stops playback, since there is nothing left to play.
+     *
+     * @param index queue position, 0 based
+     */
+    public void removeFromQueue(int index) {
+        if (index < 0 || index >= queue.size()) {
+            return;
+        }
+
+        queue.remove(index);
+
+        if (queue.isEmpty()) {
+            stop();
+        } else if (index == currentSongIndex && isLoopRunning()) {
+            pendingSkipIndex.set(currentSongIndex);
+            AudioManager.getInstance().stop();
+        } else if (index < currentSongIndex) {
+            currentSongIndex--;
+        } else if (currentSongIndex >= queue.size()) {
+            currentSongIndex = queue.size() - 1;
+        }
+
+        notifyQueueChanged();
+    }
+
+    /**
+     * Moves the song at one queue position to another, the way dragging a row
+     * or typing a new number into the queue position column does.
+     *
+     * <p>The player keeps playing whatever song it was playing, so the current
+     * position follows that song to its new place.
+     *
+     * @param from queue position to move away from, 0 based
+     * @param to   queue position to move to, 0 based, clamped into range
+     */
+    public void moveInQueue(int from, int to) {
+        int size = queue.size();
+
+        if (from < 0 || from >= size) {
+            return;
+        }
+
+        to = Math.clamp(to, 0, size - 1);
+
+        if (from == to) {
+            return;
+        }
+
+        queue.add(to, queue.remove(from));
+
+        currentSongIndex = shiftedIndex(currentSongIndex, from, to);
+        pendingSkipIndex.set(shiftedIndex(
+                pendingSkipIndex.get(),
+                from,
+                to
+        ));
+
+        notifyQueueChanged();
+    }
+
+    /**
+     * Follows a song that moved from one queue position to another, so an
+     * index keeps pointing at the same song no matter where that song went.
+     */
+    private int shiftedIndex(int index, int from, int to) {
+        if (index == NO_SKIP) {
+            return NO_SKIP;
+        }
+
+        if (index == from) {
+            return to;
+        }
+
+        if (from < index && to >= index) {
+            return index - 1;
+        }
+
+        if (from > index && to <= index) {
+            return index + 1;
+        }
+
+        return index;
     }
 
     public interface Listener {
@@ -45,6 +138,8 @@ public class MusicPlayer {
         default void songChanged(Song song) {}
 
         default void musicPlayerStopped() {}
+
+        default void queueChanged() {}
     }
 
     private final CopyOnWriteArrayList<Song> queue =
@@ -85,6 +180,8 @@ public class MusicPlayer {
         }
 
         queue.addAll(List.of(songs));
+
+        notifyQueueChanged();
     }
 
     public Song getCurrentSong() {
@@ -145,6 +242,20 @@ public class MusicPlayer {
                         || currentSongIndex >= queue.size()) {
                     currentSongIndex = 0;
                 }
+
+                // The queue can be edited (e.g. from the queue dialog) while
+                // this thread is between songs, so the position is resolved
+                // against the queue as it stands right now.
+                if (queue.isEmpty()) {
+                    stopInternal();
+                    break;
+                }
+
+                currentSongIndex = Math.clamp(
+                        currentSongIndex,
+                        0,
+                        queue.size() - 1
+                );
 
                 Song song = queue.get(currentSongIndex);
 
@@ -304,7 +415,13 @@ public class MusicPlayer {
         skipTo(target);
     }
 
-    private void skipTo(int targetIndex) {
+    /**
+     * Starts playing the song at the given queue position, whether or not
+     * anything is playing already.
+     *
+     * @param targetIndex queue position to play, 0 based
+     */
+    public void skipTo(int targetIndex) {
         if (queue.isEmpty()) {
             return;
         }
@@ -405,6 +522,19 @@ public class MusicPlayer {
         for (Listener listener : listeners) {
             try {
                 listener.musicPlayerStopped();
+            } catch (Exception e) {
+                LOGGER.warn(
+                        "MusicPlayer listener threw an exception",
+                        e
+                );
+            }
+        }
+    }
+
+    private void notifyQueueChanged() {
+        for (Listener listener : listeners) {
+            try {
+                listener.queueChanged();
             } catch (Exception e) {
                 LOGGER.warn(
                         "MusicPlayer listener threw an exception",

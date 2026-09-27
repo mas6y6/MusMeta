@@ -40,6 +40,8 @@ public class ProcessTagsDialog extends ProcessingDialog {
     private final String oldAlbumTitle;
     private final Map<String, byte[]> albumArtwork;
 
+    private Runnable onComplete;
+
     public ProcessTagsDialog(Window owner, List<SongTagUpdate> updates) {
         this(owner, updates, null, null, null);
     }
@@ -169,6 +171,23 @@ public class ProcessTagsDialog extends ProcessingDialog {
             if (album != null) {
                 album.setArtworkBytes(data);
             }
+        }
+    }
+
+    /**
+     * Registers work to run once every tag has been written and the library
+     * has been refreshed, for callers that need to carry on with another
+     * window, such as opening the song editor on what was just imported.
+     */
+    public void setOnComplete(Runnable onComplete) {
+        this.onComplete = onComplete;
+    }
+
+    @Override
+    protected void onSuccess() {
+        super.onSuccess();
+        if (onComplete != null) {
+            SwingUtilities.invokeLater(onComplete);
         }
     }
 }

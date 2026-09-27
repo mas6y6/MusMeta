@@ -69,6 +69,29 @@ public class DuplicateImportDialog extends JDialog {
         return result[0];
     }
 
+    /**
+     * The same resolution for callers that are already on the event thread
+     * and can simply block on the modal dialog themselves.
+     *
+     * @return the user's choices, or {@code null} when the import was
+     *         cancelled
+     */
+    public static Map<Duplicates.Group, Song> resolve(
+            Window owner,
+            List<Duplicates.Group> groups
+    ) {
+        if (groups == null || groups.isEmpty()) {
+            return Map.of();
+        }
+        if (GraphicsEnvironment.isHeadless()) {
+            return null;
+        }
+
+        DuplicateImportDialog dialog = new DuplicateImportDialog(owner, groups);
+        dialog.setVisible(true);
+        return dialog.cancelled ? null : dialog.choices;
+    }
+
     private DuplicateImportDialog(Window owner, List<Duplicates.Group> duplicateGroups) {
         super(owner, "Resolve Duplicate Songs", ModalityType.APPLICATION_MODAL);
         setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);

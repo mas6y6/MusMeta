@@ -283,8 +283,6 @@ public class AlbumDetailTab extends JPanel {
         artwork.setPreferredSize(square);
         artwork.setMinimumSize(square);
         artwork.setMaximumSize(square);
-        // The artwork keeps a copy of the image scaled to the size it last saw,
-        // so it is handed the image again to stay sharp at the new size.
         artwork.setArtwork(artworkImage);
 
         return true;

@@ -19,7 +19,7 @@ import com.mas6y6.musmeta.ui.tabs.AlbumDetailTab;
 
 import java.io.File;
 import com.mas6y6.musmeta.ui.album.LibraryUI;
-import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
 import com.mas6y6.musmeta.ui.dialogs.MusicScanDialog;
 import com.mas6y6.musmeta.ui.subwindows.AboutWindow;
 import com.mas6y6.musmeta.ui.subwindows.SettingsWindow;
@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.Set;
 
 public class MainWindow extends MainAppFrame {
     public static final Logger LOGGER =
@@ -54,6 +53,7 @@ public class MainWindow extends MainAppFrame {
                         FlatClientProperties.MACOS_WINDOW_BUTTONS_SPACING_LARGE );
             }
         }
+
         initWindow();
 
         setLocationRelativeTo(null);
@@ -63,7 +63,7 @@ public class MainWindow extends MainAppFrame {
     public boolean onClose(JFrame frame) {
         LOGGER.debug("Closing main window");
 
-        boolean close = JOptionPane.YES_OPTION == EXTDialog.showConfirmDialog(
+        boolean close = JOptionPane.YES_OPTION == MDialog.showConfirmDialog(
                 frame,
                 "Do you want to close MusMeta?",
                 "Confirmation",
@@ -103,10 +103,6 @@ public class MainWindow extends MainAppFrame {
         }
     }
 
-    /**
-     * Opens the given album in an iTunes-style detail tab, or activates the
-     * existing tab for that album if it is already open.
-     */
     public void openAlbumTab(Album album) {
         SwingUtilities.invokeLater(() -> {
             int index = tabs.indexOfTab(album.getTitle());
@@ -151,12 +147,6 @@ public class MainWindow extends MainAppFrame {
         });
     }
 
-    /**
-     * Brings the library list and every open album tab back in sync with the
-     * library after an operation such as writing tags, moving songs between
-     * albums, importing music or creating an album. Also re-reads the selection
-     * of the active tab so the Edit menu keeps pointing at the right songs.
-     */
     public void refreshLibraryAndTabs() {
         SwingUtilities.invokeLater(() -> {
             libraryUI.refresh();
@@ -171,10 +161,6 @@ public class MainWindow extends MainAppFrame {
         });
     }
 
-    /**
-     * Re-reads the selection of the currently visible tab so the Selection
-     * menu mirrors whichever tab is active.
-     */
     private void refreshSelectionForActiveTab() {
         Component tab = tabs.getSelectedComponent();
         if (tab instanceof AlbumDetailTab detail) {

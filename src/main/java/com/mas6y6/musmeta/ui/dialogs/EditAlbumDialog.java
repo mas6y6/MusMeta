@@ -55,15 +55,9 @@ public class EditAlbumDialog extends JDialog {
     private final Album album;
     private final String initialAlbumTitle;
 
-    /**
-     * Whether this album holds songs from more than one artist (a compilation
-     * or a mixed-artist album). In that case the album-wide Artist field is
-     * disabled and per-track artists are preserved instead of overwritten.
-     */
     private boolean variousArtistsAlbum;
     private String sharedArtist = "";
 
-    // Fields
     private JTextField titleField;
     private JTextField albumArtistField;
     private JTextField artistField;
@@ -78,7 +72,6 @@ public class EditAlbumDialog extends JDialog {
     private JSpinner trackTotalSpinner;
     private JTextField commentField;
 
-    // Artwork
     private AlbumArtwork artworkLabel;
     private ProcessTagsDialog.ArtworkAction artworkAction = ProcessTagsDialog.ArtworkAction.KEEP;
     private byte[] newArtworkBytes;
@@ -192,17 +185,14 @@ public class EditAlbumDialog extends JDialog {
         JPanel contentPane = new JPanel(new BorderLayout(16, 12));
         contentPane.setBorder(new EmptyBorder(16, 20, 16, 20));
 
-        // West: Artwork
         JPanel artworkPanel = createArtworkPanel();
         contentPane.add(artworkPanel, BorderLayout.WEST);
 
-        // Center: Form
         JScrollPane formScroll = new JScrollPane(createFormPanel());
         formScroll.setBorder(BorderFactory.createEmptyBorder());
         formScroll.getVerticalScrollBar().setUnitIncrement(16);
         contentPane.add(formScroll, BorderLayout.CENTER);
 
-        // South: Buttons
         contentPane.add(createButtonPanel(), BorderLayout.SOUTH);
 
         setContentPane(contentPane);
@@ -314,16 +304,12 @@ public class EditAlbumDialog extends JDialog {
 
         int row = 0;
 
-        // Album Title
         addFormRow(panel, gbc, row++, "Album:", titleField);
 
-        // Album Artist
         addFormRow(panel, gbc, row++, "Album Artist:", albumArtistField);
 
-        // Artist
         addFormRow(panel, gbc, row++, "Artist:", artistField);
 
-        // Compilation toggle
         gbc.gridx = 0;
         gbc.gridy = row++;
         gbc.gridwidth = 2;
@@ -331,25 +317,18 @@ public class EditAlbumDialog extends JDialog {
         panel.add(compilationCheck, gbc);
         gbc.gridwidth = 1;
 
-        // Genre
         addFormRow(panel, gbc, row++, "Genre:", genreCombo);
 
-        // Year
         addFormRow(panel, gbc, row++, "Year:", yearField);
 
-        // Composer
         addFormRow(panel, gbc, row++, "Composer:", composerField);
 
-        // Grouping
         addFormRow(panel, gbc, row++, "Grouping:", groupingField);
 
-        // Rating
         addFormRow(panel, gbc, row++, "Rating:", ratingCombo);
 
-        // BPM
         addFormRow(panel, gbc, row++, "BPM:", bpmField);
 
-        // Discs & Tracks totals
         JPanel totalsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         totalsPanel.setOpaque(false);
         totalsPanel.add(new JLabel("Total Discs:"));
@@ -359,7 +338,7 @@ public class EditAlbumDialog extends JDialog {
         totalsPanel.add(trackTotalSpinner);
         addFormRow(panel, gbc, row++, "Tracks / Discs:", totalsPanel);
 
-        // Comments
+
         addFormRow(panel, gbc, row++, "Comments:", commentField);
 
         return panel;
@@ -434,9 +413,6 @@ public class EditAlbumDialog extends JDialog {
                 toDelete.add(FieldKey.ALBUM_ARTIST);
             }
 
-            // Only albums that really belong to a single artist get their
-            // track artists rewritten; mixed-artist albums keep each song's
-            // own artist, just like iTunes does.
             if (!variousArtistsAlbum && !artist.isBlank()) {
                 toSet.put(FieldKey.ARTIST, artist);
             }

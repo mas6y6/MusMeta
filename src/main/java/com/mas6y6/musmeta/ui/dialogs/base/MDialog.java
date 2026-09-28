@@ -7,12 +7,8 @@ import com.mas6y6.musmeta.settings.Theme;
 import javax.swing.*;
 import java.awt.*;
 
-/**
- * JOptionPane helpers that preserve the active look and feel while removing
- * the native macOS title bar from dialogs.
- */
-public class EXTDialog extends JOptionPane {
-    private EXTDialog() {
+public class MDialog extends JOptionPane {
+    private MDialog() {
     }
 
     public static void showMessageDialog(Component parentComponent, Object message,
@@ -73,14 +69,7 @@ public class EXTDialog extends JOptionPane {
                 : (Integer) value;
     }
 
-    /**
-     * JOptionPane#createDialog packs the dialog, which creates its native
-     * window peer. Dispose that peer before changing its decoration state;
-     * the existing content, size, modality, and active look and feel remain.
-     */
     private static void removeTitleBar(JDialog dialog) {
-        //TODO: remove dialog titlebar
-
         dialog.getRootPane().putClientProperty(FlatClientProperties.USE_WINDOW_DECORATIONS, true);
         if (Settings.PREFERRED_THEME.get() == Theme.DARK) {
             dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_BACKGROUND, dialog.getBackground().darker());
@@ -88,12 +77,5 @@ public class EXTDialog extends JOptionPane {
         dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_CLOSE, false);
         dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_MAXIMIZE, false);
         dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_ICONIFFY, false);
-
-        /*if (SystemInfo.isMacOS) {
-            if (dialog.isDisplayable()) {
-                dialog.dispose();
-            }
-            dialog.getRootPane().putClientProperty();
-        }*/
     }
 }

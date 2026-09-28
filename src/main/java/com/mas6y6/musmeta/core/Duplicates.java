@@ -10,21 +10,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Groups songs that collide during an import or a scan: either the same
- * physical file appears more than once in the incoming selection, or an
- * incoming file would re-import a song that already lives in the library
- * (same title/album/artist identity, or the same absolute path). Callers
- * turn each returned {@link Group} into a choice UI and then apply the
- * user's decision.
- */
 public final class Duplicates {
 
-    /**
-     * A set of existing library songs (possibly empty) plus the incoming
-     * files that would import the same song. Both lists are defensively
-     * copied and never mutated after construction.
-     */
     public record Group(List<Song> existing, List<Song> incoming) {
 
         public Group {

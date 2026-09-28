@@ -175,6 +175,8 @@ public class Main {
                 showMissingSongsPromptIfAny();
             });
         }
+
+        SwingUtilities.invokeLater(UpdateChecker::checkForUpdates);
     }
 
     private static void configureDockIcon() {

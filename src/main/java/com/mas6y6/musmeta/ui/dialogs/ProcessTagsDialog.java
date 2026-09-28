@@ -4,7 +4,7 @@ import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.ui.MainWindow;
-import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialogBase;
 import org.jaudiotagger.tag.FieldKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ProcessTagsDialog extends ProcessingDialog {
+public class ProcessTagsDialog extends ProcessingDialogBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessTagsDialog.class);
 
     public enum ArtworkAction {
@@ -50,10 +50,6 @@ public class ProcessTagsDialog extends ProcessingDialog {
         this(owner, updates, targetAlbum, oldAlbumTitle, null);
     }
 
-    /**
-     * @param albumArtwork artwork bytes to store on the album of the given
-     *                     titles once the songs have been moved into them
-     */
     public ProcessTagsDialog(Window owner, List<SongTagUpdate> updates, Album targetAlbum,
                              String oldAlbumTitle, Map<String, byte[]> albumArtwork) {
         super(owner, "Applying Tags", ProgressMode.DETERMINATE);
@@ -157,10 +153,6 @@ public class ProcessTagsDialog extends ProcessingDialog {
         return true;
     }
 
-    /**
-     * Stores artwork on albums the songs were just moved into, for instance
-     * when the user chose to carry the artwork of the old album over.
-     */
     private void applyAlbumArtwork() {
         for (Map.Entry<String, byte[]> entry : albumArtwork.entrySet()) {
             byte[] data = entry.getValue();
@@ -174,11 +166,6 @@ public class ProcessTagsDialog extends ProcessingDialog {
         }
     }
 
-    /**
-     * Registers work to run once every tag has been written and the library
-     * has been refreshed, for callers that need to carry on with another
-     * window, such as opening the song editor on what was just imported.
-     */
     public void setOnComplete(Runnable onComplete) {
         this.onComplete = onComplete;
     }

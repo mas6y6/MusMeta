@@ -7,10 +7,6 @@ import java.lang.reflect.Type;
 import java.util.Objects;
 import java.util.function.Function;
 
-/**
- * A builder providing fluent and structured reading/writing of configuration properties.
- * Can be converted directly to and from {@link SubConfig}, JSON objects, and custom class instances.
- */
 public class ConfigBuilder {
     private final JsonObject jsonObject;
 
@@ -216,16 +212,11 @@ public class ConfigBuilder {
         return toSubConfig("anonymous");
     }
 
-    /**
-     * Reconstructs an instance of {@code clazz} from this builder's properties.
-     */
+
     public <T> T build(Class<T> clazz) {
         return ConfigSerializableAdapterFactory.deserialize(clazz, this);
     }
 
-    /**
-     * Builds an instance using a custom factory function.
-     */
     public <T> T build(Function<ConfigBuilder, T> factory) {
         Objects.requireNonNull(factory, "Factory cannot be null");
         return factory.apply(this);

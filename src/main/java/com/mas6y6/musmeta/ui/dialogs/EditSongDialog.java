@@ -770,7 +770,6 @@ public class EditSongDialog extends JDialog {
             gbc.anchor = GridBagConstraints.EAST;
             panel.add(labelPanel, gbc);
 
-            // Auto-check apply box when user changes the component
             if (comp instanceof JTextField tf) {
                 tf.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
                     public void insertUpdate(javax.swing.event.DocumentEvent e) { fieldEdited(tf, applyCheck); }
@@ -798,10 +797,6 @@ public class EditSongDialog extends JDialog {
         panel.add(comp, gbc);
     }
 
-    /**
-     * Places the one-artist-per-album toggle directly below the album entry, in
-     * the field column so it reads as a setting of the album selection.
-     */
     private void addAlbumToggleRow(JPanel panel, GridBagConstraints gbc, int row) {
         gbc.gridx = 1;
         gbc.gridy = row;
@@ -872,8 +867,6 @@ public class EditSongDialog extends JDialog {
 
             String albumArtist = albumArtistField.getText().trim();
             if (albumArtist.isBlank()) {
-                // iTunes treats the song artist as the album artist by default,
-                // so a song is never left with only one of the two tags.
                 albumArtist = artist;
             }
             if (!albumArtist.isBlank()) {
@@ -967,9 +960,6 @@ public class EditSongDialog extends JDialog {
                     newArtworkMimeType
             ));
         } else {
-            // Multi song mode. Fields that differ across the selection display
-            // "Multiple Values" and are only written when the user actually
-            // changes them (and ticks the apply box), matching iTunes' Get Info.
             boolean applyArtist = shouldApply("artist", artistField);
             String artist = artistField.getText().trim();
 
@@ -1084,23 +1074,11 @@ public class EditSongDialog extends JDialog {
         processDialog.startAndShow();
     }
 
-    /**
-     * @return the artist that should be shared by every song of the album, or
-     *         an empty string when none has been entered yet
-     */
     private String uniformArtistValue() {
         String artist = artistField.getText().trim();
         return MULTIPLE_VALUES.equals(artist) ? "" : artist;
     }
 
-    /**
-     * Extends the pending updates so the album's remaining songs pick up the
-     * shared song artist too. The album name is rewritten as well so every song
-     * of the album ends up carrying the same title, matching the album it now
-     * belongs to. Songs already covered by the selection are left untouched so
-     * their own edits are not overwritten, and the compilation flag is left
-     * alone because that is a separate choice in the form.
-     */
     private void addUniformArtistUpdates(List<ProcessTagsDialog.SongTagUpdate> updates) {
         if (!uniformArtistCheck.isSelected() || uniformArtistAlbum == null) {
             return;
@@ -1143,11 +1121,6 @@ public class EditSongDialog extends JDialog {
         }
     }
 
-    /**
-     * Resolves the artwork to hand the destination album when the user chose to
-     * copy it: the embedded art of the song itself, falling back to the cached
-     * artwork of the album it is leaving.
-     */
     private Map<String, byte[]> buildAlbumArtwork() {
         if (!Boolean.TRUE.equals(copyArtworkToNewAlbum) || songs.isEmpty()) {
             return Map.of();
@@ -1176,7 +1149,6 @@ public class EditSongDialog extends JDialog {
             try {
                 return Files.readAllBytes(cached);
             } catch (IOException ignored) {
-                // Fall through to no artwork.
             }
         }
         return null;
@@ -1187,11 +1159,6 @@ public class EditSongDialog extends JDialog {
         return cb != null && cb.isSelected();
     }
 
-    /**
-     * A field is written only when its apply box is ticked and it does not
-     * still show the "Multiple Values" placeholder, so browsing a multi-song
-     * selection never overwrites values the user did not touch.
-     */
     private boolean shouldApply(String key, JTextField field) {
         if (!isFieldChecked(key)) {
             return false;
@@ -1213,12 +1180,6 @@ public class EditSongDialog extends JDialog {
         field.setForeground(UIManager.getColor("TextField.foreground"));
     }
 
-    /**
-     * The album artist a song actually carries, falling back to its own artist
-     * so the dialog shows the value that will be written rather than an empty
-     * field. The raw tags are used directly to avoid writing a placeholder
-     * artist such as "Unknown Artist" into the file.
-     */
     private static String resolvedAlbumArtist(Song song) {
         String albumArtist = song.getRawAlbumArtist();
         return albumArtist.isBlank() ? song.getRawArtist() : albumArtist;

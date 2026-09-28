@@ -17,7 +17,7 @@ import com.mas6y6.musmeta.ui.components.MusMetaFrame;
 import org.slf4j.Logger;
 
 import javax.swing.*;
-import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -72,27 +72,18 @@ public class PostInstallationDialog extends MusMetaFrame {
         tabs.addTab("FFmpeg", ffmpegInstallation());
         tabs.addTab("Completion", completionPage());
 
-        /*
-         * FlatLaf styling
-         */
         tabs.putClientProperty("JTabbedPane.tabType", "card");
         tabs.putClientProperty("JTabbedPane.tabHeight", 45);
         tabs.putClientProperty("JTabbedPane.minimumTabWidth", 140);
         tabs.putClientProperty("JTabbedPane.showTabSeparators", false);
         tabs.putClientProperty("JTabbedPane.hasFullBorder", false);
 
-        /*
-         * Don't allow clicking tabs to change pages.
-         */
         tabs.addChangeListener(e -> {
             if (tabs.getSelectedIndex() != currentPage) {
                 tabs.setSelectedIndex(currentPage);
             }
         });
 
-        /*
-         * Bottom navigation
-         */
         JPanel navigation = new JPanel(new BorderLayout());
 
         navigation.setBorder(
@@ -105,9 +96,6 @@ public class PostInstallationDialog extends MusMetaFrame {
         backButton.addActionListener(e -> previousPage());
         nextButton.addActionListener(e -> nextPage());
 
-        /*
-         * Main layout
-         */
         setLayout(new BorderLayout());
 
         add(tabs, BorderLayout.CENTER);
@@ -179,9 +167,7 @@ public class PostInstallationDialog extends MusMetaFrame {
         });
     }
 
-    /**
-     * Called when the user finishes all installation / setup steps.
-     */
+
     public void completeInstallation() {
         if (!useDefaultMusicPath) {
             Settings.MUSIC_DIRECTORY_PATH.set(Path.of(musicPathField.getText()));
@@ -214,7 +200,7 @@ public class PostInstallationDialog extends MusMetaFrame {
 
             MainWindow.INSTANCE.setVisible(true);
         } catch (IOException ex) {
-            EXTDialog.showMessageDialog(
+            MDialog.showMessageDialog(
                     this,
                     "Failed to save configuration: " + ex.getMessage(),
                     "Error",
@@ -223,11 +209,9 @@ public class PostInstallationDialog extends MusMetaFrame {
         }
     }
 
-    /**
-     * Resets and deletes incomplete config if the user closes the window prematurely.
-     */
+
     public void handleAbortInstallation() {
-        int choice = EXTDialog.showConfirmDialog(
+        int choice = MDialog.showConfirmDialog(
                 this,
                 "Setup is not complete. Are you sure you want to exit? Your changes will be reset.",
                 "Exit Setup",
@@ -724,7 +708,7 @@ public class PostInstallationDialog extends MusMetaFrame {
                 : (ffmpegBinPath != null ? ffmpegBinPath.trim() : "");
 
         if (rawPath.isEmpty()) {
-            EXTDialog.showMessageDialog(
+            MDialog.showMessageDialog(
                     this,
                     "Please select or enter the path to the FFmpeg bin directory.",
                     "FFmpeg Validation",
@@ -735,7 +719,7 @@ public class PostInstallationDialog extends MusMetaFrame {
 
         Path binDir = Paths.get(rawPath);
         if (!Files.exists(binDir)) {
-            EXTDialog.showMessageDialog(
+            MDialog.showMessageDialog(
                     this,
                     "The selected FFmpeg bin directory does not exist.",
                     "FFmpeg Validation",
@@ -746,7 +730,7 @@ public class PostInstallationDialog extends MusMetaFrame {
 
         Path executable = FFmpegUtils.findFFmpegExecutable(binDir);
         if (executable == null) {
-            EXTDialog.showMessageDialog(
+            MDialog.showMessageDialog(
                     this,
                     "FFmpeg executable not found in the selected directory.\nPlease ensure the directory contains the 'ffmpeg' binary.",
                     "FFmpeg Validation",
@@ -756,7 +740,7 @@ public class PostInstallationDialog extends MusMetaFrame {
         }
 
         if (!FFmpegUtils.validateFFmpegExecutable(executable)) {
-            EXTDialog.showMessageDialog(
+            MDialog.showMessageDialog(
                     this,
                     "The FFmpeg executable in the selected directory is invalid or failed to run.",
                     "FFmpeg Validation",
@@ -772,7 +756,7 @@ public class PostInstallationDialog extends MusMetaFrame {
     private boolean validateMusicPathPage() {
         if (!useDefaultMusicPath) {
             if (musicPathField.getText().isEmpty()) {
-                EXTDialog.showMessageDialog(
+                MDialog.showMessageDialog(
                         this,
                         "Please select a default music directory.",
                         "Music Path Validation",
@@ -783,7 +767,7 @@ public class PostInstallationDialog extends MusMetaFrame {
 
             Path musicDir = Paths.get(musicPathField.getText());
             if (!Files.exists(musicDir)) {
-                EXTDialog.showMessageDialog(
+                MDialog.showMessageDialog(
                         this,
                         "The selected music directory does not exist.",
                         "Music Path Validation",
@@ -793,7 +777,7 @@ public class PostInstallationDialog extends MusMetaFrame {
             }
 
             if (!Files.isDirectory(musicDir)) {
-                EXTDialog.showMessageDialog(
+                MDialog.showMessageDialog(
                         this,
                         "The selected path is not a directory.",
                         "Music Path Validation",

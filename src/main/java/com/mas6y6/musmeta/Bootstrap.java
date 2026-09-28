@@ -9,7 +9,7 @@ import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.launch.LaunchScreen;
 import com.mas6y6.musmeta.utils.PlatformSetup;
 import com.mas6y6.musmeta.utils.Utils;
-import com.mas6y6.musmeta.utils.Version;
+import com.mas6y6.musmeta.utils.VersionSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -64,7 +64,7 @@ public class Bootstrap implements Runnable {
         System.out.println("java.home = " + System.getProperty("java.home"));
         System.out.println("java.version = " + System.getProperty("java.version"));
         System.out.println("java.vendor = " + System.getProperty("java.vendor"));
-        LOGGER.info("MusMeta - {}", Version.get());
+        LOGGER.info("MusMeta - {}", VersionSource.getString());
         LOGGER.info("Log file: {}", LogSystem.getLatestLogPath().toAbsolutePath());
         if (debug) {
             isDebugMode = true;

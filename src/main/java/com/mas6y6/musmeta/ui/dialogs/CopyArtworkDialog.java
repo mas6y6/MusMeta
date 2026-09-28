@@ -6,27 +6,11 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-/**
- * Asks whether the artwork of the album a song is leaving should also be used
- * as the artwork of the album it is being moved to.
- */
 public class CopyArtworkDialog extends JDialog {
 
-    /**
-     * The answer given by the user.
-     */
     public enum Choice {
-        /**
-         * Move the album and use the current artwork for the new album.
-         */
         COPY,
-        /**
-         * Move the album and leave the new album's artwork alone.
-         */
         KEEP_SEPARATE,
-        /**
-         * Leave the song on its current album.
-         */
         CANCEL
     }
 
@@ -54,14 +38,6 @@ public class CopyArtworkDialog extends JDialog {
         setContentPane(content);
     }
 
-    /**
-     * Shows the dialog and blocks until the user answers.
-     *
-     * @param owner         the window to centre the dialog on
-     * @param targetAlbum   the album the song is being moved to
-     * @param sourceArtwork the artwork currently shown for the song
-     * @return the user's answer, never {@code null}
-     */
     public static Choice ask(Window owner, String targetAlbum, Image sourceArtwork) {
         CopyArtworkDialog dialog = new CopyArtworkDialog(owner, targetAlbum, sourceArtwork);
         dialog.setVisible(true);

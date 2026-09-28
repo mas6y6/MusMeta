@@ -7,7 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class MusicScanDialog extends JDialog {
-    private static final Dimension DIALOG_SIZE = new Dimension(480, 500);
+    private static final Dimension DIALOG_SIZE = new Dimension(480, 300);
     private boolean useDefaultMusicDir = false;
     private final JTextField pathField = new JTextField();
 

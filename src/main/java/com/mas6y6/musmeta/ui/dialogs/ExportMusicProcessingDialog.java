@@ -3,7 +3,7 @@ package com.mas6y6.musmeta.ui.dialogs;
 import com.mas6y6.musmeta.Constants;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.settings.Settings;
-import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialogBase;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import com.mas6y6.musmeta.utils.Utils;
 import org.slf4j.Logger;
@@ -17,7 +17,7 @@ import java.util.Locale;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class ExportMusicProcessingDialog extends ProcessingDialog {
+public class ExportMusicProcessingDialog extends ProcessingDialogBase {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(ExportMusicProcessingDialog.class);
 
     private static final String ZIP_EXTENSION = "zip";
@@ -36,13 +36,6 @@ public class ExportMusicProcessingDialog extends ProcessingDialog {
         this.zipOutput = withZipExtension(zipOutput);
     }
 
-    /**
-     * Gives the chosen file its .zip extension. A name that already ends in one
-     * is left alone, and an extension that has no business being on a zip (an
-     * audio one typed in by hand, say) is replaced rather than stacked up
-     * behind it. A dot that is just part of the name, as in an album called
-     * "Mr. Blue Sky", is left alone and simply gets the extension added.
-     */
     private static File withZipExtension(File file) {
         String name = file.getName();
 
@@ -61,12 +54,6 @@ public class ExportMusicProcessingDialog extends ProcessingDialog {
         );
     }
 
-    /**
-     * The name a song is stored under inside the zip, keeping the extension of
-     * the file it came from. Without it every extracted file is named after
-     * the track alone, which leaves neither a music player nor an import back
-     * into MusMeta able to tell what the files are.
-     */
     private static String entryNameFor(int position, Song song) {
         String name = Utils.toSafeFilename(
                 position + " - " + titleOf(song)
@@ -77,10 +64,6 @@ public class ExportMusicProcessingDialog extends ProcessingDialog {
         return extension.isBlank() ? name : name + "." + extension;
     }
 
-    /**
-     * A song without a title tag is named after its file, extension and all,
-     * so the extension has to come off before a new one is put on.
-     */
     private static String titleOf(Song song) {
         String title = song.getTitle();
 
@@ -93,12 +76,6 @@ public class ExportMusicProcessingDialog extends ProcessingDialog {
         return title;
     }
 
-    /**
-     * The extension of the file the song's bytes come from, since that is what
-     * they actually are. A file that somehow carries no extension of its own
-     * falls back to the format MusMeta writes, which is the only thing it could
-     * reasonably be labelled as.
-     */
     private static String extensionOf(Song song) {
         File source = song.getSourceAudioFile();
 

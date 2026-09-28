@@ -5,8 +5,13 @@ import org.slf4j.Logger;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class ConfigContainer<T> {
@@ -19,14 +24,14 @@ public class ConfigContainer<T> {
     private final List<Consumer<T>> changeListeners = new ArrayList<>();
 
     public ConfigContainer(String name, T defaultValue) {
-        this(name, defaultValue, defaultValue != null ? defaultValue.getClass() : Object.class);
+        this(name, defaultValue, resolveType(defaultValue));
     }
 
     public ConfigContainer(String name, T defaultValue, Type type) {
         this.name = Objects.requireNonNull(name, "ConfigContainer name cannot be null");
         this.defaultValue = defaultValue;
         this.value = defaultValue;
-        this.type = type != null ? type : (defaultValue != null ? defaultValue.getClass() : Object.class);
+        this.type = type != null ? type : resolveType(defaultValue);
     }
 
     public ConfigContainer(String name, T defaultValue, Class<T> typeClass) {
@@ -39,10 +44,37 @@ public class ConfigContainer<T> {
 
     @SuppressWarnings("unchecked")
     public ConfigContainer(String name, T defaultValue, ConfigCodec<T> codec) {
-        this(name, defaultValue, defaultValue != null ? defaultValue.getClass() : Object.class);
+        this(name, defaultValue, resolveType(defaultValue));
         if (codec != null && defaultValue != null) {
             ConfigManager.registerCodec((Class<T>) defaultValue.getClass(), codec);
         }
+    }
+
+    static Type resolveType(Object defaultValue) {
+        if (defaultValue == null) {
+            return Object.class;
+        }
+        if (defaultValue instanceof Collection<?> collection) {
+            Type elementType = typeOfFirst(collection);
+            return collection instanceof Set
+                    ? TypeToken.getParameterized(LinkedHashSet.class, elementType).getType()
+                    : TypeToken.getParameterized(ArrayList.class, elementType).getType();
+        }
+        if (defaultValue instanceof Map<?, ?> map) {
+            return TypeToken.getParameterized(
+                    LinkedHashMap.class,
+                    typeOfFirst(map.keySet()),
+                    typeOfFirst(map.values())
+            ).getType();
+        }
+        return defaultValue.getClass();
+    }
+
+    private static Type typeOfFirst(Collection<?> values) {
+        for (Object value : values) {
+            return value == null ? Object.class : value.getClass();
+        }
+        return Object.class;
     }
 
     public String getName() {

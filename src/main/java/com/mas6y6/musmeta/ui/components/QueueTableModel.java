@@ -78,11 +78,6 @@ public class QueueTableModel<T> extends AbstractTableModel {
         fireTableDataChanged();
     }
 
-    /**
-     * Moves a row from one position to another.
-     *
-     * Both positions are model indexes.
-     */
     public void moveRow(int from, int to) {
         if (from < 0 || from >= items.size()) {
             return;
@@ -99,24 +94,12 @@ public class QueueTableModel<T> extends AbstractTableModel {
         T item = items.remove(from);
         items.add(to, item);
 
-        /*
-         * Since the index column is derived from the row position,
-         * all affected index cells need repainting.
-         */
         fireTableRowsUpdated(
                 Math.min(from, to),
                 Math.max(from, to)
         );
     }
 
-    /**
-     * Moves a row to a 1-based queue position.
-     *
-     * Example:
-     * moveRowTo(5, 1)
-     *
-     * moves row 5 to the first position.
-     */
     public void moveRowTo(int from, int queuePosition) {
         if (queuePosition < 1 || queuePosition > items.size()) {
             return;
@@ -165,7 +148,6 @@ public class QueueTableModel<T> extends AbstractTableModel {
     public Object getValueAt(int row, int column) {
         T item = items.get(row);
 
-        // Queue position
         if (column == 0) {
             return row + 1;
         }
@@ -175,16 +157,10 @@ public class QueueTableModel<T> extends AbstractTableModel {
 
     @Override
     public boolean isCellEditable(int row, int column) {
-        /*
-         * Column 0 = queue number
-         */
         if (column == 0) {
             return true;
         }
 
-        /*
-         * Optional setters for normal columns.
-         */
         return setters != null
                 && setters[column - 1] != null;
     }
@@ -195,9 +171,6 @@ public class QueueTableModel<T> extends AbstractTableModel {
             return;
         }
 
-        /*
-         * Queue index
-         */
         if (column == 0) {
             if (value == null) {
                 return;
@@ -211,15 +184,11 @@ public class QueueTableModel<T> extends AbstractTableModel {
                 moveRowTo(row, newPosition);
 
             } catch (NumberFormatException ignored) {
-                // Invalid input; leave the row where it was.
             }
 
             return;
         }
 
-        /*
-         * Normal editable column
-         */
         if (setters != null && setters[column - 1] != null) {
             setters[column - 1].accept(
                     items.get(row),

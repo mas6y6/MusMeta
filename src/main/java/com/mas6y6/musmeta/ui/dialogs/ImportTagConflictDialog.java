@@ -17,17 +17,8 @@ import java.util.Set;
 public class ImportTagConflictDialog extends JDialog {
 
     public enum Choice {
-        /**
-         * Keep the value the song already carries.
-         */
         KEEP_SONG_VALUE,
-        /**
-         * Overwrite the song's value with the album's.
-         */
         USE_ALBUM_VALUE,
-        /**
-         * Leave the import alone.
-         */
         CANCEL
     }
 
@@ -42,10 +33,6 @@ public class ImportTagConflictDialog extends JDialog {
 
     private boolean cancelled = true;
 
-    /**
-     * @return the answer given for each tag, or {@code null} when the import
-     *         was cancelled
-     */
     public static Map<AlbumTags.Essential, Choice> showAndResolve(
             Window owner,
             List<Song> songs,
@@ -170,10 +157,6 @@ public class ImportTagConflictDialog extends JDialog {
         return panel;
     }
 
-    /**
-     * One summary line naming a side of the comparison and the values it holds,
-     * flagged when the songs disagree among themselves.
-     */
     private JComponent valueLine(String side, List<String> values, @Nullable String colorKey) {
         String text = side + ": " + String.join("; ", values);
         if (values.size() > 1) {

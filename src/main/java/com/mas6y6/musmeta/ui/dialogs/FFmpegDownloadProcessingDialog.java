@@ -1,13 +1,13 @@
 package com.mas6y6.musmeta.ui.dialogs;
 
 import com.mas6y6.musmeta.Constants;
-import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialogBase;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
 
 import java.awt.*;
 import java.nio.file.Path;
 
-public class FFmpegDownloadProcessingDialog extends ProcessingDialog {
+public class FFmpegDownloadProcessingDialog extends ProcessingDialogBase {
 
     private final Path installationDir;
 

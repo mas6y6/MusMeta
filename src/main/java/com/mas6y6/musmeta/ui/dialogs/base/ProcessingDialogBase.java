@@ -9,8 +9,8 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-public abstract class ProcessingDialog {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProcessingDialog.class.getName());
+public abstract class ProcessingDialogBase {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProcessingDialogBase.class.getName());
 
     public enum ProgressMode {
         INDETERMINATE,
@@ -45,7 +45,7 @@ public abstract class ProcessingDialog {
 
     private Thread workerThread;
 
-    protected ProcessingDialog(
+    protected ProcessingDialogBase(
             Window owner,
             String title
     ) {
@@ -57,7 +57,7 @@ public abstract class ProcessingDialog {
         );
     }
 
-    protected ProcessingDialog(
+    protected ProcessingDialogBase(
             Window owner,
             String title,
             ProgressMode progressMode
@@ -70,7 +70,7 @@ public abstract class ProcessingDialog {
         );
     }
 
-    protected ProcessingDialog(
+    protected ProcessingDialogBase(
             Window owner,
             String title,
             Dimension size,
@@ -348,11 +348,6 @@ public abstract class ProcessingDialog {
         );
     }
 
-    /**
-     * The actual work performed by the dialog.
-     *
-     * This method runs on the worker thread.
-     */
     protected abstract boolean process()
             throws Exception;
 
@@ -422,7 +417,7 @@ public abstract class ProcessingDialog {
         actionButton.setEnabled(true);
 
         if (!GraphicsEnvironment.isHeadless() && dialog != null) {
-            EXTDialog.showMessageDialog(
+            MDialog.showMessageDialog(
                     dialog,
                     getFailureMessage(),
                     getFailureDialogTitle(),
@@ -475,11 +470,6 @@ public abstract class ProcessingDialog {
         detailLabel.setText(" ");
     }
 
-    /**
-     * Updates the progress UI.
-     *
-     * This can safely be called from the worker thread.
-     */
     protected final void updateProgress(
             String status,
             @Nullable Integer percentage,
@@ -536,7 +526,7 @@ public abstract class ProcessingDialog {
         }
 
         if (!GraphicsEnvironment.isHeadless() && dialog != null) {
-            int choice = EXTDialog.showConfirmDialog(
+            int choice = MDialog.showConfirmDialog(
                     dialog,
                     getCancelMessage(),
                     "Cancel Operation",

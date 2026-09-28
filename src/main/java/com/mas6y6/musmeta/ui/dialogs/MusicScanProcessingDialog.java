@@ -6,14 +6,14 @@ import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.MainWindow;
-import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialogBase;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 
 import java.awt.*;
 import java.nio.file.Path;
 import java.util.List;
 
-public class MusicScanProcessingDialog extends ProcessingDialog {
+public class MusicScanProcessingDialog extends ProcessingDialogBase {
     private final Path path;
 
     public MusicScanProcessingDialog(Window owner, boolean useDefaultMusicDir, String path) {

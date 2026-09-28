@@ -26,18 +26,24 @@ def git = { List<String> args ->
     }
 }
 
+def homebuilt
+
 if (cliVersion) {
     version = cliVersion
+    homebuilt = false
 } else {
     def tag = git(['describe', '--tags', '--exact-match'])
     def commit = git(['rev-parse', '--short', 'HEAD'])
 
     if (tag.exitValue == 0 && tag.output) {
         version = tag.output
+        homebuilt = false
     } else if (commit.exitValue == 0 && commit.output) {
         version = "Homebuilt - #${commit.output}"
+        homebuilt = true
     } else {
         version = 'HOMEBUILT'
+        homebuilt = true
     }
 }
 
@@ -45,6 +51,12 @@ def lastTag = git(['describe', '--tags', '--abbrev=0'])
 def installerVersion = version.find(/\d+\.\d+\.\d+/) ?:
         (lastTag.exitValue == 0 && lastTag.output ? lastTag.output.find(/\d+\.\d+\.\d+/) : null) ?:
         '1.0.0'
+
+def headCommit = git(['rev-parse', '--short', 'HEAD'])
+def githubCommit = headCommit.exitValue == 0 && headCommit.output ? headCommit.output : ''
+def musmetaVersion = homebuilt
+        ? (lastTag.exitValue == 0 && lastTag.output ? lastTag.output : 'unknown')
+        : version
 
 java {
     toolchain {
@@ -183,7 +195,12 @@ publishing {
 
 tasks.named('processResources') {
     filesMatching('musmeta.properties') {
-        expand(version: project.version)
+        expand(
+                version: project.version,
+                musmetaVersion: musmetaVersion,
+                githubCommit: githubCommit,
+                homebuilt: homebuilt
+        )
     }
 
     filesMatching('about.md') {

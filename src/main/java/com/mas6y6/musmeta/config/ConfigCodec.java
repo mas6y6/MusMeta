@@ -4,33 +4,13 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-/**
- * A Codec interface for bidirectional conversion between a custom class {@code T}
- * and a {@link ConfigBuilder}.
- *
- * @param <T> the type of object handled by this codec
- */
+
 public interface ConfigCodec<T> {
 
-    /**
-     * Encodes the given object into the config builder.
-     *
-     * @param value   the object to encode
-     * @param builder the target config builder
-     */
     void encode(T value, ConfigBuilder builder);
 
-    /**
-     * Decodes an object from the config builder.
-     *
-     * @param builder the source config builder
-     * @return the decoded object instance
-     */
     T decode(ConfigBuilder builder);
 
-    /**
-     * Creates a codec from an encoder and decoder function.
-     */
     static <T> ConfigCodec<T> of(BiConsumer<T, ConfigBuilder> encoder, Function<ConfigBuilder, T> decoder) {
         Objects.requireNonNull(encoder, "Encoder cannot be null");
         Objects.requireNonNull(decoder, "Decoder cannot be null");
@@ -47,9 +27,6 @@ public interface ConfigCodec<T> {
         };
     }
 
-    /**
-     * Creates a builder to construct a {@link ConfigCodec}.
-     */
     static <T> CodecBuilder<T> builder(Function<ConfigBuilder, T> factory) {
         return new CodecBuilder<>(factory);
     }

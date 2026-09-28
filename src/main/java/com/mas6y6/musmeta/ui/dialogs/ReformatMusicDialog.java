@@ -3,14 +3,13 @@ package com.mas6y6.musmeta.ui.dialogs;
 import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.ui.MainWindow;
-import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialog;
-import com.mas6y6.musmeta.ui.tabs.AlbumDetailTab;
+import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialogBase;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 
 import java.awt.Window;
 import java.util.List;
 
-public class ReformatMusicDialog extends ProcessingDialog {
+public class ReformatMusicDialog extends ProcessingDialogBase {
 
     private final List<Song> songs;
     private final AlbumFormatNormalizer.AudioFormat targetFormat;

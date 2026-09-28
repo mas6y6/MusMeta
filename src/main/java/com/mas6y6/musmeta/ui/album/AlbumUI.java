@@ -7,7 +7,7 @@ import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.MusicPlayerPanel;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.mas6y6.musmeta.ui.dialogs.EditAlbumDialog;
-import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
 
 import javax.swing.*;
 import java.awt.*;
@@ -300,7 +300,7 @@ public class AlbumUI extends JPanel {
         var deleteAlbum = new JMenuItem("Delete Album");
         deleteAlbum.addActionListener(e -> {
              if (
-                EXTDialog.showOptionDialog(
+                MDialog.showOptionDialog(
                     MainWindow.INSTANCE,
                     "Are you sure you want to delete this album?",
                     "Delete Album?",

@@ -1,7 +1,6 @@
 package com.mas6y6.musmeta.launch;
 
-import com.formdev.flatlaf.FlatClientProperties;
-import com.mas6y6.musmeta.utils.Version;
+import com.mas6y6.musmeta.utils.VersionSource;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,7 +38,7 @@ public final class LaunchScreen extends JWindow {
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
         );
 
-        JLabel version = new JLabel("v" + Version.get());
+        JLabel version = new JLabel("v" + VersionSource.getString());
         version.setFont(loadFont().deriveFont(13f));
         version.setForeground(ACCENT);
         version.setAlignmentX(Component.LEFT_ALIGNMENT);

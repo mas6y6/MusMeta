@@ -55,9 +55,6 @@ public class MusicQueueDialog extends JDialog {
 
     public MusicQueueDialog(Window owner) {
         super(owner, "Queue", ModalityType.APPLICATION_MODAL);
-
-        // Disposing rather than hiding, so closing the window detaches the
-        // player listener the same way the Close button does.
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         setSize(DIALOG_SIZE);
@@ -203,10 +200,6 @@ public class MusicQueueDialog extends JDialog {
         return panel;
     }
 
-    /**
-     * Draws the song that is playing in bold, so the row the music comes from
-     * can be told apart from the rows that are merely lined up.
-     */
     private TableCellRenderer playingRowRenderer() {
         return new DefaultTableCellRenderer() {
             @Override
@@ -240,10 +233,6 @@ public class MusicQueueDialog extends JDialog {
         };
     }
 
-    /**
-     * Keeps a column's header carrying the hint for what can be done with it,
-     * since the column itself has no room to explain itself.
-     */
     private static TableCellRenderer tooltipHeaderRenderer(String tooltip) {
         return new DefaultTableCellRenderer() {
             @Override

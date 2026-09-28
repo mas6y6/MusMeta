@@ -11,13 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Asks the user to pick, for every song that collides during import or scan,
- * which file should end up in the library. Each collision is a small radio
- * group: "keep existing", one entry per incoming file, and optionally
- * "skip". The dialog is modal and blocks the worker thread until a choice
- * is made; a {@code null} return means the whole import should be aborted.
- */
 public class DuplicateImportDialog extends JDialog {
 
     private static final Dimension DIALOG_SIZE = new Dimension(640, 460);
@@ -32,13 +25,6 @@ public class DuplicateImportDialog extends JDialog {
     private record GroupSpec(Duplicates.Group group, List<Option> options, List<JRadioButton> buttons) {
     }
 
-    /**
-     * Shows the dialog and returns, for every duplicate group, the song the
-     * user chose to import. A group mapped to {@code null} means the user
-     * chose "keep existing" or "skip" (import nothing for that group).
-     * Returns {@code null} when the user cancelled the whole import, or when
-     * there is nothing to resolve.
-     */
     public static Map<Duplicates.Group, Song> showAndResolve(
             Window owner,
             List<Duplicates.Group> groups
@@ -69,13 +55,6 @@ public class DuplicateImportDialog extends JDialog {
         return result[0];
     }
 
-    /**
-     * The same resolution for callers that are already on the event thread
-     * and can simply block on the modal dialog themselves.
-     *
-     * @return the user's choices, or {@code null} when the import was
-     *         cancelled
-     */
     public static Map<Duplicates.Group, Song> resolve(
             Window owner,
             List<Duplicates.Group> groups

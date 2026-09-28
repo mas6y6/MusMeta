@@ -33,21 +33,8 @@ public class Core {
 
     public record ScanResult(List<Song> musicFiles, List<Album> albums) {}
 
-    /**
-     * Decides what to do with duplicate songs discovered during a scan.
-     * Implementations should present the choice UI and block until the user
-     * has made a decision.
-     */
     @FunctionalInterface
     public interface DuplicateResolver {
-
-        /**
-         * Called with every duplicate group found while scanning.
-         *
-         * @return a choice per group ({@code null} value: import nothing for
-         *         that group and keep the existing songs), or {@code null} to
-         *         abort the scan without touching the library.
-         */
         Map<Duplicates.Group, Song> resolve(List<Duplicates.Group> groups);
     }
 
@@ -71,17 +58,6 @@ public class Core {
         return scanForMusicFiles(musicDir, ignorePaths, null);
     }
 
-    /**
-     * Scans a directory tree for music, incrementally syncing the library:
-     * songs already in the library are kept, newly discovered songs are added,
-     * and songs whose files no longer exist on disk are removed. Persists only
-     * when the library actually changed.
-     *
-     * <p>When {@code resolver} is provided, duplicate songs (same track found
-     * in another file, folder or format) are reported to it so the user can
-     * pick which file to import. If the resolver returns {@code null}, the
-     * scan is aborted without modifying the library.
-     */
     public static ScanResult scanForMusicFiles(Path musicDir, List<Path> ignorePaths, DuplicateResolver resolver) {
         LOGGER.info("Scanning for music files...");
         LOGGER.info("Ignoring paths: {}", ignorePaths);

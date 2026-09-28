@@ -12,17 +12,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 
-/**
- * Holds the music library (albums and their disc/song assortment) and
- * handles persisting it to the config through its {@link ConfigCodec}.
- */
 public class Library {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Library.class);
 
-    /**
-     * A song that was listed in the saved library but could not be read back
-     * from the path it was stored with.
-     */
     public record MissingSong(String path, String albumTitle, int discIndex) {
     }
 
@@ -113,9 +105,6 @@ public class Library {
         return List.copyOf(result);
     }
 
-    /**
-     * Adds a song to the library, placing it into the album declared by its tags.
-     */
     public void addSong(Song song) {
         Objects.requireNonNull(song, "Song cannot be null");
         String albumTitle = song.getAlbum();
@@ -187,17 +176,11 @@ public class Library {
         return library;
     }
 
-    /**
-     * Persists the library to the config through the registered codec.
-     */
     public void save() {
         ensureRegistered();
         ConfigManager.getInstance().getConfig(CONFIG_NAME).setValue(CONFIG_KEY, this);
     }
 
-    /**
-     * Restores the library from the config, replacing the current contents.
-     */
     public static Library load() {
         ensureRegistered();
 

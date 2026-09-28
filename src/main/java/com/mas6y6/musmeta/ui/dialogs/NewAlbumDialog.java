@@ -127,10 +127,7 @@ public class NewAlbumDialog extends JDialog {
         return albumImageFile;
     }
 
-    /**
-     * @return the album that was created, or {@code null} when the dialog was
-     *         cancelled or the name was rejected
-     */
+
     public Album getCreatedAlbum() {
         return createdAlbum;
     }
@@ -154,12 +151,6 @@ public class NewAlbumDialog extends JDialog {
         }
     }
 
-    /**
-     * Copies the selected album image into {@code ~/.musmeta/album_art} so it
-     * survives restart and can be shown even before the album has any songs.
-     *
-     * @return the path of the stored image, or {@code null} if no image was chosen
-     */
     private Path storeArtwork(String albumName) {
         if (albumImageFile == null) {
             return null;

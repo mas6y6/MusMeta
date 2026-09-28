@@ -6,10 +6,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-/**
- * Informs the user that songs from the saved library could not be found
- * (or read) at the path they were stored.
- */
 public class MissingSongsDialog extends JDialog {
     private static final Dimension DIALOG_SIZE = new Dimension(580, 430);
 

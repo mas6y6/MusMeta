@@ -12,6 +12,7 @@ import com.mas6y6.musmeta.core.Core;
 import org.slf4j.Logger;
 
 import javax.swing.*;
+import java.awt.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -60,7 +61,11 @@ public class Settings {
             ConfigManager.getInstance().getConfig("app").register("music_player_volume", 80);
 
     public static ConfigContainer<List<String>> DISABLED_PLUGINS =
-            ConfigManager.getInstance().getConfig("app").register("disabled_plugins", List.of());
+            ConfigManager.getInstance().getConfig("app").register("disabled_plugins", List.of(),
+                    new TypeToken<List<String>>() {});
+
+    public static ConfigContainer<Dimension> MUSMETA_SIZE =
+            ConfigManager.getInstance().getConfig("app").register("musmeta_size", new Dimension(1000, 600));
 
     private Settings() {}
 

@@ -8,11 +8,10 @@ import com.mas6y6.musmeta.core.Duplicates;
 import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.settings.Settings;
-import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.FieldKey;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,10 +83,6 @@ public class ImportSongsDialog extends JDialog {
         setContentPane(content());
     }
 
-    /**
-     * Every song in the library that does not already belong to this album,
-     * ordered by album, disc and track so the list reads like the library does.
-     */
     private List<Candidate> libraryCandidates() {
         Set<Song> own = identitySet(album.getSongs());
         Set<String> paths = new HashSet<>();
@@ -247,10 +242,6 @@ public class ImportSongsDialog extends JDialog {
         return selected;
     }
 
-    /**
-     * Takes the songs that were added from files back off the list. Library
-     * songs stay listed, they are simply not imported unless they are ticked.
-     */
     private void removeAddedFiles() {
         for (int row = model.getRowCount() - 1; row >= 0; row--) {
             if (Boolean.TRUE.equals(model.getValueAt(row, 0)) && !candidates.get(row).fromLibrary()) {
@@ -387,7 +378,7 @@ public class ImportSongsDialog extends JDialog {
         toImport.addAll(newFiles);
 
         if (toImport.isEmpty()) {
-            EXTDialog.showMessageDialog(
+            MDialog.showMessageDialog(
                     this,
                     "None of the selected songs will be imported.",
                     "Nothing to Import",
@@ -544,10 +535,6 @@ public class ImportSongsDialog extends JDialog {
         return updates;
     }
 
-    /**
-     * A tag nobody was asked about simply takes the album's value, since a song
-     * that disagreed is the whole reason the question would have been asked.
-     */
     private static boolean useAlbumValue(
             Map<AlbumTags.Essential, ImportTagConflictDialog.Choice> decisions,
             AlbumTags.Essential tag

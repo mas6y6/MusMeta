@@ -27,18 +27,8 @@ public class Song {
     private static final String UNKNOWN_ARTIST = "Unknown Artist";
     public static final String UNKNOWN_ALBUM = "Unknown";
 
-    /**
-     * Separator used when displaying several values of a single tag field,
-     * matching how iTunes and Windows show multiple artists or composers
-     * (e.g. "Artist 1; Artist 2").
-     */
     private static final String VALUE_SEPARATOR = "; ";
 
-    /**
-     * Tag keys that can legally hold more than one value for a single song
-     * (multiple artists, producers, composers...). These are read back in
-     * full and re-written in full so edits never drop the extra values.
-     */
     private static final Set<FieldKey> MULTI_VALUE_KEYS = Set.of(
             FieldKey.ARTIST,
             FieldKey.ALBUM_ARTIST,
@@ -154,11 +144,6 @@ public class Song {
         return "1".equals(val) || "true".equalsIgnoreCase(val) || "yes".equalsIgnoreCase(val);
     }
 
-    /**
-     * The compilation flag exactly as the file stores it, so a caller can tell
-     * "this file says it is not part of a compilation" apart from "this file
-     * says nothing about compilations at all". Blank means the latter.
-     */
     public String getRawCompilation() {
         return tagFirst(FieldKey.IS_COMPILATION, "");
     }
@@ -244,11 +229,6 @@ public class Song {
         }
     }
 
-    /**
-     * Replaces a multi-value field (artist, album artist, composer) with each
-     * of the supplied values stored separately, so files keep the individual
-     * names besides the joined "Artist 1; Artist 2" string iTunes displays.
-     */
     private void setTagValues(Tag tag, FieldKey key, String value) throws Exception {
         tag.deleteField(key);
         for (String part : splitValues(value)) {
@@ -267,13 +247,6 @@ public class Song {
         return parts;
     }
 
-    /**
-     * Keeps both artist tags in step the way iTunes does. A song carries a song
-     * artist (who made the song) and an album artist (who made the whole album),
-     * and whichever of the two is missing is filled in from the other, so a file
-     * is never left with only one of them. Values that are already present are
-     * left untouched.
-     */
     public void completeArtistTags() {
         String artist = getRawArtist();
         String albumArtist = getRawAlbumArtist();
@@ -341,18 +314,10 @@ public class Song {
             String value = tag.getFirst(key);
             return value == null || value.isBlank() ? fallback : value;
         } catch (UnsupportedOperationException e) {
-            // Some tag types (e.g. WAV Info tags) do not support every field key.
             return fallback;
         }
     }
 
-    /**
-     * Returns every value stored for a field. Separate frames (e.g. multiple
-     * TPE1 artist fields), null-separated values inside a single frame
-     * (ID3v2.4 / MP4 atoms) and semicolon-joined strings are all split into
-     * their individual values, edge cases some readers expose as mangled
-     * text (e.g. "Artist1Artist2").
-     */
     private List<String> getAllTagValues(FieldKey key) {
         Tag tag = getTag();
         if (tag == null) {

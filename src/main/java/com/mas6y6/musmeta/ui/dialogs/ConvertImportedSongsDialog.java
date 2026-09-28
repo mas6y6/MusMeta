@@ -3,7 +3,7 @@ package com.mas6y6.musmeta.ui.dialogs;
 import com.mas6y6.musmeta.Main;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.settings.Settings;
-import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialogBase;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 
 import java.awt.Window;
@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 
-public class ConvertImportedSongsDialog extends ProcessingDialog {
+public class ConvertImportedSongsDialog extends ProcessingDialogBase {
 
     private final List<Song> songs;
 
@@ -21,11 +21,6 @@ public class ConvertImportedSongsDialog extends ProcessingDialog {
         this.songs = List.copyOf(songs);
     }
 
-    /**
-     * @return {@code true} when at least one of the songs is in a format other
-     *         than the target one, so a selection that needs no work at all
-     *         does not flash an empty progress window
-     */
     public static boolean isNeeded(List<Song> songs, AlbumFormatNormalizer.AudioFormat target) {
         if (target == null || songs == null || songs.isEmpty()) {
             return false;

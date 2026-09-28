@@ -1,5 +1,7 @@
 package com.mas6y6.musmeta.ui.components;
 
+import com.mas6y6.musmeta.settings.Settings;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -16,7 +18,7 @@ public abstract class MainAppFrame extends JFrame {
         setIconImage(APP_ICON);
 
         setMinimumSize(new Dimension(1000, 600));
-        setSize(1000, 600);
+        setSize(Settings.MUSMETA_SIZE.get());
         setLocationRelativeTo(null);
 
         addWindowListener(new WindowAdapter() {

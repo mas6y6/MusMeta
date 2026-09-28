@@ -7,8 +7,7 @@ import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.MainWindow;
-import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialog;
-import com.mas6y6.musmeta.ui.tabs.AlbumDetailTab;
+import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialogBase;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -29,7 +28,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class ProcessMusicDialog extends ProcessingDialog {
+public class ProcessMusicDialog extends ProcessingDialogBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessMusicDialog.class);
 
     private final File[] files;

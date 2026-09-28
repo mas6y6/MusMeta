@@ -4,7 +4,7 @@ import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Disc;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.settings.Settings;
-import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +81,7 @@ public final class AlbumFormatNormalizer {
     public static void promptToNormalizeMixedAlbums(Component parent, Collection<Album> albums) {
         Path ffmpeg = FFmpegUtils.getFFmpegExecutable();
         if (ffmpeg == null) {
-            EXTDialog.showMessageDialog(parent,
+            MDialog.showMessageDialog(parent,
                     "FFmpeg is required to convert album audio formats.",
                     "FFmpeg Required", JOptionPane.WARNING_MESSAGE);
             return;
@@ -101,7 +101,7 @@ public final class AlbumFormatNormalizer {
                     continue;
                 }
 
-                int action = EXTDialog.showOptionDialog(parent,
+                int action = MDialog.showOptionDialog(parent,
                         "Convert the tracks in \"" + album.getTitle() + "\" to " + target
                                 + "?\nOriginal files are replaced only after a successful conversion.",
                         "Normalize Album Format",
@@ -118,7 +118,7 @@ public final class AlbumFormatNormalizer {
 
             ConversionResult result = normalize(album, target, ffmpeg);
             if (!result.succeeded()) {
-                EXTDialog.showMessageDialog(parent,
+                MDialog.showMessageDialog(parent,
                         "Converted " + result.converted() + " track(s) in \"" + album.getTitle()
                                 + "\". " + result.failedFiles().size() + " track(s) could not be converted.",
                         "Some Tracks Were Not Converted", JOptionPane.WARNING_MESSAGE);
@@ -500,7 +500,7 @@ public final class AlbumFormatNormalizer {
                 "Choose one format for its tracks:",
                 formatPicker
         };
-        int choice = EXTDialog.showConfirmDialog(parent, message, "Mixed Album Formats",
+        int choice = MDialog.showConfirmDialog(parent, message, "Mixed Album Formats",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
         return choice == JOptionPane.OK_OPTION ? (AudioFormat) formatPicker.getSelectedItem() : null;
     }

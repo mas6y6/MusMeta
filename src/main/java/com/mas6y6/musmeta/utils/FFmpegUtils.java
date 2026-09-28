@@ -32,12 +32,6 @@ public class FFmpegUtils {
     private static final String FFMPEG_STATIC_GITHUB_API =
             "https://api.github.com/repos/eugeneware/ffmpeg-static/releases/latest";
 
-    /**
-     * Returns the Path to the FFmpeg executable.
-     * Checks configured settings path first, followed by default app bins and system PATH.
-     *
-     * @return Path to the FFmpeg executable, or null if not found.
-     */
     public static Path getFFmpegExecutable() {
         try {
             if (Settings.FFMPEG_INSTALLATION_PATH != null) {
@@ -79,27 +73,14 @@ public class FFmpegUtils {
         return null;
     }
 
-    /**
-     * Returns the Path to the FFmpeg executable.
-     *
-     * @return Path to the FFmpeg executable, or null if not found.
-     */
     public static Path getFFmpegPath() {
         return getFFmpegExecutable();
     }
 
-    /**
-     * Finds and returns the Path to the FFmpeg executable.
-     *
-     * @return Path to the FFmpeg executable, or null if not found.
-     */
     public static Path findFFmpegExecutable() {
         return getFFmpegExecutable();
     }
 
-    /**
-     * Finds the FFmpeg executable within the specified bin directory (or directory containing a bin folder).
-     */
     public static Path findFFmpegExecutable(Path binDir) {
         if (binDir == null || !Files.exists(binDir)) {
             return null;
@@ -148,9 +129,6 @@ public class FFmpegUtils {
         return null;
     }
 
-    /**
-     * Validates that the FFmpeg executable runs successfully and outputs version information.
-     */
     public static boolean validateFFmpegExecutable(Path executable) {
         if (executable == null || !Files.isRegularFile(executable)) {
             return false;
@@ -180,9 +158,6 @@ public class FFmpegUtils {
         }
     }
 
-    /**
-     * Validates the FFmpeg bin directory.
-     */
     public static boolean validateFFmpegBinDirectory(Path binDir) {
         Path executable = findFFmpegExecutable(binDir);
         if (executable == null) {
@@ -740,11 +715,6 @@ public class FFmpegUtils {
         return true;
     }
 
-    /**
-     * Maps the current CPU architecture to the matching static FFmpeg binary
-     * asset name hosted by the ffmpeg-static project, or {@code null} if no
-     * binary is available for this architecture.
-     */
     private static String linuxBinaryAssetName() {
         String arch = System.getProperty("os.arch", "")
                 .toLowerCase(Locale.ROOT);

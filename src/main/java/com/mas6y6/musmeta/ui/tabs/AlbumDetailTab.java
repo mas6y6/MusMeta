@@ -10,7 +10,7 @@ import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.mas6y6.musmeta.ui.dialogs.*;
-import com.mas6y6.musmeta.ui.dialogs.base.EXTDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
 import org.jaudiotagger.tag.FieldKey;
@@ -33,10 +33,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-/**
- * An iTunes-style detailed view of a single album opened as its own tab.
- * Shows the artwork, album metadata, and a list of its tracks.
- */
 public class AlbumDetailTab extends JPanel {
 
     private static final int CONTENT_PADDING_H = 40;
@@ -83,11 +79,6 @@ public class AlbumDetailTab extends JPanel {
         setAllTracksChecked(false);
     }
 
-    /**
-     * Checks or unchecks the checkbox of every track of every disc in one go,
-     * reporting the resulting selection to the listener only once instead of
-     * once per row.
-     */
     private void setAllTracksChecked(boolean checked) {
         bulkSelecting.set(true);
         try {
@@ -111,15 +102,10 @@ public class AlbumDetailTab extends JPanel {
         return List.copyOf(selectedSongs);
     }
 
-    /**
-     * Asks for a target format (and, when songs are selected, whether only
-     * those songs or the entire album should be converted), then runs the
-     * conversion behind a progress dialog.
-     */
     private void reformatSongs() {
         List<Song> allSongs = album.getSongs();
         if (allSongs.isEmpty()) {
-            EXTDialog.showMessageDialog(
+            MDialog.showMessageDialog(
                     MainWindow.INSTANCE,
                     "This album has no songs to reformat.",
                     "Reformat Songs",
@@ -129,7 +115,7 @@ public class AlbumDetailTab extends JPanel {
         }
 
         if (FFmpegUtils.getFFmpegExecutable() == null) {
-            EXTDialog.showMessageDialog(
+            MDialog.showMessageDialog(
                     MainWindow.INSTANCE,
                     "FFmpeg is required to convert audio formats.\n"
                             + "Set up an FFmpeg binary in Settings > FFmpeg first.",
@@ -158,7 +144,7 @@ public class AlbumDetailTab extends JPanel {
                 "Target format:", formatPicker,
                 "Songs:", scopePicker
         };
-        int choice = EXTDialog.showConfirmDialog(
+        int choice = MDialog.showConfirmDialog(
                 MainWindow.INSTANCE,
                 message,
                 "Reformat Songs",
@@ -313,20 +299,10 @@ public class AlbumDetailTab extends JPanel {
         return line;
     }
 
-    /**
-     * Returns the artist shown for the album: the shared track artist when all
-     * songs come from the same artist, or "Various Artists" when the album
-     * contains tracks from different artists.
-     */
     private String artistLabel() {
         return album.getArtist().artist();
     }
 
-    /**
-     * Puts the header and the per-disc track tables inside one scroll frame, so
-     * the artwork, the metadata, and every disc scroll together as a single page
-     * instead of the artwork staying pinned while only the tracks move.
-     */
     private JScrollPane scrollableContent() {
         JPanel content = new JPanel();
         content.setOpaque(false);
@@ -352,12 +328,6 @@ public class AlbumDetailTab extends JPanel {
         return scrollPane;
     }
 
-    /**
-     * One track table per disc, stacked in disc order. A single-disc album
-     * therefore looks exactly as it always did, while a multi-disc album gets
-     * its own titled table for each disc so the track numbers restart at 1
-     * under the disc they belong to.
-     */
     private JPanel trackTables() {
         discTables.clear();
 
@@ -433,13 +403,6 @@ public class AlbumDetailTab extends JPanel {
         return createTablePanel(table, songs);
     }
 
-    /**
-     * Wraps a track table in a plain panel rather than a scroll pane of its
-     * own. The table is sized to show all of its own rows and the enclosing
-     * scroll frame is what scrolls, so a scroll pane here would never have
-     * anything to scroll and would claim the mouse wheel, leaving the page
-     * stuck wherever the pointer is over a table.
-     */
     private static @NonNull JComponent createTablePanel(JTable table, List<Song> songs) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
@@ -520,10 +483,6 @@ public class AlbumDetailTab extends JPanel {
         return row >= 0 && row < songs.size() ? songs.get(row) : null;
     }
 
-    /**
-     * Writes an edited track number back to the song's tags, offering to keep
-     * the edit when the value would break the album's track indexing.
-     */
     private void onTrackNumberChanged(DiscTable discTable, TableModelEvent e) {
         if (updating.get() || bulkSelecting.get()) return;
         if (e.getType() != TableModelEvent.UPDATE || e.getColumn() != 1) return;
@@ -543,7 +502,7 @@ public class AlbumDetailTab extends JPanel {
                 int trackNumber = cellTrackNumber(value);
 
                 if (trackNumber <= 0) {
-                    if (EXTDialog.showConfirmDialog(
+                    if (MDialog.showConfirmDialog(
                             MainWindow.INSTANCE,
                             "The value you inputted is "+value+" and can break song indexing.\nDo you want to continue?",
                             "Empty value",
@@ -581,12 +540,6 @@ public class AlbumDetailTab extends JPanel {
         }
     }
 
-    /**
-     * Reads a track number cell as a number. The column is filled in with text,
-     * but the number editor hands back an {@link Integer} when a cell is
-     * committed, so the value is parsed rather than cast, and anything that is
-     * not a positive number reads as 0.
-     */
     private static int cellTrackNumber(Object value) {
         if (value instanceof Number number) {
             return number.intValue();
@@ -606,10 +559,6 @@ public class AlbumDetailTab extends JPanel {
         rebuildSelection();
     }
 
-    /**
-     * Rebuilds the selection from the checkbox column of every disc's table,
-     * so selecting across several discs behaves like selecting in one list.
-     */
     private void rebuildSelection() {
         selectedSongs.clear();
         for (DiscTable discTable : discTables) {
@@ -683,11 +632,6 @@ public class AlbumDetailTab extends JPanel {
         return minutes + ":" + (sec < 10 ? "0" : "") + sec;
     }
 
-    /**
-     * A label that word-wraps its text across multiple lines when its text is
-     * wider than the available space (the width of its parent container), so
-     * long album titles wrap instead of overflowing horizontally.
-     */
     private static final class WrappingLabel extends JLabel {
         private WrappingLabel(String text) {
             super(text);
@@ -789,7 +733,7 @@ public class AlbumDetailTab extends JPanel {
         JMenuItem delete = new JMenuItem("Delete");
         delete.addActionListener(_ -> {
             if (
-                    EXTDialog.showOptionDialog(
+                    MDialog.showOptionDialog(
                             MainWindow.INSTANCE,
                             "Do you want to delete the selected song(s)?",
                             "Delete Song(s)?",

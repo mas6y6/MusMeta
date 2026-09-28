@@ -255,9 +255,6 @@ public class ConfigManager {
             return (ConfigCodec<T>) codec;
         }
 
-        // Values are often stored as an implementation of their declared type
-        // (for example, Path is a WindowsPath on Windows). Allow a codec
-        // registered for an interface or superclass to handle those values.
         for (Map.Entry<Class<?>, ConfigCodec<?>> entry : codecs.entrySet()) {
             if (entry.getKey().isAssignableFrom(clazz)) {
                 return (ConfigCodec<T>) entry.getValue();

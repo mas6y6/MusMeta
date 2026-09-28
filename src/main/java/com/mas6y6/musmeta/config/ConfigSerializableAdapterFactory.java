@@ -13,11 +13,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.RecordComponent;
 
-/**
- * TypeAdapterFactory for classes implementing {@link ConfigSerializable} or registered with {@link ConfigCodec}.
- * Encodes objects into {@link ConfigBuilder} JSON representations and decodes them via constructors,
- * static factory methods, record components, or registered codecs.
- */
+
 public class ConfigSerializableAdapterFactory implements TypeAdapterFactory {
 
     @Override

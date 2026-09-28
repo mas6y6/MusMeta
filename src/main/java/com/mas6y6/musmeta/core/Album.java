@@ -41,23 +41,10 @@ public class Album {
         this(title, null, System.currentTimeMillis());
     }
 
-    /**
-     * Creates an album with an optional stored artwork image.
-     *
-     * @param title       the album title (must not be null)
-     * @param artworkPath path to a stored artwork image, or {@code null} if none
-     */
     public Album(String title, Path artworkPath) {
         this(title, artworkPath, System.currentTimeMillis());
     }
 
-    /**
-     * Creates an album with an optional stored artwork image and creation time.
-     *
-     * @param title       the album title (must not be null)
-     * @param artworkPath path to a stored artwork image, or {@code null} if none
-     * @param createdAt   creation timestamp (epoch millis), used to order albums
-     */
     public Album(String title, Path artworkPath, long createdAt) {
         this.title = Objects.requireNonNull(title, "Album title cannot be null");
         this.artworkPath = artworkPath;
@@ -76,9 +63,6 @@ public class Album {
         this.unknown = Song.UNKNOWN_ALBUM.equalsIgnoreCase(title) || "Unknown Album".equalsIgnoreCase(title);
     }
 
-    /**
-     * @return the path to the album's stored artwork, or {@code null} if none
-     */
     public Path getArtworkPath() {
         return artworkPath;
     }
@@ -102,17 +86,10 @@ public class Album {
         }
     }
 
-    /**
-     * @return this album's creation timestamp (epoch millis)
-     */
     public long getCreatedAt() {
         return createdAt;
     }
 
-    /**
-     * @return {@code true} if this is the special "Unknown Songs" album used to
-     *         hold songs that do not declare an album title
-     */
     public boolean isUnknown() {
         return unknown;
     }
@@ -191,13 +168,6 @@ public class Album {
         return "";
     }
 
-    /**
-     * Returns the album artist (the artist of the whole album) shared by this
-     * album's songs, i.e. the value that belongs in a song's album artist tag
-     * when it is moved onto this album. Returns an empty string when the songs
-     * disagree or none of them carry an album artist tag of their own, so the
-     * value is never guessed from the song artists.
-     */
     public String getAlbumArtist() {
         String first = null;
         for (Disc disc : discs) {
@@ -254,23 +224,9 @@ public class Album {
         discs.removeIf(disc -> disc.getSongs().isEmpty() && disc.getMissingSongPaths().isEmpty());
     }
 
-    /**
-     * Resolves the album artist from its songs, falling back to the first
-     * artist and finally to "Unknown Artist".
-     */
     public record ArtistInfo(String artist, boolean variousArtists) {
     }
 
-    /**
-     * Determines the album's artist from the songs' actual tags. A single
-     * shared artist is reported directly; genuinely different artists collapse
-     * into "Various Artists". A literal "Various Artists" album-artist tag is
-     * not trusted on its own — the songs' artist tags are always checked
-     * first, so an album whose tracks all share one artist is never presented
-     * as a compilation. Comparisons are trimmed and case-insensitive so equal
-     * names with different casing or padding are not mistaken for different
-     * artists.
-     */
     public ArtistInfo getArtist() {
         String firstAlbumArtist = null;
         boolean multipleAlbumArtists = false;
@@ -348,13 +304,6 @@ public class Album {
         return List.copyOf(songs);
     }
 
-    /**
-     * Returns the album's artwork: the stored (cached) artwork image if one is
-     * set, otherwise the embedded artwork found in the album's songs. The first
-     * time embedded artwork is found it is written to the {@code .musmeta}
-     * folder so later lookups read it straight from disk and never re-decode
-     * the audio tags. Returns {@code null} if no usable artwork exists.
-     */
     public Image getArtworkImage() {
         if (artworkPath != null && Files.isRegularFile(artworkPath)) {
             try {
@@ -363,7 +312,6 @@ public class Album {
                     return image;
                 }
             } catch (IOException ignored) {
-                // Fall through to embedded artwork below.
             }
         }
 
@@ -390,7 +338,6 @@ public class Album {
                     return image;
                 }
             } catch (UnsupportedOperationException | IOException ignored) {
-                // Some tag types don't support artwork, or the image failed to decode.
             }
         }
         return new ImageIcon(
@@ -400,12 +347,6 @@ public class Album {
         ).getImage();
     }
 
-    /**
-     * Persists the raw artwork bytes to {@code ~/.musmeta/album_art/<title>.png}
-     * and points this album at the cached file, so the embedded art is decoded
-     * only once. The image itself is not validated here; callers pass the bytes
-     * of artwork they have already decoded successfully.
-     */
     private void cacheArtwork(byte[] data) {
         try {
             Path artDir = Main.appDir.resolve(ARTWORK_DIR);
@@ -417,7 +358,6 @@ public class Album {
             artworkPath = cached;
             Library.getInstance().save();
         } catch (IOException | RuntimeException ignored) {
-            // Caching is best-effort; artwork is still returned from memory.
         }
     }
 
@@ -428,10 +368,6 @@ public class Album {
         return sanitized.isBlank() ? "album" : sanitized;
     }
 
-    /**
-     * Adds a song to the album, placing it into the disc its tags declare.
-     * A single-disc song simply lands on disc 1.
-     */
     public void addSong(Song song) {
         Objects.requireNonNull(song, "Song cannot be null");
 

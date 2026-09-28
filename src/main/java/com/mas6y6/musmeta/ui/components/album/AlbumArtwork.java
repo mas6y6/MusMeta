@@ -56,12 +56,6 @@ public class AlbumArtwork extends JLabel {
         repaint();
     }
 
-    /**
-     * Paints the artwork as a square centred in the component, using the
-     * shorter side as its edge length. A layout manager is free to hand this
-     * component a non-square area, and the art is then fitted into the largest
-     * square that fits rather than stretched out of its proportions.
-     */
     @Override
     protected void paintComponent(Graphics g) {
         int width = getWidth();

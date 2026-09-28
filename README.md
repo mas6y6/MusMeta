@@ -1,7 +1,7 @@
 > [!WARNING] 
 > MusMeta is still under **beta** and not every single feature has been fully completed!!!
 >
-> **If you encounter any issues the releases please report it on Github!**
+> **If you encounter any issues with the releases, please report it on GitHub!**
 
 <img width="100%" alt="banner" src="https://github.com/user-attachments/assets/d7640317-2e9e-4b92-af78-09eed93b6595" />
 
@@ -18,8 +18,6 @@
 
 This project aims to provide a comprehensive solution for editing music file metadata, offering full library support and compatibility with various music file formats.
 The user-friendly interface makes it easy for users to edit music file metadata without any prior knowledge of music file formats.
-
-
 
 # Libraries used
 
@@ -58,3 +56,7 @@ It's using the FabricMC mixins since it's more up to date compared to SpongePowe
 ## Executeables
 
 [FFmpeg](https://www.ffmpeg.org/)
+
+## Java Development Kit
+
+[JetBrains Runtime 25](https://github.com/JetBrains/JetBrainsRuntime)

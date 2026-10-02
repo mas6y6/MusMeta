@@ -19,6 +19,17 @@
 This project aims to provide a comprehensive solution for editing music file metadata, offering full library support and compatibility with various music file formats.
 The user-friendly interface makes it easy for users to edit music file metadata without any prior knowledge of music file formats.
 
+# Building
+
+This project uses several Git submodules for its dependencies. After cloning the repository, initialize and update all submodules with:
+
+```bash
+git submodule update --init --recursive
+```
+
+This will download and initialize all required submodules before building the project.
+
+
 # Libraries used
 
 **Thanks to the open source community for making the libraries that make this project is possible.**

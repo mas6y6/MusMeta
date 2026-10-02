@@ -48,6 +48,9 @@ public class Settings {
             ConfigManager.getInstance().getConfig("app").register("music_scan_ignore_paths", List.of(),
                     new TypeToken<List<Path>>() {});
 
+    public static ConfigContainer<String> ACCENT =
+            ConfigManager.getInstance().getConfig("app").register("accent", "#ff8086");
+
     public static ConfigContainer<String> AUDIO_TARGET_FORMAT =
             ConfigManager.getInstance().getConfig("app").register("audio_target_format", "flac");
 

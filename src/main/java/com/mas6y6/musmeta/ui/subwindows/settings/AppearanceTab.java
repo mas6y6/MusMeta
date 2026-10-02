@@ -5,14 +5,18 @@ import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import com.jthemedetecor.OsThemeDetector;
+import com.mas6y6.musmeta.Main;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
+import com.mas6y6.musmeta.ui.components.ColorPickerField;
 import com.mas6y6.musmeta.ui.subwindows.settings.base.SettingTab;
+import com.mas6y6.musmeta.utils.ColorWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collections;
 
 public class AppearanceTab extends SettingTab {
     private static final Logger LOGGER = LoggerFactory.getLogger(AppearanceTab.class);
@@ -49,11 +53,26 @@ public class AppearanceTab extends SettingTab {
 
         darkBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         CONTENT.add(darkBtn);
+        CONTENT.add(Box.createVerticalStrut(8));
+        CONTENT.add(new JSeparator());
+        CONTENT.add(Box.createVerticalStrut(8));
+        CONTENT.add(new JLabel("Accent:"));
+        CONTENT.add(Box.createVerticalStrut(8));
+
+        ColorPickerField colorPickerField = new ColorPickerField(Settings.ACCENT.get());
+        colorPickerField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        colorPickerField.addListener(color -> {
+            Settings.ACCENT.set(ColorWrapper.addWrapper(color).toHex());
+            Main.applyTheme();
+        });
+        CONTENT.add(colorPickerField);
 
         systemDefaultBtn.addActionListener(
                 e -> {
                     Settings.PREFERRED_THEME.set(Theme.SYSTEM);
                     try {
+                        FlatLaf.setGlobalExtraDefaults( Collections.singletonMap( "@accentColor", Settings.ACCENT.get() ) );
+
                         if (OsThemeDetector.getDetector().isDark()) {
                             FlatAnimatedLafChange.showSnapshot();
                             UIManager.setLookAndFeel(new FlatDarkLaf());
@@ -78,6 +97,8 @@ public class AppearanceTab extends SettingTab {
         darkBtn.addActionListener(
                 e -> Settings.PREFERRED_THEME.set(Theme.DARK)
         );
+
+
 
         configureInitialState();
     }

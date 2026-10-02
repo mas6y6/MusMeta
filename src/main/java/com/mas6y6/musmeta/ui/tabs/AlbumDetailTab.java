@@ -1,6 +1,5 @@
 package com.mas6y6.musmeta.ui.tabs;
 
-import com.formdev.flatlaf.util.SystemFileChooser;
 import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Disc;
 import com.mas6y6.musmeta.core.Library;
@@ -11,6 +10,7 @@ import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.mas6y6.musmeta.ui.dialogs.*;
 import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
+import com.mas6y6.musmeta.ui.dialogs.export.ExportMusicProcessingDialog;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
 import org.jaudiotagger.tag.FieldKey;
@@ -24,7 +24,6 @@ import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -240,13 +239,7 @@ public class AlbumDetailTab extends JPanel {
         JButton exportButton = new JButton("Export Album...");
         exportButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         exportButton.addActionListener((_) -> {
-            SystemFileChooser fc = new SystemFileChooser();
-            fc.setAcceptAllFileFilterUsed(false);
-            fc.setFileFilter(new SystemFileChooser.FileNameExtensionFilter("Zip Files", "zip"));
-            if( fc.showSaveDialog( this ) == SystemFileChooser.APPROVE_OPTION ) {
-                File file = fc.getSelectedFile();
-                new ExportMusicProcessingDialog(MainWindow.INSTANCE, album.getSongs(),file).startAndShow();
-            }
+            new ExportMusicProcessingDialog(MainWindow.INSTANCE, album.getSongs()).openAndStart();
         });
 
         meta.add(exportButton);

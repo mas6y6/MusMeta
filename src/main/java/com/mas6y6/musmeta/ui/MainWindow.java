@@ -1,6 +1,7 @@
 package com.mas6y6.musmeta.ui;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.util.SystemFileChooser;
 import com.formdev.flatlaf.util.SystemInfo;
 import com.jthemedetecor.OsThemeDetector;
@@ -13,7 +14,7 @@ import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.musicplayer.MusicPlayer;
 import com.mas6y6.musmeta.ui.components.MusicPlayerPanel;
-import com.mas6y6.musmeta.ui.dialogs.ExportMusicProcessingDialog;
+import com.mas6y6.musmeta.ui.dialogs.export.ExportMusicProcessingDialog;
 import com.mas6y6.musmeta.ui.dialogs.ProcessMusicDialog;
 import com.mas6y6.musmeta.ui.tabs.AlbumDetailTab;
 
@@ -28,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collections;
 import java.util.List;
 
 public class MainWindow extends MainAppFrame {
@@ -321,13 +323,7 @@ public class MainWindow extends MainAppFrame {
         exportSongs.addActionListener((_) -> {
             if (getSelectedSongs().isEmpty()) return;
 
-            SystemFileChooser fc = new SystemFileChooser();
-            fc.setAcceptAllFileFilterUsed(false);
-            fc.setFileFilter(new SystemFileChooser.FileNameExtensionFilter("Zip Files", "zip"));
-            if( fc.showSaveDialog( this ) == SystemFileChooser.APPROVE_OPTION ) {
-                File file = fc.getSelectedFile();
-                new ExportMusicProcessingDialog(this, getSelectedSongs(),file).startAndShow();
-            }
+            new ExportMusicProcessingDialog(this, getSelectedSongs()).openAndStart();
         });
         editMenu.add(exportSongs);
 

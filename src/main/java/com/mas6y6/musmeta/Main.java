@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 
 public class Main {
@@ -137,11 +138,15 @@ public class Main {
                     Theme preferredTheme = configManager.getConfig("app").getValue("preferred_theme");
                     if (preferredTheme == Theme.SYSTEM || preferredTheme == Theme.DARK) {
                         if (isDark) {
+                            FlatLaf.setGlobalExtraDefaults( Collections.singletonMap( "@accentColor", Settings.ACCENT.get() ) );
+
                             FlatAnimatedLafChange.showSnapshot();
                             UIManager.setLookAndFeel(new FlatDarkLaf());
                             FlatLaf.updateUI();
                             FlatAnimatedLafChange.hideSnapshotWithAnimation();
                         } else {
+                            FlatLaf.setGlobalExtraDefaults( Collections.singletonMap( "@accentColor", Settings.ACCENT.get() ) );
+
                             FlatAnimatedLafChange.showSnapshot();
                             UIManager.setLookAndFeel(new FlatLightLaf());
                             FlatLaf.updateUI();
@@ -153,6 +158,7 @@ public class Main {
                 }
             });
         } else {
+            FlatLaf.setGlobalExtraDefaults( Collections.singletonMap( "@accentColor", Settings.ACCENT.get() ) );
             FlatLightLaf.setup();
         }
 
@@ -210,25 +216,33 @@ public class Main {
         }
     }
 
-    private static void applyTheme() {
+    public static void applyTheme() {
         try {
             if (Settings.PREFERRED_THEME.get() == Theme.DARK) {
+                FlatLaf.setGlobalExtraDefaults( Collections.singletonMap( "@accentColor", Settings.ACCENT.get() ) );
+
                 FlatAnimatedLafChange.showSnapshot();
                 UIManager.setLookAndFeel(new FlatDarkLaf());
                 FlatLaf.updateUI();
                 FlatAnimatedLafChange.hideSnapshotWithAnimation();
             } else if (Settings.PREFERRED_THEME.get() == Theme.LIGHT) {
+                FlatLaf.setGlobalExtraDefaults( Collections.singletonMap( "@accentColor", Settings.ACCENT.get() ) );
+
                 FlatAnimatedLafChange.showSnapshot();
                 UIManager.setLookAndFeel(new FlatLightLaf());
                 FlatLaf.updateUI();
                 FlatAnimatedLafChange.hideSnapshotWithAnimation();
             } else {
                 if (OsThemeDetector.getDetector().isDark()) {
+                    FlatLaf.setGlobalExtraDefaults( Collections.singletonMap( "@accentColor", Settings.ACCENT.get() ) );
+
                     FlatAnimatedLafChange.showSnapshot();
                     UIManager.setLookAndFeel(new FlatDarkLaf());
                     FlatLaf.updateUI();
                     FlatAnimatedLafChange.hideSnapshotWithAnimation();
                 } else {
+                    FlatLaf.setGlobalExtraDefaults( Collections.singletonMap( "@accentColor", Settings.ACCENT.get() ) );
+
                     FlatAnimatedLafChange.showSnapshot();
                     UIManager.setLookAndFeel(new FlatLightLaf());
                     FlatLaf.updateUI();

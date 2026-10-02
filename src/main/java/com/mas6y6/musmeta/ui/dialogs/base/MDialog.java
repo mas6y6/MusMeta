@@ -71,9 +71,7 @@ public class MDialog extends JOptionPane {
 
     private static void removeTitleBar(JDialog dialog) {
         dialog.getRootPane().putClientProperty(FlatClientProperties.USE_WINDOW_DECORATIONS, true);
-        if (Settings.PREFERRED_THEME.get() == Theme.DARK) {
-            dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_BACKGROUND, dialog.getBackground().darker());
-        }
+        dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_BACKGROUND, dialog.getBackground());
         dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_CLOSE, false);
         dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_MAXIMIZE, false);
         dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_ICONIFFY, false);

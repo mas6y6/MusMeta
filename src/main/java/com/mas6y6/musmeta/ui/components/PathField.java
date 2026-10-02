@@ -7,18 +7,35 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.io.File;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.IntSupplier;
 
 public class PathField extends JPanel {
+    public enum DialogType {
+        OPEN,
+        SAVE
+    }
+
+    public interface PathFieldListener {
+        void onPathChanged(String newPath);
+    }
 
     private final JTextField pathField;
     private final JButton browseButton;
+    private DialogType dialogType;
 
-    public PathField(Component parentComponent) {
-        this(parentComponent, "Select Folder");
+    private SystemFileChooser fileChooser;
+    private Consumer<SystemFileChooser> fileChooserCustomizer;
+    private final ArrayList<PathFieldListener> listeners = new ArrayList<>();
+
+    public PathField(Component parentWindowComponent) {
+        this(parentWindowComponent, "Select Folder");
     }
 
-    public PathField(Component parentComponent, String dialogTitle) {
+    public PathField(Component parentWindowComponent, String dialogTitle) {
         super(new BorderLayout(10, 0));
 
         setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -27,13 +44,18 @@ public class PathField extends JPanel {
         pathField = new JTextField();
         browseButton = new JButton("Browse...");
 
+        fileChooser = new SystemFileChooser();
+        fileChooser.setDialogTitle(dialogTitle);
+
         add(pathField, BorderLayout.CENTER);
         add(browseButton, BorderLayout.EAST);
 
         // Fire our "path" property when the user types something
         pathField.getDocument().addDocumentListener(new DocumentListener() {
+
             private void changed() {
                 firePropertyChange("path", null, getPath());
+                firePathChanged(getPath());
             }
 
             @Override
@@ -52,32 +74,35 @@ public class PathField extends JPanel {
             }
         });
 
-        browseButton.addActionListener(e -> {
-            SystemFileChooser chooser = new SystemFileChooser();
+        browseButton.addActionListener(e -> showFileChooser(parentWindowComponent));
+    }
 
-            chooser.setDialogTitle(dialogTitle);
-            chooser.setFileSelectionMode(
-                    SystemFileChooser.DIRECTORIES_ONLY
-            );
-            chooser.setAcceptAllFileFilterUsed(false);
+    private void showFileChooser(Component parentComponent) {
+        // Start in the currently selected directory if possible
+        if (!pathField.getText().isBlank()) {
+            File currentPath = new File(pathField.getText());
 
-            // Start in the currently selected directory if possible
-            if (!pathField.getText().isBlank()) {
-                File currentPath = new File(pathField.getText());
-
-                if (currentPath.isDirectory()) {
-                    chooser.setCurrentDirectory(currentPath);
-                }
+            if (currentPath.isDirectory()) {
+                fileChooser.setCurrentDirectory(currentPath);
             }
+        }
 
-            int result = chooser.showOpenDialog(parentComponent);
+        // Let the user customize the chooser immediately before opening it
+        if (fileChooserCustomizer != null) {
+            fileChooserCustomizer.accept(fileChooser);
+        }
 
-            if (result == SystemFileChooser.APPROVE_OPTION) {
-                setPath(
-                        chooser.getSelectedFile().getAbsolutePath()
-                );
+        IntSupplier result = new IntSupplier() {
+            @Override
+            public int getAsInt() {
+                return dialogType == DialogType.OPEN ? fileChooser.showOpenDialog(parentComponent) : fileChooser.showSaveDialog(parentComponent);
             }
-        });
+        };
+
+        if (result.getAsInt() == SystemFileChooser.APPROVE_OPTION) {
+            setPath(fileChooser.getSelectedFile().getAbsolutePath());
+            firePathChanged(getPath());
+        }
     }
 
     public String getPath() {
@@ -94,6 +119,11 @@ public class PathField extends JPanel {
 
         pathField.setText(newPath);
         firePropertyChange("path", oldPath, newPath);
+        firePathChanged(path);
+    }
+
+    public void setDialogType(DialogType dialogType) {
+        this.dialogType = dialogType;
     }
 
     public JTextField getTextField() {
@@ -102,5 +132,35 @@ public class PathField extends JPanel {
 
     public JButton getBrowseButton() {
         return browseButton;
+    }
+
+    public SystemFileChooser getFileChooser() {
+        return fileChooser;
+    }
+
+    public void setFileChooser(SystemFileChooser fileChooser) {
+        this.fileChooser = Objects.requireNonNull(fileChooser);
+    }
+
+    public Consumer<SystemFileChooser> getFileChooserCustomizer() {
+        return fileChooserCustomizer;
+    }
+
+    public void setFileChooserCustomizer(
+            Consumer<SystemFileChooser> fileChooserCustomizer
+    ) {
+        this.fileChooserCustomizer = fileChooserCustomizer;
+    }
+
+    public void addListener(PathFieldListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeListener(PathFieldListener listener) {
+        listeners.remove(listener);
+    }
+
+    private void firePathChanged(String newPath) {
+        listeners.forEach(listener -> listener.onPathChanged(newPath));
     }
 }

@@ -41,4 +41,12 @@ public class ColorWrapper extends Color {
                 getAlpha()));
     }
 
+    public String toHex() {
+        return String.format(
+                "#%02X%02X%02X",
+                getRed(),
+                getGreen(),
+                getBlue()
+        );
+    }
 }

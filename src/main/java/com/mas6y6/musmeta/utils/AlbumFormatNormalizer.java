@@ -350,8 +350,50 @@ public final class AlbumFormatNormalizer {
 
     private static void convertTo(Song song, Path source, Path target, AudioFormat format, Path ffmpeg)
             throws Exception {
-        Files.createDirectories(target.getParent());
-        Path temporary = Files.createTempFile(target.getParent(), "musmeta-", "." + format.extension());
+        transcode(source, target, format, ffmpeg);
+        song.replaceAudioFile(AudioFileIO.read(target.toFile()));
+    }
+
+    /**
+     * Transcodes {@code source} into a new file inside {@code tempDir} without
+     * touching the original file or the library, so callers that only need a
+     * converted copy (e.g. exports) can delete it when they are done.
+     *
+     * @return the path of the converted file, owned by the caller
+     */
+    public static Path convertToTemporaryFile(Path source, AudioFormat targetFormat, Path tempDir)
+            throws Exception {
+        Path ffmpeg = FFmpegUtils.getFFmpegExecutable();
+        if (ffmpeg == null) {
+            throw new IllegalStateException("FFmpeg is required to convert audio formats.");
+        }
+
+        Files.createDirectories(tempDir);
+
+        Path target = tempDir.resolve(
+                "musmeta-" + UUID.randomUUID() + "." + targetFormat.extension()
+        );
+
+        transcode(source, target, targetFormat, ffmpeg);
+
+        return target;
+    }
+
+    /**
+     * Runs FFmpeg on {@code source} and atomically replaces {@code target} with
+     * the result, so a failed or interrupted conversion never leaves a partial
+     * file behind.
+     */
+    private static void transcode(Path source, Path target, AudioFormat format, Path ffmpeg)
+            throws Exception {
+        Path parent = target.getParent();
+        Files.createDirectories(parent == null ? Path.of(".") : parent);
+
+        Path temporary = Files.createTempFile(
+                parent == null ? Path.of(".") : parent,
+                "musmeta-",
+                "." + format.extension()
+        );
         Process process = null;
         try {
             List<String> command = new ArrayList<>(List.of(
@@ -399,9 +441,6 @@ public final class AlbumFormatNormalizer {
                 deleteWithRetry(target);
             }
             moveWithRetry(temporary, target);
-
-            var convertedAudioFile = AudioFileIO.read(target.toFile());
-            song.replaceAudioFile(convertedAudioFile);
         } finally {
             destroyProcess(process);
             deleteIfExistsWithRetry(temporary);

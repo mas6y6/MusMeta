@@ -64,22 +64,10 @@ public class AudioManager {
         listeners.remove(listener);
     }
 
-    /**
-     * Plays the given stream until it ends, stopping whatever is currently
-     * playing. Blocks on the calling thread until the stream finishes, is
-     * stopped, or reports an error, so it can be used directly inside a
-     * playback loop (e.g. MusicPlayer's track queue thread).
-     */
     public void play(AudioStream stream) throws IOException {
         play(stream, null);
     }
 
-    /**
-     * Plays the given stream until it ends, stopping whatever is currently
-     * playing. Blocks on the calling thread until playback is done. The
-     * supplied listener is notified for the duration of this playback
-     * session (in addition to any globally registered listeners).
-     */
     public void play(AudioStream stream, Listener listener) throws IOException {
         Objects.requireNonNull(stream, "stream");
 
@@ -101,10 +89,6 @@ public class AudioManager {
         playbackLoop();
     }
 
-    /**
-     * Seeks to the given position. Clamps negative values to the start.
-     * Requested while paused is applied and the stream stays paused.
-     */
     public void seek(Duration position) {
         Duration target = position != null && !position.isNegative()
                 ? position
@@ -119,12 +103,10 @@ public class AudioManager {
         }
     }
 
-    /** Goes back to the start of the track. */
     public void seekToStart() {
         seek(Duration.ZERO);
     }
 
-    /** Goes back from the current position by the given amount. */
     public void rewind(Duration amount) {
         if (amount == null || amount.isZero()) {
             return;
@@ -132,7 +114,6 @@ public class AudioManager {
         seek(position.minus(amount));
     }
 
-    /** Goes forward from the current position by the given amount. */
     public void forward(Duration amount) {
         if (amount == null || amount.isZero()) {
             return;
@@ -341,18 +322,6 @@ public class AudioManager {
         }
     }
 
-    /**
-     * Converts a 0 - 100 volume percentage into a master gain value.
-     * <p>
-     * A slider is a linear control but loudness is perceived on a logarithmic
-     * scale, so spreading the slider evenly over the line's decibel range
-     * squeezes nearly all of the audible range into the last few percent of the
-     * travel: everything below about -40 dB is inaudible, which left the whole
-     * top of the slider covering a huge jump in volume and made it feel far too
-     * sensitive. Squaring the fader position and converting that amplitude back
-     * to decibels instead gives 0 dB at 100% and an even, natural-feeling taper
-     * of roughly -6 dB per quarter of the slider, while 0% stays silent.
-     */
     private static float decibelsFor(int percent, FloatControl gain) {
         if (percent <= 0) {
             return gain.getMinimum();

@@ -14,10 +14,6 @@ public interface AudioStream extends AutoCloseable {
 
     Duration getPosition();
 
-    /**
-     * Returns the total duration of the media, or null when the duration
-     * cannot be determined.
-     */
     default Duration getDuration() {
         return null;
     }

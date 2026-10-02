@@ -39,9 +39,7 @@ public class ImportTagConflictDialog extends JDialog {
             Album album,
             Set<AlbumTags.Essential> conflicts
     ) {
-        if (conflicts == null || conflicts.isEmpty() || GraphicsEnvironment.isHeadless()) {
-            return null;
-        }
+        if (conflicts == null || conflicts.isEmpty() || GraphicsEnvironment.isHeadless()) return null;
 
         ImportTagConflictDialog dialog = new ImportTagConflictDialog(owner, songs, album, conflicts);
         dialog.setVisible(true);

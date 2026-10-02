@@ -1,3 +1,6 @@
 [submodule "plugin-template"]
 	path = plugin-template
 	url = https://github.com/mas6y6/musmeta-plugin.git
+[submodule "third-party/jaudiotagger"]
+	path = third-party/jaudiotagger
+	url = https://github.com/mas6y6/musmeta-jaudiotagger.git

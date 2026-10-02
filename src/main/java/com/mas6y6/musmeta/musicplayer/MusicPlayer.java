@@ -36,17 +36,6 @@ public class MusicPlayer {
         }
     }
 
-    /**
-     * Takes the song at the given queue position off the queue.
-     *
-     * <p>Whatever happens to the queue positions around the removed song, the
-     * player keeps playing the same song: the one behind it takes over when the
-     * song that was playing is the one removed, and the last song takes over
-     * when the queue ends up shorter than the current position. An emptied
-     * queue stops playback, since there is nothing left to play.
-     *
-     * @param index queue position, 0 based
-     */
     public void removeFromQueue(int index) {
         if (index < 0 || index >= queue.size()) {
             return;
@@ -68,16 +57,6 @@ public class MusicPlayer {
         notifyQueueChanged();
     }
 
-    /**
-     * Moves the song at one queue position to another, the way dragging a row
-     * or typing a new number into the queue position column does.
-     *
-     * <p>The player keeps playing whatever song it was playing, so the current
-     * position follows that song to its new place.
-     *
-     * @param from queue position to move away from, 0 based
-     * @param to   queue position to move to, 0 based, clamped into range
-     */
     public void moveInQueue(int from, int to) {
         int size = queue.size();
 
@@ -103,10 +82,6 @@ public class MusicPlayer {
         notifyQueueChanged();
     }
 
-    /**
-     * Follows a song that moved from one queue position to another, so an
-     * index keeps pointing at the same song no matter where that song went.
-     */
     private int shiftedIndex(int index, int from, int to) {
         if (index == NO_SKIP) {
             return NO_SKIP;
@@ -415,12 +390,6 @@ public class MusicPlayer {
         skipTo(target);
     }
 
-    /**
-     * Starts playing the song at the given queue position, whether or not
-     * anything is playing already.
-     *
-     * @param targetIndex queue position to play, 0 based
-     */
     public void skipTo(int targetIndex) {
         if (queue.isEmpty()) {
             return;

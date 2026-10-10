@@ -4,6 +4,7 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.mas6y6.musmeta.ui.dialogs.NewAlbumDialog;
 import com.mas6y6.musmeta.utils.ColorWrapper;
+import org.jspecify.annotations.NonNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,7 +17,7 @@ public class AddAlbumUI extends JPanel {
     private static final Color HOVER_TINT = new Color(255, 255, 255, 70);
     private static final int HOVER_PADDING = 20;
 
-    private final AlbumArtwork artwork;
+    private final @NonNull AlbumArtwork artwork;
 
     public AddAlbumUI() {
         super(new BorderLayout(0, 6));
@@ -62,7 +63,7 @@ public class AddAlbumUI extends JPanel {
             }
 
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(@NonNull MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     handleClick();
                 } else if (SwingUtilities.isRightMouseButton(e))  {
@@ -97,7 +98,7 @@ public class AddAlbumUI extends JPanel {
     }
 
     @Override
-    protected void paintComponent(Graphics graphics) {
+    protected void paintComponent(@NonNull Graphics graphics) {
         super.paintComponent(graphics);
 
         Graphics2D g2 = (Graphics2D) graphics.create();
@@ -152,7 +153,7 @@ public class AddAlbumUI extends JPanel {
         }
     }
 
-    private void handleRightClickMenu(MouseEvent mouseEvent) {
+    private void handleRightClickMenu(@NonNull MouseEvent mouseEvent) {
         var popupMenu = new JPopupMenu();
 
         JMenuItem addButton = new JMenuItem("Add Album");

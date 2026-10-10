@@ -1,7 +1,9 @@
 package com.mas6y6.musmeta.core;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
@@ -23,7 +25,7 @@ public final class Duplicates {
     private Duplicates() {
     }
 
-    public static List<Group> findGroups(List<Song> incomingSongs, List<Song> librarySongs) {
+    public static @NonNull List<Group> findGroups(@NonNull List<Song> incomingSongs, @NonNull List<Song> librarySongs) {
         Map<String, List<Song>> incomingByIdentity = new LinkedHashMap<>();
         Map<Song, String> identityBySong = new IdentityHashMap<>();
 
@@ -79,7 +81,7 @@ public final class Duplicates {
         return groups;
     }
 
-    private static String identityKey(Song song) {
+    private static @NonNull String identityKey(@NonNull Song song) {
         String title = normalize(song.getRawTitle());
         if (title.isEmpty()) {
             return pathKey(song);
@@ -94,7 +96,7 @@ public final class Duplicates {
                 + normalize(song.getAlbumArtist());
     }
 
-    private static String pathKey(Song song) {
+    private static @NonNull String pathKey(@NonNull Song song) {
         return song.getAudioFile()
                 .getFile()
                 .toPath()
@@ -103,7 +105,7 @@ public final class Duplicates {
                 .toString();
     }
 
-    private static String normalize(String value) {
+    private static @NonNull String normalize(@Nullable String value) {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 }

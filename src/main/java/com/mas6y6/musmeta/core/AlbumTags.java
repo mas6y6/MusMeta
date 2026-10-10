@@ -1,5 +1,8 @@
 package com.mas6y6.musmeta.core;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -32,7 +35,7 @@ public final class AlbumTags {
             return negotiable;
         }
 
-        public String albumValue(Album album) {
+        public @NonNull String albumValue(@NonNull Album album) {
             return switch (this) {
                 case ALBUM -> trimToEmpty(album.getTitle());
                 case ALBUM_ARTIST -> trimToEmpty(album.getAlbumArtist());
@@ -40,7 +43,7 @@ public final class AlbumTags {
             };
         }
 
-        public String songValue(Song song) {
+        public String songValue(@NonNull Song song) {
             return switch (this) {
                 case ALBUM -> trimToEmpty(song.getRawAlbum());
                 case ALBUM_ARTIST -> trimToEmpty(song.getRawAlbumArtist());
@@ -48,7 +51,7 @@ public final class AlbumTags {
             };
         }
 
-        public boolean conflicts(Song song, Album album) {
+        public boolean conflicts(@NonNull Song song, @NonNull Album album) {
             String songValue = songValue(song);
             return !songValue.isBlank() && !songValue.equalsIgnoreCase(albumValue(album));
         }
@@ -57,11 +60,11 @@ public final class AlbumTags {
     private AlbumTags() {
     }
 
-    public static List<Essential> all() {
+    public static @NonNull List<Essential> all() {
         return List.of(Essential.values());
     }
 
-    public static Set<Essential> negotiableConflicts(List<Song> songs, Album album) {
+    public static @NonNull Set<Essential> negotiableConflicts(@Nullable List<Song> songs, @NonNull Album album) {
         Set<Essential> conflicts = EnumSet.noneOf(Essential.class);
         if (songs == null) {
             return conflicts;
@@ -80,7 +83,7 @@ public final class AlbumTags {
         return conflicts;
     }
 
-    public static List<String> songValues(List<Song> songs, Essential tag) {
+    public static @NonNull List<String> songValues(@Nullable List<Song> songs, @NonNull Essential tag) {
         List<String> values = new ArrayList<>();
         if (songs == null) {
             return values;
@@ -94,7 +97,7 @@ public final class AlbumTags {
         return values;
     }
 
-    private static String compilationValue(String raw) {
+    private static @NonNull String compilationValue(@Nullable String raw) {
         if (raw == null || raw.isBlank()) {
             return "";
         }
@@ -104,7 +107,7 @@ public final class AlbumTags {
                 : NO;
     }
 
-    private static String trimToEmpty(String value) {
+    private static @NonNull String trimToEmpty(@Nullable String value) {
         return value == null ? "" : value.trim();
     }
 }

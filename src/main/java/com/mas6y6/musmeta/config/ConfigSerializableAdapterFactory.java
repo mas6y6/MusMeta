@@ -6,6 +6,8 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -18,7 +20,7 @@ public class ConfigSerializableAdapterFactory implements TypeAdapterFactory {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+    public <T> @Nullable TypeAdapter<T> create(Gson gson, @NonNull TypeToken<T> type) {
         Class<? super T> rawType = type.getRawType();
         if (!ConfigSerializable.class.isAssignableFrom(rawType) && !ConfigManager.hasCodec(rawType)) {
             return null;
@@ -26,7 +28,7 @@ public class ConfigSerializableAdapterFactory implements TypeAdapterFactory {
 
         return new TypeAdapter<T>() {
             @Override
-            public void write(JsonWriter out, T value) throws IOException {
+            public void write(@NonNull JsonWriter out, @Nullable T value) throws IOException {
                 if (value == null) {
                     out.nullValue();
                     return;
@@ -44,7 +46,7 @@ public class ConfigSerializableAdapterFactory implements TypeAdapterFactory {
             }
 
             @Override
-            public T read(JsonReader in) throws IOException {
+            public @Nullable T read(@NonNull JsonReader in) throws IOException {
                 if (in.peek() == JsonToken.NULL) {
                     in.nextNull();
                     return null;
@@ -66,14 +68,14 @@ public class ConfigSerializableAdapterFactory implements TypeAdapterFactory {
         };
     }
 
-    public static <T> T deserialize(Class<?> rawType, String value) {
+    public static <T> T deserialize(@NonNull Class<?> rawType, String value) {
         ConfigBuilder builder = new ConfigBuilder();
         builder.set("value", value);
         return deserialize(rawType, builder);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T deserialize(Class<?> rawType, ConfigBuilder builder) {
+    public static <T> T deserialize(@NonNull Class<?> rawType, @Nullable ConfigBuilder builder) {
         if (builder == null) {
             return null;
         }

@@ -1,7 +1,8 @@
 package com.mas6y6.musmeta.audio;
 
-import com.mas6y6.musmeta.musicplayer.MusicPlayer;
 import com.mas6y6.musmeta.settings.Settings;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -35,20 +36,20 @@ public class AudioManager {
     private final List<Listener> listeners = new CopyOnWriteArrayList<>();
     private final AtomicBoolean playing = new AtomicBoolean(false);
 
-    private volatile AudioStream stream;
+    private volatile @Nullable AudioStream stream;
 
     private volatile boolean paused;
     private volatile boolean stopped;
-    private volatile Duration pendingSeek;
+    private volatile @Nullable Duration pendingSeek;
     private volatile Duration position = Duration.ZERO;
-    private volatile Duration duration;
+    private volatile @Nullable Duration duration;
 
-    private volatile SourceDataLine sourceDataLine;
+    private volatile @Nullable SourceDataLine sourceDataLine;
     private volatile int volumePercent = Settings.MUSIC_PLAYER_VOLUME.get();
 
     private long lastPositionNotify;
 
-    public static AudioManager getInstance() {
+    public static @NonNull AudioManager getInstance() {
         if (instance == null) {
             instance = new AudioManager();
         }
@@ -64,11 +65,11 @@ public class AudioManager {
         listeners.remove(listener);
     }
 
-    public void play(AudioStream stream) throws IOException {
+    public void play(@NonNull AudioStream stream) throws IOException {
         play(stream, null);
     }
 
-    public void play(AudioStream stream, Listener listener) throws IOException {
+    public void play(@NonNull AudioStream stream, @Nullable Listener listener) throws IOException {
         Objects.requireNonNull(stream, "stream");
 
         stop();
@@ -89,7 +90,7 @@ public class AudioManager {
         playbackLoop();
     }
 
-    public void seek(Duration position) {
+    public void seek(@Nullable Duration position) {
         Duration target = position != null && !position.isNegative()
                 ? position
                 : Duration.ZERO;
@@ -107,14 +108,14 @@ public class AudioManager {
         seek(Duration.ZERO);
     }
 
-    public void rewind(Duration amount) {
+    public void rewind(@Nullable Duration amount) {
         if (amount == null || amount.isZero()) {
             return;
         }
         seek(position.minus(amount));
     }
 
-    public void forward(Duration amount) {
+    public void forward(@Nullable Duration amount) {
         if (amount == null || amount.isZero()) {
             return;
         }
@@ -305,14 +306,14 @@ public class AudioManager {
         }
     }
 
-    private static void closeQuietly(AudioStream stream) {
+    private static void closeQuietly(@NonNull AudioStream stream) {
         try {
             stream.close();
         } catch (IOException | RuntimeException ignored) {
         }
     }
 
-    private static void applyVolume(SourceDataLine line, int percent) {
+    private static void applyVolume(@NonNull SourceDataLine line, int percent) {
         try {
             if (line.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
                 FloatControl gain = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
@@ -322,7 +323,7 @@ public class AudioManager {
         }
     }
 
-    private static float decibelsFor(int percent, FloatControl gain) {
+    private static float decibelsFor(int percent, @NonNull FloatControl gain) {
         if (percent <= 0) {
             return gain.getMinimum();
         }

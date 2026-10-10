@@ -1,7 +1,6 @@
 package com.mas6y6.musmeta.ui;
 
 import com.formdev.flatlaf.FlatClientProperties;
-import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.util.SystemFileChooser;
 import com.formdev.flatlaf.util.SystemInfo;
 import com.jthemedetecor.OsThemeDetector;
@@ -24,12 +23,13 @@ import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
 import com.mas6y6.musmeta.ui.dialogs.MusicScanDialog;
 import com.mas6y6.musmeta.ui.subwindows.AboutWindow;
 import com.mas6y6.musmeta.ui.subwindows.SettingsWindow;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Collections;
 import java.util.List;
 
 public class MainWindow extends MainAppFrame {
@@ -42,7 +42,7 @@ public class MainWindow extends MainAppFrame {
     private final MusicPlayerPanel musicPlayer = new MusicPlayerPanel();
     private final JToolBar toolbar = new JToolBar();
 
-    private List<Song> selectedSongs = List.of();
+    private @NonNull List<Song> selectedSongs = List.of();
     private final LibraryUI libraryUI = new LibraryUI();
 
     private MainWindow() {
@@ -105,7 +105,7 @@ public class MainWindow extends MainAppFrame {
         }
     }
 
-    public void openAlbumTab(Album album) {
+    public void openAlbumTab(@NonNull Album album) {
         SwingUtilities.invokeLater(() -> {
             int index = tabs.indexOfTab(album.getTitle());
             if (index >= 0) {
@@ -119,11 +119,11 @@ public class MainWindow extends MainAppFrame {
         });
     }
 
-    private void setSelectedSongs(List<Song> songs) {
+    private void setSelectedSongs(@Nullable List<Song> songs) {
         selectedSongs = songs != null ? songs : List.of();
     }
 
-    public void updateAlbumTabs(Album album, String oldTitle) {
+    public void updateAlbumTabs(@NonNull Album album, @Nullable String oldTitle) {
         SwingUtilities.invokeLater(() -> {
             for (int i = 0; i < tabs.getTabCount(); i++) {
                 Component comp = tabs.getComponentAt(i);
@@ -172,7 +172,7 @@ public class MainWindow extends MainAppFrame {
         }
     }
 
-    public List<Song> getSelectedSongs() {
+    public @NonNull List<Song> getSelectedSongs() {
         return List.copyOf(selectedSongs);
     }
 

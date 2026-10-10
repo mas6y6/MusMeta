@@ -15,6 +15,7 @@ import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
 import org.jaudiotagger.tag.FieldKey;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -97,7 +98,7 @@ public class AlbumDetailTab extends JPanel {
         this.selectionListener = selectionListener;
     }
 
-    public List<Song> getSelectedSongs() {
+    public @NonNull List<Song> getSelectedSongs() {
         return List.copyOf(selectedSongs);
     }
 
@@ -173,7 +174,7 @@ public class AlbumDetailTab extends JPanel {
         MainWindow.INSTANCE.getLibraryUI().refresh();
     }
 
-    private JPanel header() {
+    private @NonNull JPanel header() {
         JPanel header = new JPanel(new BorderLayout(24, 0));
         header.setOpaque(false);
 
@@ -260,7 +261,7 @@ public class AlbumDetailTab extends JPanel {
         return header;
     }
 
-    private String subtitle() {
+    private @NonNull String subtitle() {
         List<Song> songs = album.getSongs();
         int tracks = songs.size();
         int seconds = 0;
@@ -296,7 +297,7 @@ public class AlbumDetailTab extends JPanel {
         return album.getArtist().artist();
     }
 
-    private JScrollPane scrollableContent() {
+    private @NonNull JScrollPane scrollableContent() {
         JPanel content = new JPanel();
         content.setOpaque(false);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
@@ -321,7 +322,7 @@ public class AlbumDetailTab extends JPanel {
         return scrollPane;
     }
 
-    private JPanel trackTables() {
+    private @NonNull JPanel trackTables() {
         discTables.clear();
 
         List<Disc> discs = album.getDiscs();
@@ -351,14 +352,14 @@ public class AlbumDetailTab extends JPanel {
         return tables;
     }
 
-    private static String discLabel(Disc disc, int discCount) {
+    private static @NonNull String discLabel(@NonNull Disc disc, int discCount) {
         int total = Math.max(discCount, disc.getDiscTotal());
         return total > 1
                 ? "Disc " + disc.getDiscIndex() + " of " + total
                 : "Disc " + disc.getDiscIndex();
     }
 
-    private JComponent createDiscTable(Disc disc) {
+    private @NonNull JComponent createDiscTable(@NonNull Disc disc) {
         List<Song> songs = disc.getSongs();
         String[] columns = {"", "#", "Title", "Artist", "Time"};
 
@@ -396,7 +397,7 @@ public class AlbumDetailTab extends JPanel {
         return createTablePanel(table, songs);
     }
 
-    private static @NonNull JComponent createTablePanel(JTable table, List<Song> songs) {
+    private static @NonNull JComponent createTablePanel(@NonNull JTable table, @NonNull List<Song> songs) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
         panel.add(table.getTableHeader(), BorderLayout.NORTH);
@@ -412,7 +413,7 @@ public class AlbumDetailTab extends JPanel {
         return panel;
     }
 
-    private JFormattedTextField newTrackNumberField() {
+    private @NonNull JFormattedTextField newTrackNumberField() {
         NumberFormatter formatter = new NumberFormatter(
                 NumberFormat.getIntegerInstance()
         );
@@ -422,7 +423,7 @@ public class AlbumDetailTab extends JPanel {
         return new JFormattedTextField(formatter);
     }
 
-    private void configureTable(DiscTable discTable) {
+    private void configureTable(@NonNull DiscTable discTable) {
         JTable table = discTable.table();
 
         table.setShowVerticalLines(false);
@@ -441,7 +442,7 @@ public class AlbumDetailTab extends JPanel {
 
         table.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(@NonNull MouseEvent e) {
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
                     Song song = songAt(discTable, e.getPoint());
                     if (song != null) {
@@ -451,16 +452,16 @@ public class AlbumDetailTab extends JPanel {
             }
 
             @Override
-            public void mousePressed(MouseEvent e) {
+            public void mousePressed(@NonNull MouseEvent e) {
                 maybeShowMenu(e);
             }
 
             @Override
-            public void mouseReleased(MouseEvent e) {
+            public void mouseReleased(@NonNull MouseEvent e) {
                 maybeShowMenu(e);
             }
 
-            private void maybeShowMenu(MouseEvent e) {
+            private void maybeShowMenu(@NonNull MouseEvent e) {
                 if (!e.isPopupTrigger()) {
                     return;
                 }
@@ -469,14 +470,14 @@ public class AlbumDetailTab extends JPanel {
         });
     }
 
-    private static Song songAt(DiscTable discTable, Point point) {
+    private static @Nullable Song songAt(@NonNull DiscTable discTable, @NonNull Point point) {
         JTable table = discTable.table();
         List<Song> songs = discTable.songs();
         int row = table.rowAtPoint(point);
         return row >= 0 && row < songs.size() ? songs.get(row) : null;
     }
 
-    private void onTrackNumberChanged(DiscTable discTable, TableModelEvent e) {
+    private void onTrackNumberChanged(@NonNull DiscTable discTable, @NonNull TableModelEvent e) {
         if (updating.get() || bulkSelecting.get()) return;
         if (e.getType() != TableModelEvent.UPDATE || e.getColumn() != 1) return;
 
@@ -588,7 +589,7 @@ public class AlbumDetailTab extends JPanel {
         rebuildSelection();
     }
 
-    private static void fillModel(DefaultTableModel model, List<Song> songs) {
+    private static void fillModel(@NonNull DefaultTableModel model, @NonNull List<Song> songs) {
         model.setRowCount(0);
         for (Song song : songs) {
             String number = song.getTrackNumber() > 0
@@ -604,7 +605,7 @@ public class AlbumDetailTab extends JPanel {
         }
     }
 
-    private static String trackLength(Song song) {
+    private static @NonNull String trackLength(@NonNull Song song) {
         try {
             int length = song.getAudioFile().getAudioHeader().getTrackLength();
             if (length > 0) {
@@ -616,7 +617,7 @@ public class AlbumDetailTab extends JPanel {
         return "";
     }
 
-    private static String formatDuration(int seconds) {
+    private static @NonNull String formatDuration(int seconds) {
         if (seconds <= 0) {
             return "0:00";
         }
@@ -665,7 +666,7 @@ public class AlbumDetailTab extends JPanel {
         }
     }
 
-    private void handleRightClickMenu(MouseEvent mouseEvent, Song clickedSong) {
+    private void handleRightClickMenu(@NonNull MouseEvent mouseEvent, @Nullable Song clickedSong) {
         var popupMenu = new JPopupMenu();
 
         List<Song> songsToEdit;
@@ -722,7 +723,7 @@ public class AlbumDetailTab extends JPanel {
         }
     }
 
-    private @NonNull JMenuItem createDelete(List<Song> songsToEdit) {
+    private @NonNull JMenuItem createDelete(@NonNull List<Song> songsToEdit) {
         JMenuItem delete = new JMenuItem("Delete");
         delete.addActionListener(_ -> {
             if (

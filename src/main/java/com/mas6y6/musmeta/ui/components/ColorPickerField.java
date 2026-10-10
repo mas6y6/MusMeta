@@ -1,16 +1,16 @@
 package com.mas6y6.musmeta.ui.components;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.ArrayList;
 
 public class ColorPickerField extends JPanel {
-    private final JTextField editColorField;
-    private final JButton selectButton;
+    private final @NonNull JTextField editColorField;
     private final ArrayList<Listener> listeners = new ArrayList<>();
 
     public interface Listener {
@@ -22,10 +22,10 @@ public class ColorPickerField extends JPanel {
         setBackground(Color.RED);
     }};
 
-    private String colorCode = "#FF0000";
+    private @NonNull String colorCode = "#FF0000";
     private Color previousColor = Color.RED;
 
-    public ColorPickerField(String colorCode) {
+    public ColorPickerField(@NonNull String colorCode) {
         this();
         setColorCode(colorCode);
     }
@@ -66,7 +66,7 @@ public class ColorPickerField extends JPanel {
             }
         });
 
-        selectButton = new JButton("Select Color...");
+        JButton selectButton = new JButton("Select Color...");
         selectButton.addActionListener(_ -> {
             Color selectedColor = JColorChooser.showDialog(
                     this,
@@ -84,11 +84,11 @@ public class ColorPickerField extends JPanel {
         add(selectButton, BorderLayout.EAST);
     }
 
-    public String getColorCode() {
+    public @NonNull String getColorCode() {
         return colorCode;
     }
 
-    public void setColorCode(String colorCode) {
+    public void setColorCode(@NonNull String colorCode) {
         if (!isValidColor(colorCode)) {
             throw new IllegalArgumentException(
                     "Invalid color code: " + colorCode
@@ -105,15 +105,15 @@ public class ColorPickerField extends JPanel {
         fireColorChanged(color);
     }
 
-    private boolean isValidColor(String value) {
+    private boolean isValidColor(@Nullable String value) {
         return value != null && value.matches("^#[0-9A-Fa-f]{6}$");
     }
 
-    private Color parseColor(String value) {
+    private @NonNull Color parseColor(@NonNull String value) {
         return Color.decode(value);
     }
 
-    private String toHex(Color color) {
+    private @NonNull String toHex(@NonNull Color color) {
         return String.format(
                 "#%02X%02X%02X",
                 color.getRed(),

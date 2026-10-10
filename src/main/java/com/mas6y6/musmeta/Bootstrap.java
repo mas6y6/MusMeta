@@ -10,6 +10,7 @@ import com.mas6y6.musmeta.launch.LaunchScreen;
 import com.mas6y6.musmeta.utils.PlatformSetup;
 import com.mas6y6.musmeta.utils.Utils;
 import com.mas6y6.musmeta.utils.VersionSource;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -129,7 +130,7 @@ public class Bootstrap implements Runnable {
         }
     }
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         PlatformSetup.applyMacPlatformSettings();
         LogSystem.init(args);
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler::handle);
@@ -152,7 +153,7 @@ public class Bootstrap implements Runnable {
             implements CommandLine.IVersionProvider {
 
         @Override
-        public String[] getVersion() {
+        public String @NonNull [] getVersion() {
             String version = Bootstrap.class
                     .getPackage()
                     .getImplementationVersion();

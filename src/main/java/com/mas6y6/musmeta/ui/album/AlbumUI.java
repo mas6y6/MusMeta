@@ -8,6 +8,8 @@ import com.mas6y6.musmeta.ui.components.MusicPlayerPanel;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.mas6y6.musmeta.ui.dialogs.EditAlbumDialog;
 import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,9 +25,9 @@ public class AlbumUI extends JPanel {
     private static final Icon ICON_MORE = new FlatSVGIcon(Objects.requireNonNull(MusicPlayerPanel.class.getResource("/more-vertical.svg"))).derive(16, 16);
 
     private final Album album;
-    private final AlbumArtwork artwork;
-    private final JLabel title;
-    private final JLabel artist;
+    private final @NonNull AlbumArtwork artwork;
+    private final @NonNull JLabel title;
+    private final @NonNull JLabel artist;
 
     private final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     private final JButton editButton = new JButton(ICON_MORE);
@@ -37,7 +39,7 @@ public class AlbumUI extends JPanel {
         return contains(mouse);
     }
 
-    public AlbumUI(Album album, Image artworkImage) {
+    public AlbumUI(@NonNull Album album, @Nullable Image artworkImage) {
         super(new BorderLayout(0, 6));
         this.album = album;
 
@@ -91,14 +93,14 @@ public class AlbumUI extends JPanel {
             }
 
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(@NonNull MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     MainWindow.INSTANCE.openAlbumTab(album);
                 }
             }
 
             @Override
-            public void mousePressed(MouseEvent e) {
+            public void mousePressed(@NonNull MouseEvent e) {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     Point point = SwingUtilities.convertPoint(
                             e.getComponent(),
@@ -223,7 +225,7 @@ public class AlbumUI extends JPanel {
     }
 
     @Override
-    protected void paintComponent(Graphics graphics) {
+    protected void paintComponent(@NonNull Graphics graphics) {
         super.paintComponent(graphics);
 
         if (!hovered) {
@@ -278,7 +280,7 @@ public class AlbumUI extends JPanel {
         return album;
     }
 
-    private void handleRightClickMenu(Point mouse) {
+    private void handleRightClickMenu(@NonNull Point mouse) {
         var popupMenu = new JPopupMenu();
 
         var play = new JMenuItem("Play");

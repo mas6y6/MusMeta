@@ -13,6 +13,8 @@ import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.CannotReadVideoException;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,26 +33,26 @@ import java.util.Set;
 public class ProcessMusicDialog extends ProcessingDialogBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessMusicDialog.class);
 
-    private final File[] files;
-    private final List<Song> songsWithoutTags;
-    private final List<Song> processedSongs;
+    private final File @NonNull [] files;
+    private final @NonNull List<Song> songsWithoutTags;
+    private final @NonNull List<Song> processedSongs;
 
-    public ProcessMusicDialog(Window owner, File[] files) {
+    public ProcessMusicDialog(Window owner, File @Nullable [] files) {
         super(owner, "Processing audio files");
         this.files = files != null ? files : new File[0];
         this.songsWithoutTags = new ArrayList<>();
         this.processedSongs = new ArrayList<>();
     }
 
-    public List<Song> getSongsWithoutTags() {
+    public @NonNull List<Song> getSongsWithoutTags() {
         return Collections.unmodifiableList(songsWithoutTags);
     }
 
-    public List<Song> getProcessedSongs() {
+    public @NonNull List<Song> getProcessedSongs() {
         return Collections.unmodifiableList(processedSongs);
     }
 
-    private List<File> collectAudioFiles(File[] inputs) {
+    private @NonNull List<File> collectAudioFiles(File @Nullable [] inputs) {
         List<File> result = new ArrayList<>();
         if (inputs == null) {
             return result;

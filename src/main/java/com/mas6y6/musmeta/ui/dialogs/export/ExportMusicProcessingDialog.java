@@ -9,6 +9,7 @@ import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialogBase;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
 import com.mas6y6.musmeta.utils.Utils;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -30,10 +31,10 @@ public class ExportMusicProcessingDialog extends ProcessingDialogBase {
 
     private static final String ZIP_EXTENSION = "zip";
 
-    private final List<Song> songs;
+    private final @NonNull List<Song> songs;
     File zipOutput;
-    private ZipOutputStream zos;
-    private Path conversionDirectory;
+    private @Nullable ZipOutputStream zos;
+    private @Nullable Path conversionDirectory;
 
     private AlbumFormatNormalizer.@Nullable AudioFormat targetFormat;
 
@@ -41,7 +42,7 @@ public class ExportMusicProcessingDialog extends ProcessingDialogBase {
 
     public ExportMusicProcessingDialog(
             Window owner,
-            List<Song> songs
+            @NonNull List<Song> songs
     ) {
         super(owner, "Exporting Music...", ProgressMode.DETERMINATE);
         this.songs = List.copyOf(songs);
@@ -59,7 +60,7 @@ public class ExportMusicProcessingDialog extends ProcessingDialogBase {
         return songs.size();
     }
 
-    public String getOutputPath() {
+    public @NonNull String getOutputPath() {
         return zipOutput == null ? "" : zipOutput.getAbsolutePath();
     }
 
@@ -78,7 +79,7 @@ public class ExportMusicProcessingDialog extends ProcessingDialogBase {
         return conversionNeeded && FFmpegUtils.getFFmpegExecutable() == null;
     }
 
-    private static File withZipExtension(File file) {
+    private static @NonNull File withZipExtension(@NonNull File file) {
         String name = file.getName();
 
         String extension = com.google.common.io.Files
@@ -96,7 +97,7 @@ public class ExportMusicProcessingDialog extends ProcessingDialogBase {
         );
     }
 
-    private static String entryNameFor(int position, Song song, String extension) {
+    private static String entryNameFor(int position, @NonNull Song song, @NonNull String extension) {
         String name = Utils.toSafeFilename(
                 position + " - " + titleOf(song)
         );
@@ -104,7 +105,7 @@ public class ExportMusicProcessingDialog extends ProcessingDialogBase {
         return extension.isBlank() ? name : name + "." + extension;
     }
 
-    private static String titleOf(Song song) {
+    private static @NonNull String titleOf(@NonNull Song song) {
         String title = song.getTitle();
 
         int dot = title.lastIndexOf('.');
@@ -116,7 +117,7 @@ public class ExportMusicProcessingDialog extends ProcessingDialogBase {
         return title;
     }
 
-    private static String extensionOf(Song song) {
+    private static String extensionOf(@NonNull Song song) {
         File source = song.getSourceAudioFile();
 
         String extension = source == null
@@ -183,7 +184,7 @@ public class ExportMusicProcessingDialog extends ProcessingDialogBase {
         }
     }
 
-    private String statusOf() {
+    private @NonNull String statusOf() {
         return targetFormat == null
                 ? "Exporting Music..."
                 : "Converting & Exporting as " + targetFormat + "...";
@@ -193,7 +194,7 @@ public class ExportMusicProcessingDialog extends ProcessingDialogBase {
      * @return the file that should be added to the archive, converted into
      * {@link #conversionDirectory} when the target format requires it
      */
-    private Path contentOf(Song song) throws Exception {
+    private @NonNull Path contentOf(@NonNull Song song) throws Exception {
         Path source = song.getSourceAudioFile().toPath();
 
         if (targetFormat == null
@@ -208,7 +209,7 @@ public class ExportMusicProcessingDialog extends ProcessingDialogBase {
         );
     }
 
-    private String exportExtensionOf(Song song) {
+    private String exportExtensionOf(@NonNull Song song) {
         return targetFormat == null ? extensionOf(song) : targetFormat.extension();
     }
 
@@ -261,17 +262,17 @@ public class ExportMusicProcessingDialog extends ProcessingDialogBase {
     }
 
     @Override
-    protected String getInitialStatus() {
+    protected @NonNull String getInitialStatus() {
         return "Preparing export...";
     }
 
     @Override
-    protected String getWorkerThreadName() {
+    protected @NonNull String getWorkerThreadName() {
         return "Export-Thread";
     }
 
     @Override
-    protected String getSuccessStatus() {
+    protected @NonNull String getSuccessStatus() {
         return "Songs exported!";
     }
 
@@ -281,7 +282,7 @@ public class ExportMusicProcessingDialog extends ProcessingDialogBase {
     }
 
     @Override
-    protected String getFailureStatus() {
+    protected @NonNull String getFailureStatus() {
         return "Some songs could not be exported.";
     }
 
@@ -297,7 +298,7 @@ public class ExportMusicProcessingDialog extends ProcessingDialogBase {
     }
 
     @Override
-    protected String getFailureDialogTitle() {
+    protected @NonNull String getFailureDialogTitle() {
         return "Export Incomplete";
     }
 

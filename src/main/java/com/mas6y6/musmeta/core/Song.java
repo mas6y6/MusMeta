@@ -10,6 +10,8 @@ import org.jaudiotagger.tag.TagField;
 import org.jaudiotagger.tag.TagTextField;
 import org.jaudiotagger.tag.images.Artwork;
 import org.jaudiotagger.tag.images.ArtworkFactory;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
 import javax.imageio.ImageIO;
@@ -46,7 +48,7 @@ public class Song {
         this.audioFile = audioFile;
     }
 
-    private static void serialize(Song song, ConfigBuilder builder) {
+    private static void serialize(@Nullable Song song, @NonNull ConfigBuilder builder) {
         if (song != null && song.getAudioFile() != null && song.getAudioFile().getFile() != null) {
             builder.setString("path", song.getAudioFile().getFile().getAbsolutePath());
         }
@@ -56,7 +58,7 @@ public class Song {
         return this.getAudioFile().getFile();
     }
 
-    private static Song decodeFrom(ConfigBuilder builder) {
+    private static Song decodeFrom(@Nullable ConfigBuilder builder) {
         if (builder == null) {
             return null;
         }
@@ -203,7 +205,7 @@ public class Song {
         return null;
     }
 
-    public Image getArtworkImage() {
+    public @Nullable Image getArtworkImage() {
         byte[] data = getArtworkData();
         if (data != null && data.length > 0) {
             try {
@@ -214,7 +216,7 @@ public class Song {
         return null;
     }
 
-    public void setTagField(FieldKey key, String value) {
+    public void setTagField(FieldKey key, @Nullable String value) {
         try {
             Tag tag = audioFile.getTagOrCreateAndSetDefault();
             if (value == null || value.isBlank()) {
@@ -229,14 +231,14 @@ public class Song {
         }
     }
 
-    private void setTagValues(Tag tag, FieldKey key, String value) throws Exception {
+    private void setTagValues(@NonNull Tag tag, FieldKey key, @NonNull String value) throws Exception {
         tag.deleteField(key);
         for (String part : splitValues(value)) {
             tag.addField(key, part);
         }
     }
 
-    private static List<String> splitValues(String value) {
+    private static @NonNull List<String> splitValues(@NonNull String value) {
         List<String> parts = new ArrayList<>();
         for (String part : value.split("\u0000|;")) {
             String trimmed = part.trim();
@@ -271,7 +273,7 @@ public class Song {
         }
     }
 
-    public void setArtwork(byte[] data, String mimeType) {
+    public void setArtwork(byte @Nullable [] data, @Nullable String mimeType) {
         try {
             Tag tag = audioFile.getTagOrCreateAndSetDefault();
             tag.deleteArtworkField();
@@ -318,7 +320,7 @@ public class Song {
         }
     }
 
-    private List<String> getAllTagValues(FieldKey key) {
+    private @NonNull List<String> getAllTagValues(FieldKey key) {
         Tag tag = getTag();
         if (tag == null) {
             return List.of();
@@ -345,7 +347,7 @@ public class Song {
         }
     }
 
-    private static int positiveNumber(String value, int fallback) {
+    private static int positiveNumber(@Nullable String value, int fallback) {
         if (value == null || value.isBlank()) {
             return fallback;
         }

@@ -1,9 +1,9 @@
 package com.mas6y6.musmeta.ui.subwindows;
 
-import com.mas6y6.musmeta.utils.ScrollUtil;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +113,7 @@ public class AboutWindow extends JDialog {
         );
     }
 
-    private String loadMarkdown(String resource) {
+    private @NonNull String loadMarkdown(@NonNull String resource) {
         try (InputStream input = getClass().getResourceAsStream(resource)) {
 
             if (input == null) {

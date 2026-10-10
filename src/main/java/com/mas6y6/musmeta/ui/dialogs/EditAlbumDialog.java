@@ -6,11 +6,12 @@ import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.ui.album.AlbumUI;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import org.jaudiotagger.tag.FieldKey;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
@@ -56,7 +57,7 @@ public class EditAlbumDialog extends JDialog {
     private final String initialAlbumTitle;
 
     private boolean variousArtistsAlbum;
-    private String sharedArtist = "";
+    private @NonNull String sharedArtist = "";
 
     private JTextField titleField;
     private JTextField albumArtistField;
@@ -73,11 +74,11 @@ public class EditAlbumDialog extends JDialog {
     private JTextField commentField;
 
     private AlbumArtwork artworkLabel;
-    private ProcessTagsDialog.ArtworkAction artworkAction = ProcessTagsDialog.ArtworkAction.KEEP;
-    private byte[] newArtworkBytes;
-    private String newArtworkMimeType;
+    private ProcessTagsDialog.@NonNull ArtworkAction artworkAction = ProcessTagsDialog.ArtworkAction.KEEP;
+    private byte @Nullable [] newArtworkBytes;
+    private @Nullable String newArtworkMimeType;
 
-    public EditAlbumDialog(Window parent, Album album) {
+    public EditAlbumDialog(Window parent, @NonNull Album album) {
         super(parent, "Album Info", ModalityType.APPLICATION_MODAL);
         this.album = album;
         this.initialAlbumTitle = album.getTitle();
@@ -155,7 +156,7 @@ public class EditAlbumDialog extends JDialog {
                 : null);
     }
 
-    private static String commonValue(List<Song> songs, Function<Song, String> extractor) {
+    private static @NonNull String commonValue(@NonNull List<Song> songs, @NonNull Function<Song, String> extractor) {
         if (songs.isEmpty()) {
             return "";
         }
@@ -168,7 +169,7 @@ public class EditAlbumDialog extends JDialog {
         return first != null ? first : "";
     }
 
-    private static boolean valuesDiffer(List<Song> songs, Function<Song, String> extractor) {
+    private static boolean valuesDiffer(@NonNull List<Song> songs, @NonNull Function<Song, String> extractor) {
         if (songs.size() < 2) {
             return false;
         }
@@ -198,7 +199,7 @@ public class EditAlbumDialog extends JDialog {
         setContentPane(contentPane);
     }
 
-    private JPanel createArtworkPanel() {
+    private @NonNull JPanel createArtworkPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setOpaque(false);
@@ -214,7 +215,7 @@ public class EditAlbumDialog extends JDialog {
 
         artworkLabel.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(@NonNull MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     chooseArtworkFile();
                 }
@@ -223,7 +224,7 @@ public class EditAlbumDialog extends JDialog {
 
         artworkLabel.setDropTarget(new DropTarget(artworkLabel, new DropTargetAdapter() {
             @Override
-            public void drop(DropTargetDropEvent dtde) {
+            public void drop(@NonNull DropTargetDropEvent dtde) {
                 try {
                     dtde.acceptDrop(DnDConstants.ACTION_COPY);
                     Object data = dtde.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
@@ -277,7 +278,7 @@ public class EditAlbumDialog extends JDialog {
         }
     }
 
-    private void applyArtworkFile(File file) {
+    private void applyArtworkFile(@NonNull File file) {
         try {
             Image img = ImageIO.read(file);
             if (img != null) {
@@ -294,7 +295,7 @@ public class EditAlbumDialog extends JDialog {
         }
     }
 
-    private JPanel createFormPanel() {
+    private @NonNull JPanel createFormPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(new EmptyBorder(4, 4, 4, 4));
 
@@ -344,7 +345,7 @@ public class EditAlbumDialog extends JDialog {
         return panel;
     }
 
-    private void addFormRow(JPanel panel, GridBagConstraints gbc, int row, String labelText, Component comp) {
+    private void addFormRow(@NonNull JPanel panel, @NonNull GridBagConstraints gbc, int row, String labelText, @NonNull Component comp) {
         gbc.gridx = 0;
         gbc.gridy = row;
         gbc.weightx = 0;
@@ -357,7 +358,7 @@ public class EditAlbumDialog extends JDialog {
         panel.add(comp, gbc);
     }
 
-    private JPanel createButtonPanel() {
+    private @NonNull JPanel createButtonPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         panel.setOpaque(false);
 
@@ -489,7 +490,7 @@ public class EditAlbumDialog extends JDialog {
         processDialog.startAndShow();
     }
 
-    private static String ratingToLabel(String rating) {
+    private static String ratingToLabel(@Nullable String rating) {
         if (rating == null || rating.isBlank() || "0".equals(rating)) {
             return RATINGS[0];
         }
@@ -505,7 +506,7 @@ public class EditAlbumDialog extends JDialog {
         return RATINGS[0];
     }
 
-    private static String labelToRating(String label) {
+    private static @NonNull String labelToRating(@Nullable String label) {
         if (label == null || label.startsWith("No rating")) {
             return "";
         }

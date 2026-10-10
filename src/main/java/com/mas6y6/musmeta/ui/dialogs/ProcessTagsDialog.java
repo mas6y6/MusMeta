@@ -6,6 +6,8 @@ import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialogBase;
 import org.jaudiotagger.tag.FieldKey;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,10 +37,10 @@ public class ProcessTagsDialog extends ProcessingDialogBase {
     ) {
     }
 
-    private final List<SongTagUpdate> updates;
+    private final @NonNull List<SongTagUpdate> updates;
     private final Album targetAlbum;
     private final String oldAlbumTitle;
-    private final Map<String, byte[]> albumArtwork;
+    private final @NonNull Map<String, byte[]> albumArtwork;
 
     private Runnable onComplete;
 
@@ -50,8 +52,8 @@ public class ProcessTagsDialog extends ProcessingDialogBase {
         this(owner, updates, targetAlbum, oldAlbumTitle, null);
     }
 
-    public ProcessTagsDialog(Window owner, List<SongTagUpdate> updates, Album targetAlbum,
-                             String oldAlbumTitle, Map<String, byte[]> albumArtwork) {
+    public ProcessTagsDialog(Window owner, @Nullable List<SongTagUpdate> updates, Album targetAlbum,
+                             String oldAlbumTitle, @Nullable Map<String, byte[]> albumArtwork) {
         super(owner, "Applying Tags", ProgressMode.DETERMINATE);
         this.updates = updates != null ? updates : List.of();
         this.targetAlbum = targetAlbum;

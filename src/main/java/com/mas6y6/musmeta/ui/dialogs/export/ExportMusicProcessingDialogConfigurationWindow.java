@@ -4,6 +4,8 @@ import com.formdev.flatlaf.util.SystemFileChooser;
 import com.mas6y6.musmeta.ui.components.PathField;
 import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,27 +17,20 @@ public class ExportMusicProcessingDialogConfigurationWindow extends JDialog {
     private final ExportMusicProcessingDialog processingDialog;
     private static final Dimension DIALOG_SIZE = new Dimension(600, 350);
 
-    private static final class FormatOption {
-        private final String label;
-        private final AlbumFormatNormalizer.AudioFormat format;
-
-        private FormatOption(String label, AlbumFormatNormalizer.AudioFormat format) {
-            this.label = label;
-            this.format = format;
-        }
+    private record FormatOption(String label, AlbumFormatNormalizer.AudioFormat format) {
 
         @Override
-        public String toString() {
-            return label;
+            public @NonNull String toString() {
+                return label;
+            }
         }
-    }
 
     private final JComboBox<FormatOption> formatPicker = new JComboBox<>();
     private final JLabel formatDetails = new JLabel(" ");
 
     private boolean confirmed;
 
-    public ExportMusicProcessingDialogConfigurationWindow(Window owner, ExportMusicProcessingDialog processingDialog) {
+    public ExportMusicProcessingDialogConfigurationWindow(@Nullable Window owner, ExportMusicProcessingDialog processingDialog) {
         super(owner, "Export", ModalityType.APPLICATION_MODAL);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -153,7 +148,7 @@ public class ExportMusicProcessingDialogConfigurationWindow extends JDialog {
                 + "Your library is left untouched.");
     }
 
-    private AlbumFormatNormalizer.AudioFormat selectedFormat() {
+    private AlbumFormatNormalizer.@Nullable AudioFormat selectedFormat() {
         FormatOption option = (FormatOption) formatPicker.getSelectedItem();
         return option == null ? null : option.format;
     }

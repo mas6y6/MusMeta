@@ -1,6 +1,8 @@
 package com.mas6y6.musmeta.ui.dialogs;
 
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -17,9 +19,9 @@ public class CopyArtworkDialog extends JDialog {
     private static final Dimension DIALOG_SIZE = new Dimension(420, 320);
     private static final int PREVIEW_SIZE = 120;
 
-    private Choice choice = Choice.KEEP_SEPARATE;
+    private @NonNull Choice choice = Choice.KEEP_SEPARATE;
 
-    public CopyArtworkDialog(Window owner, String targetAlbum, Image sourceArtwork) {
+    public CopyArtworkDialog(@Nullable Window owner, String targetAlbum, @Nullable Image sourceArtwork) {
         super(owner, "Copy Album Artwork?", ModalityType.APPLICATION_MODAL);
 
         setSize(DIALOG_SIZE);
@@ -48,7 +50,7 @@ public class CopyArtworkDialog extends JDialog {
         return choice;
     }
 
-    private JPanel messagePanel(String targetAlbum) {
+    private @NonNull JPanel messagePanel(@Nullable String targetAlbum) {
         String title = targetAlbum == null || targetAlbum.isBlank() ? "the new album" : targetAlbum;
 
         JLabel label = new JLabel(
@@ -66,7 +68,7 @@ public class CopyArtworkDialog extends JDialog {
         return panel;
     }
 
-    private JPanel previewPanel(Image sourceArtwork) {
+    private @NonNull JPanel previewPanel(Image sourceArtwork) {
         AlbumArtwork preview = new AlbumArtwork(8);
         preview.setPreferredSize(new Dimension(PREVIEW_SIZE, PREVIEW_SIZE));
         preview.setMaximumSize(new Dimension(PREVIEW_SIZE, PREVIEW_SIZE));
@@ -88,7 +90,7 @@ public class CopyArtworkDialog extends JDialog {
         return panel;
     }
 
-    private JPanel buttonPanel() {
+    private @NonNull JPanel buttonPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         panel.setOpaque(false);
 
@@ -117,7 +119,7 @@ public class CopyArtworkDialog extends JDialog {
         return panel;
     }
 
-    private static String escape(String text) {
+    private static @NonNull String escape(@NonNull String text) {
         return text.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;");

@@ -1,20 +1,22 @@
 package com.mas6y6.musmeta.utils;
 
+import org.jspecify.annotations.NonNull;
+
 import java.awt.*;
 
 public class ColorWrapper extends Color {
-    public ColorWrapper(Color color) {
+    public ColorWrapper(@NonNull Color color) {
         super(color.getRGB());
     }
     public ColorWrapper(int r, int g, int b, int a) {
         super(r,g,b,a);
     }
 
-    public static ColorWrapper addWrapper(Color color) {
+    public static @NonNull ColorWrapper addWrapper(@NonNull Color color) {
         return new ColorWrapper(color);
     }
 
-    public ColorWrapper brighter(float factor) {
+    public @NonNull ColorWrapper brighter(float factor) {
         int r = getRed();
         int g = getGreen();
         int b = getBlue();
@@ -34,14 +36,14 @@ public class ColorWrapper extends Color {
                 alpha));
     }
 
-    public ColorWrapper darker(float factor) {
+    public @NonNull ColorWrapper darker(float factor) {
         return addWrapper(new Color(Math.max((int)(getRed()  *factor), 0),
                 Math.max((int)(getGreen()*factor), 0),
                 Math.max((int)(getBlue() *factor), 0),
                 getAlpha()));
     }
 
-    public String toHex() {
+    public @NonNull String toHex() {
         return String.format(
                 "#%02X%02X%02X",
                 getRed(),

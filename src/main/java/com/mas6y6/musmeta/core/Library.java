@@ -3,6 +3,8 @@ package com.mas6y6.musmeta.core;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.mas6y6.musmeta.config.*;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -45,31 +47,31 @@ public class Library {
         return INSTANCE;
     }
 
-    public List<Album> getAlbums() {
+    public @NonNull List<Album> getAlbums() {
         return List.copyOf(albums.values());
     }
 
-    public Map<String, Album> getAlbumsByTitle() {
+    public @NonNull Map<String, Album> getAlbumsByTitle() {
         return Collections.unmodifiableMap(albums);
     }
 
-    public Album getAlbum(String title) {
+    public @Nullable Album getAlbum(@Nullable String title) {
         if (title == null) {
             return null;
         }
         return albums.get(title);
     }
 
-    public boolean containsAlbum(String title) {
+    public boolean containsAlbum(@Nullable String title) {
         return title != null && albums.containsKey(title);
     }
 
-    public void registerAlbum(Album album) {
+    public void registerAlbum(@NonNull Album album) {
         Objects.requireNonNull(album, "Album cannot be null");
         albums.put(album.getTitle(), album);
     }
 
-    public void renameAlbum(Album album, String newTitle) {
+    public void renameAlbum(@NonNull Album album, String newTitle) {
         Objects.requireNonNull(album, "Album cannot be null");
         Objects.requireNonNull(newTitle, "New album title cannot be null");
         albums.entrySet().removeIf(entry -> entry.getValue() == album);
@@ -78,14 +80,14 @@ public class Library {
         save();
     }
 
-    public void removeAlbum(String title) {
+    public void removeAlbum(@Nullable String title) {
         if (title != null) {
             albums.remove(title);
             save();
         }
     }
 
-    public List<Song> getSongs() {
+    public @NonNull List<Song> getSongs() {
         ArrayList<Song> allSongs = new ArrayList<>();
         for (Album album : albums.values()) {
             allSongs.addAll(album.getSongs());
@@ -93,7 +95,7 @@ public class Library {
         return List.copyOf(allSongs);
     }
 
-    public List<MissingSong> getMissingSongs() {
+    public @NonNull List<MissingSong> getMissingSongs() {
         ArrayList<MissingSong> result = new ArrayList<>(missingSongs);
         for (Album album : albums.values()) {
             for (Disc disc : album.getDiscs()) {
@@ -105,7 +107,7 @@ public class Library {
         return List.copyOf(result);
     }
 
-    public void addSong(Song song) {
+    public void addSong(@NonNull Song song) {
         Objects.requireNonNull(song, "Song cannot be null");
         String albumTitle = song.getAlbum();
         Album album = albums.computeIfAbsent(albumTitle, Album::new);
@@ -117,7 +119,7 @@ public class Library {
         missingSongs.clear();
     }
 
-    public void removeSong(Song song) {
+    public void removeSong(@Nullable Song song) {
         if (song == null) {
             return;
         }
@@ -129,12 +131,12 @@ public class Library {
         }
     }
 
-    public void reorganizeSong(Song song) {
+    public void reorganizeSong(@NonNull Song song) {
         removeSong(song);
         addSong(song);
     }
 
-    void replaceWith(Library other) {
+    void replaceWith(@Nullable Library other) {
         clear();
         if (other != null) {
             albums.putAll(other.albums);
@@ -142,7 +144,7 @@ public class Library {
         }
     }
 
-    private static void serialize(Library library, ConfigBuilder builder) {
+    private static void serialize(@NonNull Library library, @NonNull ConfigBuilder builder) {
         builder.setInt("version", FORMAT_VERSION);
 
         JsonArray albumsArray = new JsonArray();
@@ -154,7 +156,7 @@ public class Library {
         builder.set("albums", albumsArray);
     }
 
-    private static Library decodeFrom(ConfigBuilder builder) {
+    private static @NonNull Library decodeFrom(@NonNull ConfigBuilder builder) {
         Library library = new Library();
 
         JsonElement albumsElement = builder.get("albums");

@@ -1,6 +1,7 @@
 package com.mas6y6.musmeta.ui.dialogs;
 
 import com.mas6y6.musmeta.core.Library.MissingSong;
+import org.jspecify.annotations.NonNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,7 +10,7 @@ import java.util.List;
 public class MissingSongsDialog extends JDialog {
     private static final Dimension DIALOG_SIZE = new Dimension(580, 430);
 
-    public MissingSongsDialog(JFrame parent, List<MissingSong> missingSongs) {
+    public MissingSongsDialog(JFrame parent, @NonNull List<MissingSong> missingSongs) {
         super(parent, "Missing Songs", true);
 
         setSize(DIALOG_SIZE);

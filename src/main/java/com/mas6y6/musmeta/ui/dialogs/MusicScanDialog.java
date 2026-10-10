@@ -2,6 +2,7 @@ package com.mas6y6.musmeta.ui.dialogs;
 
 import com.mas6y6.musmeta.settings.Settings;
 import com.formdev.flatlaf.util.SystemFileChooser;
+import org.jspecify.annotations.NonNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -89,7 +90,7 @@ public class MusicScanDialog extends JDialog {
         mainPanel.add(buttons());
     }
 
-    private JPanel customDirPanel() {
+    private @NonNull JPanel customDirPanel() {
         var panel = new JPanel(new BorderLayout(10, 0));
 
         pathField.setText(Settings.MUSIC_DIRECTORY_PATH.get().toString());
@@ -128,7 +129,7 @@ public class MusicScanDialog extends JDialog {
         return panel;
     }
 
-    private JPanel buttons() {
+    private @NonNull JPanel buttons() {
         JPanel buttonPanel = new JPanel(
                 new FlowLayout(FlowLayout.RIGHT, 10, 0)
         );

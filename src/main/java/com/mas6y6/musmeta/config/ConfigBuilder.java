@@ -2,6 +2,8 @@ package com.mas6y6.musmeta.config;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Type;
 import java.util.Objects;
@@ -14,29 +16,29 @@ public class ConfigBuilder {
         this.jsonObject = new JsonObject();
     }
 
-    public ConfigBuilder(JsonObject jsonObject) {
+    public ConfigBuilder(@Nullable JsonObject jsonObject) {
         this.jsonObject = jsonObject != null ? jsonObject.deepCopy() : new JsonObject();
     }
 
-    public ConfigBuilder(SubConfig subConfig) {
+    public ConfigBuilder(@Nullable SubConfig subConfig) {
         this.jsonObject = subConfig != null ? subConfig.toJson(ConfigManager.GSON) : new JsonObject();
     }
 
-    public static ConfigBuilder create() {
+    public static @NonNull ConfigBuilder create() {
         return new ConfigBuilder();
     }
 
-    public static ConfigBuilder from(JsonObject jsonObject) {
+    public static @NonNull ConfigBuilder from(JsonObject jsonObject) {
         return new ConfigBuilder(jsonObject);
     }
 
-    public static ConfigBuilder from(SubConfig subConfig) {
+    public static @NonNull ConfigBuilder from(SubConfig subConfig) {
         return new ConfigBuilder(subConfig);
     }
 
     // Setters
 
-    public ConfigBuilder set(String key, Object value) {
+    public @NonNull ConfigBuilder set(@NonNull String key, @Nullable Object value) {
         Objects.requireNonNull(key, "Key cannot be null");
         if (value == null) {
             jsonObject.add(key, JsonNull.INSTANCE);
@@ -54,26 +56,26 @@ public class ConfigBuilder {
         return this;
     }
 
-    public ConfigBuilder setString(String key, String value) {
+    public ConfigBuilder setString(@NonNull String key, String value) {
         return set(key, value);
     }
 
-    public ConfigBuilder setInt(String key, int value) {
+    public @NonNull ConfigBuilder setInt(@NonNull String key, int value) {
         jsonObject.addProperty(key, value);
         return this;
     }
 
-    public ConfigBuilder setLong(String key, long value) {
+    public @NonNull ConfigBuilder setLong(@NonNull String key, long value) {
         jsonObject.addProperty(key, value);
         return this;
     }
 
-    public ConfigBuilder setDouble(String key, double value) {
+    public @NonNull ConfigBuilder setDouble(@NonNull String key, double value) {
         jsonObject.addProperty(key, value);
         return this;
     }
 
-    public ConfigBuilder setBoolean(String key, boolean value) {
+    public @NonNull ConfigBuilder setBoolean(@NonNull String key, boolean value) {
         jsonObject.addProperty(key, value);
         return this;
     }
@@ -156,7 +158,7 @@ public class ConfigBuilder {
         return defaultValue;
     }
 
-    public <T> T get(String key, Class<T> type) {
+    public <T> @Nullable T get(String key, @NonNull Class<T> type) {
         JsonElement element = jsonObject.get(key);
         if (element == null || element.isJsonNull()) {
             return null;
@@ -164,12 +166,12 @@ public class ConfigBuilder {
         return ConfigManager.GSON.fromJson(element, type);
     }
 
-    public <T> T get(String key, Class<T> type, T defaultValue) {
+    public <T> T get(String key, @NonNull Class<T> type, T defaultValue) {
         T val = get(key, type);
         return val != null ? val : defaultValue;
     }
 
-    public <T> T get(String key, TypeToken<T> typeToken) {
+    public <T> @Nullable T get(String key, @NonNull TypeToken<T> typeToken) {
         JsonElement element = jsonObject.get(key);
         if (element == null || element.isJsonNull()) {
             return null;
@@ -177,7 +179,7 @@ public class ConfigBuilder {
         return ConfigManager.GSON.fromJson(element, typeToken.getType());
     }
 
-    public <T> T get(String key, Type type) {
+    public <T> @Nullable T get(String key, @NonNull Type type) {
         JsonElement element = jsonObject.get(key);
         if (element == null || element.isJsonNull()) {
             return null;
@@ -185,7 +187,7 @@ public class ConfigBuilder {
         return ConfigManager.GSON.fromJson(element, type);
     }
 
-    public ConfigBuilder getBuilder(String key) {
+    public @NonNull ConfigBuilder getBuilder(String key) {
         JsonElement element = jsonObject.get(key);
         if (element != null && element.isJsonObject()) {
             return new ConfigBuilder(element.getAsJsonObject());
@@ -193,16 +195,16 @@ public class ConfigBuilder {
         return new ConfigBuilder();
     }
 
-    public JsonObject toJsonObject() {
+    public @NonNull JsonObject toJsonObject() {
         return jsonObject.deepCopy();
     }
 
-    public void applyTo(SubConfig subConfig) {
+    public void applyTo(@Nullable SubConfig subConfig) {
         if (subConfig == null) return;
         subConfig.fromJson(jsonObject, ConfigManager.GSON);
     }
 
-    public SubConfig toSubConfig(String name) {
+    public @NonNull SubConfig toSubConfig(String name) {
         SubConfig subConfig = new SubConfig(name);
         applyTo(subConfig);
         return subConfig;
@@ -217,7 +219,7 @@ public class ConfigBuilder {
         return ConfigSerializableAdapterFactory.deserialize(clazz, this);
     }
 
-    public <T> T build(Function<ConfigBuilder, T> factory) {
+    public <T> T build(@NonNull Function<ConfigBuilder, T> factory) {
         Objects.requireNonNull(factory, "Factory cannot be null");
         return factory.apply(this);
     }

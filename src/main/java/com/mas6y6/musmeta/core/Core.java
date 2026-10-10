@@ -10,6 +10,7 @@ import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.TagException;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -54,11 +55,11 @@ public class Core {
         Library.getInstance().clear();
     }
 
-    public static ScanResult scanForMusicFiles(Path musicDir, List<Path> ignorePaths) {
+    public static @NonNull ScanResult scanForMusicFiles(@NonNull Path musicDir, @NonNull List<Path> ignorePaths) {
         return scanForMusicFiles(musicDir, ignorePaths, null);
     }
 
-    public static ScanResult scanForMusicFiles(Path musicDir, List<Path> ignorePaths, DuplicateResolver resolver) {
+    public static @NonNull ScanResult scanForMusicFiles(@NonNull Path musicDir, @NonNull List<Path> ignorePaths, @Nullable DuplicateResolver resolver) {
         LOGGER.info("Scanning for music files...");
         LOGGER.info("Ignoring paths: {}", ignorePaths);
 

@@ -1,8 +1,8 @@
 package com.mas6y6.musmeta.ui.dialogs.base;
 
 import com.formdev.flatlaf.FlatClientProperties;
-import com.mas6y6.musmeta.settings.Settings;
-import com.mas6y6.musmeta.settings.Theme;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,7 +31,7 @@ public class MDialog extends JOptionPane {
 
     public static int showOptionDialog(Component parentComponent, Object message,
                                        String title, int optionType, int messageType,
-                                       Icon icon, Object[] options, Object initialValue) {
+                                       Icon icon, Object @Nullable [] options, Object initialValue) {
         JOptionPane pane = new JOptionPane(message, messageType, optionType, icon,
                 options, initialValue);
         Object value = showDialog(pane, parentComponent, title);
@@ -50,7 +50,7 @@ public class MDialog extends JOptionPane {
         return CLOSED_OPTION;
     }
 
-    private static Object showDialog(JOptionPane pane, Component parentComponent,
+    private static Object showDialog(@NonNull JOptionPane pane, Component parentComponent,
                                      String title) {
         JDialog dialog = pane.createDialog(parentComponent, title);
         Toolkit.getDefaultToolkit().beep();
@@ -69,7 +69,7 @@ public class MDialog extends JOptionPane {
                 : (Integer) value;
     }
 
-    private static void removeTitleBar(JDialog dialog) {
+    private static void removeTitleBar(@NonNull JDialog dialog) {
         dialog.getRootPane().putClientProperty(FlatClientProperties.USE_WINDOW_DECORATIONS, true);
         dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_BACKGROUND, dialog.getBackground());
         dialog.getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_CLOSE, false);

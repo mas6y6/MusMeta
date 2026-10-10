@@ -6,11 +6,12 @@ import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Disc;
 import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
+import org.jspecify.annotations.NonNull;
 
 import java.nio.file.Path;
 
 public class ConfigCodecs {
-    public static ConfigCodec<Path> PATH_CODEC = ConfigCodec.of(
+    public static @NonNull ConfigCodec<Path> PATH_CODEC = ConfigCodec.of(
             (type, builder) -> {
                 builder.set("path", type.toString());
             },

@@ -3,6 +3,7 @@ package com.mas6y6.musmeta.ui.album;
 import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Core;
 import com.mas6y6.musmeta.core.Library;
+import org.jspecify.annotations.NonNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,7 +12,7 @@ public class LibraryUI extends JScrollPane {
     private static final int GAP = 15;
     private static final int PADDING = 10;
 
-    private final JPanel content;
+    private final @NonNull JPanel content;
 
     public LibraryUI() {
         super(
@@ -23,7 +24,7 @@ public class LibraryUI extends JScrollPane {
 
         content = new JPanel(wrapLayout) {
             @Override
-            public Dimension getPreferredSize() {
+            public @NonNull Dimension getPreferredSize() {
                 int width = 400;
                 if (getParent() instanceof JViewport viewport
                         && viewport.getWidth() > 0) {
@@ -69,7 +70,7 @@ public class LibraryUI extends JScrollPane {
         content.repaint();
     }
 
-    private Component albumCard(Album album) {
+    private @NonNull Component albumCard(@NonNull Album album) {
         return new AlbumUI(album, album.getArtworkImage());
     }
 
@@ -84,7 +85,7 @@ public class LibraryUI extends JScrollPane {
         }
 
         @Override
-        public Dimension preferredLayoutSize(Container parent) {
+        public @NonNull Dimension preferredLayoutSize(@NonNull Container parent) {
             int width = parent.getWidth() > 0
                     ? parent.getWidth()
                     : Integer.MAX_VALUE;
@@ -92,12 +93,12 @@ public class LibraryUI extends JScrollPane {
         }
 
         @Override
-        public Dimension minimumLayoutSize(Container parent) {
+        public @NonNull Dimension minimumLayoutSize(@NonNull Container parent) {
             return sizeForWidth(parent, Integer.MAX_VALUE);
         }
 
         @Override
-        public void layoutContainer(Container parent) {
+        public void layoutContainer(@NonNull Container parent) {
             Insets insets = parent.getInsets();
             int available = parent.getWidth() - insets.left - insets.right;
 
@@ -124,7 +125,7 @@ public class LibraryUI extends JScrollPane {
             }
         }
 
-        private Dimension sizeForWidth(Container parent, int width) {
+        private @NonNull Dimension sizeForWidth(@NonNull Container parent, int width) {
             Insets insets = parent.getInsets();
 
             int available = Math.max(0, width - insets.left - insets.right);

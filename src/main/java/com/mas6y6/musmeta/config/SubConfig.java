@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.lang.reflect.Type;
@@ -15,7 +17,7 @@ import java.util.Objects;
 public class SubConfig {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(SubConfig.class);
 
-    private final String name;
+    private final @NonNull String name;
     private final Map<String, ConfigContainer<?>> containers = new LinkedHashMap<>();
     private final Map<String, JsonElement> unmappedJson = new LinkedHashMap<>();
 
@@ -23,7 +25,7 @@ public class SubConfig {
         this.name = Objects.requireNonNull(name, "SubConfig name cannot be null");
     }
 
-    public String getName() {
+    public @NonNull String getName() {
         return name;
     }
 
@@ -47,14 +49,14 @@ public class SubConfig {
         return register(container);
     }
 
-    public <T> ConfigContainer<T> register(String name, T defaultValue, ConfigCodec<T> codec) {
+    public <T> ConfigContainer<T> register(String name, @Nullable T defaultValue, @Nullable ConfigCodec<T> codec) {
         if (codec != null && defaultValue != null) {
             ConfigManager.registerCodec((Class<T>) defaultValue.getClass(), codec);
         }
         return register(name, defaultValue);
     }
 
-    public <T> ConfigContainer<T> register(ConfigContainer<T> container) {
+    public <T> @NonNull ConfigContainer<T> register(@NonNull ConfigContainer<T> container) {
         Objects.requireNonNull(container, "ConfigContainer cannot be null");
         String key = container.getName();
         containers.put(key, container);
@@ -85,7 +87,7 @@ public class SubConfig {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getValue(String name) {
+    public <T> @Nullable T getValue(String name) {
         ConfigContainer<?> container = containers.get(name);
         if (container != null) {
             return (T) container.getValue();
@@ -106,7 +108,7 @@ public class SubConfig {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getValue(String name, T defaultValue) {
+    public <T> @Nullable T getValue(String name, @Nullable T defaultValue) {
         ConfigContainer<?> container = containers.get(name);
         if (container != null && container.getValue() != null) {
             return (T) container.getValue();
@@ -151,7 +153,7 @@ public class SubConfig {
         return containers.containsKey(name) || unmappedJson.containsKey(name);
     }
 
-    public Map<String, ConfigContainer<?>> getContainers() {
+    public @NonNull Map<String, ConfigContainer<?>> getContainers() {
         return Collections.unmodifiableMap(containers);
     }
 
@@ -161,7 +163,7 @@ public class SubConfig {
         }
     }
 
-    public JsonObject toJson(Gson gson) {
+    public @NonNull JsonObject toJson(@NonNull Gson gson) {
         JsonObject jsonObject = new JsonObject();
         // Preserve unmapped values
         for (Map.Entry<String, JsonElement> entry : unmappedJson.entrySet()) {
@@ -176,7 +178,7 @@ public class SubConfig {
         return jsonObject;
     }
 
-    public void fromJson(JsonObject jsonObject, Gson gson) {
+    public void fromJson(@Nullable JsonObject jsonObject, @NonNull Gson gson) {
         if (jsonObject == null) {
             return;
         }
@@ -199,15 +201,15 @@ public class SubConfig {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> void setContainerRawValue(ConfigContainer<T> container, Object value) {
+    private <T> void setContainerRawValue(@NonNull ConfigContainer<T> container, Object value) {
         container.setValue((T) value);
     }
 
-    public ConfigBuilder toBuilder() {
+    public @NonNull ConfigBuilder toBuilder() {
         return ConfigBuilder.from(this);
     }
 
-    public void fromBuilder(ConfigBuilder builder) {
+    public void fromBuilder(@Nullable ConfigBuilder builder) {
         if (builder != null) {
             builder.applyTo(this);
         }
@@ -218,7 +220,7 @@ public class SubConfig {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> void fromClass(T instance) {
+    public <T> void fromClass(@Nullable T instance) {
         if (instance == null) {
             return;
         }

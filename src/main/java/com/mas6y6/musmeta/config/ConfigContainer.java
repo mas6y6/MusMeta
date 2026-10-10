@@ -1,6 +1,8 @@
 package com.mas6y6.musmeta.config;
 
 import com.google.gson.reflect.TypeToken;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.lang.reflect.Type;
@@ -17,7 +19,7 @@ import java.util.function.Consumer;
 public class ConfigContainer<T> {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(ConfigContainer.class);
 
-    private final String name;
+    private final @NonNull String name;
     private final T defaultValue;
     private T value;
     private final Type type;
@@ -27,7 +29,7 @@ public class ConfigContainer<T> {
         this(name, defaultValue, resolveType(defaultValue));
     }
 
-    public ConfigContainer(String name, T defaultValue, Type type) {
+    public ConfigContainer(String name, T defaultValue, @Nullable Type type) {
         this.name = Objects.requireNonNull(name, "ConfigContainer name cannot be null");
         this.defaultValue = defaultValue;
         this.value = defaultValue;
@@ -38,19 +40,19 @@ public class ConfigContainer<T> {
         this(name, defaultValue, (Type) typeClass);
     }
 
-    public ConfigContainer(String name, T defaultValue, TypeToken<T> typeToken) {
+    public ConfigContainer(String name, T defaultValue, @Nullable TypeToken<T> typeToken) {
         this(name, defaultValue, typeToken != null ? typeToken.getType() : null);
     }
 
     @SuppressWarnings("unchecked")
-    public ConfigContainer(String name, T defaultValue, ConfigCodec<T> codec) {
+    public ConfigContainer(String name, @Nullable T defaultValue, @Nullable ConfigCodec<T> codec) {
         this(name, defaultValue, resolveType(defaultValue));
         if (codec != null && defaultValue != null) {
             ConfigManager.registerCodec((Class<T>) defaultValue.getClass(), codec);
         }
     }
 
-    static Type resolveType(Object defaultValue) {
+    static Type resolveType(@Nullable Object defaultValue) {
         if (defaultValue == null) {
             return Object.class;
         }
@@ -70,7 +72,7 @@ public class ConfigContainer<T> {
         return defaultValue.getClass();
     }
 
-    private static Type typeOfFirst(Collection<?> values) {
+    private static @NonNull Type typeOfFirst(@NonNull Collection<?> values) {
         for (Object value : values) {
             return value == null ? Object.class : value.getClass();
         }
@@ -114,7 +116,7 @@ public class ConfigContainer<T> {
         return type;
     }
 
-    public void addListener(Consumer<T> listener) {
+    public void addListener(@Nullable Consumer<T> listener) {
         if (listener != null) {
             changeListeners.add(listener);
         }
@@ -135,7 +137,7 @@ public class ConfigContainer<T> {
     }
 
     @Override
-    public String toString() {
+    public @NonNull String toString() {
         return "ConfigContainer{" +
                 "name='" + name + '\'' +
                 ", value=" + value +

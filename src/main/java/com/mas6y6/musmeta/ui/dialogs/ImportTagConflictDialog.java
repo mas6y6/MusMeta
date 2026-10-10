@@ -3,6 +3,7 @@ package com.mas6y6.musmeta.ui.dialogs;
 import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.AlbumTags;
 import com.mas6y6.musmeta.core.Song;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import javax.swing.*;
@@ -37,7 +38,7 @@ public class ImportTagConflictDialog extends JDialog {
             Window owner,
             List<Song> songs,
             Album album,
-            Set<AlbumTags.Essential> conflicts
+            @Nullable Set<AlbumTags.Essential> conflicts
     ) {
         if (conflicts == null || conflicts.isEmpty() || GraphicsEnvironment.isHeadless()) return null;
 
@@ -71,7 +72,7 @@ public class ImportTagConflictDialog extends JDialog {
         setContentPane(page);
     }
 
-    private JComponent header() {
+    private @NonNull JComponent header() {
         JPanel header = new JPanel();
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
 
@@ -95,7 +96,7 @@ public class ImportTagConflictDialog extends JDialog {
         return header;
     }
 
-    private JComponent body() {
+    private @NonNull JComponent body() {
         JPanel list = new JPanel();
         list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
 
@@ -112,7 +113,7 @@ public class ImportTagConflictDialog extends JDialog {
         return scroll;
     }
 
-    private JComponent tagPanel(AlbumTags.Essential tag) {
+    private @NonNull JComponent tagPanel(AlbumTags.@NonNull Essential tag) {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createCompoundBorder(
@@ -155,7 +156,7 @@ public class ImportTagConflictDialog extends JDialog {
         return panel;
     }
 
-    private JComponent valueLine(String side, List<String> values, @Nullable String colorKey) {
+    private @NonNull JComponent valueLine(String side, @NonNull List<String> values, @Nullable String colorKey) {
         String text = side + ": " + String.join("; ", values);
         if (values.size() > 1) {
             text += "  (" + values.size() + " different)";
@@ -170,11 +171,11 @@ public class ImportTagConflictDialog extends JDialog {
         return label;
     }
 
-    private static List<String> valuesOrNone(List<String> values) {
+    private static @NonNull List<String> valuesOrNone(@NonNull List<String> values) {
         return values.isEmpty() ? List.of(display("")) : values;
     }
 
-    private JComponent buttons() {
+    private @NonNull JComponent buttons() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
 
         JButton cancel = new JButton("Cancel");
@@ -193,11 +194,11 @@ public class ImportTagConflictDialog extends JDialog {
         return panel;
     }
 
-    private static String display(String value) {
+    private static @NonNull String display(@Nullable String value) {
         return value == null || value.isBlank() ? "(no value)" : value;
     }
 
-    private static String escape(String text) {
+    private static @NonNull String escape(@NonNull String text) {
         return text.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;");

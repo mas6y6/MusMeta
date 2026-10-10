@@ -3,6 +3,8 @@ package com.mas6y6.musmeta.ui.dialogs;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.musicplayer.MusicPlayer;
 import com.mas6y6.musmeta.ui.components.PlayerQueueTableModel;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -53,7 +55,7 @@ public class MusicQueueDialog extends JDialog {
         }
     };
 
-    public MusicQueueDialog(Window owner) {
+    public MusicQueueDialog(@Nullable Window owner) {
         super(owner, "Queue", ModalityType.APPLICATION_MODAL);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -70,7 +72,7 @@ public class MusicQueueDialog extends JDialog {
 
     //region Layout
 
-    private JComponent content() {
+    private @NonNull JComponent content() {
         JPanel page = new JPanel(new BorderLayout(10, 12));
         page.setBorder(new EmptyBorder(20, 25, 20, 25));
         page.add(header(), BorderLayout.NORTH);
@@ -79,7 +81,7 @@ public class MusicQueueDialog extends JDialog {
         return page;
     }
 
-    private JComponent header() {
+    private @NonNull JComponent header() {
         JPanel header = new JPanel();
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
 
@@ -93,7 +95,7 @@ public class MusicQueueDialog extends JDialog {
         return header;
     }
 
-    private JComponent listPanel() {
+    private @NonNull JComponent listPanel() {
         table.setRowHeight(26);
         table.setShowVerticalLines(false);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -123,7 +125,7 @@ public class MusicQueueDialog extends JDialog {
 
         table.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(@NonNull MouseEvent e) {
                 if (e.getClickCount() == 2
                         && SwingUtilities.isLeftMouseButton(e)) {
                     playSelected();
@@ -148,7 +150,7 @@ public class MusicQueueDialog extends JDialog {
         return panel;
     }
 
-    private JComponent listButtons() {
+    private @NonNull JComponent listButtons() {
         JPanel panel = new JPanel(
                 new FlowLayout(FlowLayout.LEFT, 8, 0)
         );
@@ -181,7 +183,7 @@ public class MusicQueueDialog extends JDialog {
         return panel;
     }
 
-    private JComponent footer() {
+    private @NonNull JComponent footer() {
         summary.setFont(summary.getFont().deriveFont(Font.PLAIN, 11f));
         summary.setForeground(
                 UIManager.getColor("Label.disabledForeground")
@@ -200,7 +202,7 @@ public class MusicQueueDialog extends JDialog {
         return panel;
     }
 
-    private TableCellRenderer playingRowRenderer() {
+    private @NonNull TableCellRenderer playingRowRenderer() {
         return new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(
@@ -233,7 +235,7 @@ public class MusicQueueDialog extends JDialog {
         };
     }
 
-    private static TableCellRenderer tooltipHeaderRenderer(String tooltip) {
+    private static @NonNull TableCellRenderer tooltipHeaderRenderer(String tooltip) {
         return new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(
@@ -343,7 +345,7 @@ public class MusicQueueDialog extends JDialog {
         summary.setText(summaryText());
     }
 
-    private String summaryText() {
+    private @NonNull String summaryText() {
         int count = table.getRowCount();
 
         if (count == 0) {
@@ -403,7 +405,7 @@ public class MusicQueueDialog extends JDialog {
         super.dispose();
     }
 
-    private static void runOnEDT(Runnable runnable) {
+    private static void runOnEDT(@NonNull Runnable runnable) {
         if (SwingUtilities.isEventDispatchThread()) {
             runnable.run();
         } else {

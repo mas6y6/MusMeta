@@ -3,6 +3,8 @@ package com.mas6y6.musmeta.launch;
 import com.mas6y6.musmeta.CrashHandler;
 import com.mas6y6.musmeta.logging.LogSystem;
 import com.mas6y6.musmeta.utils.PlatformSetup;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +30,7 @@ public final class Launcher {
     private Launcher() {
     }
 
-    static void main(String[] args) {
+    static void main(String @Nullable [] args) {
         if (args != null) {
             launchArgs = args.clone();
         }
@@ -46,7 +48,7 @@ public final class Launcher {
         }
     }
 
-    public static void restart(String[] args) {
+    public static void restart(String @Nullable [] args) {
         if (args == null) {
             args = launchArgs;
         }
@@ -61,7 +63,7 @@ public final class Launcher {
         Runtime.getRuntime().exit(0);
     }
 
-    private static List<String> buildRestartCommand(String[] args) {
+    private static @NonNull List<String> buildRestartCommand(String @Nullable [] args) {
         List<String> argsList = args == null ? List.of() : Arrays.asList(args);
 
         Path launcher = findPackagedLauncher();
@@ -82,7 +84,7 @@ public final class Launcher {
         return command;
     }
 
-    private static Path findPackagedLauncher() {
+    private static @Nullable Path findPackagedLauncher() {
         String appPath = System.getProperty("jpackage.app-path");
         if (appPath != null && !appPath.isBlank()) {
             Path launcher = Path.of(appPath);
@@ -120,7 +122,7 @@ public final class Launcher {
         return null;
     }
 
-    private static Path locateMainJar() {
+    private static @Nullable Path locateMainJar() {
         try {
             CodeSource codeSource = Launcher.class
                     .getProtectionDomain()
@@ -145,7 +147,7 @@ public final class Launcher {
         return null;
     }
 
-    private static String javaExecutablePath() {
+    private static @NonNull String javaExecutablePath() {
         String osName = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
         return Paths.get(
                 System.getProperty("java.home"),

@@ -8,6 +8,8 @@ import com.mas6y6.musmeta.config.ConfigCodec;
 import com.mas6y6.musmeta.ui.album.AlbumUI;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.images.Artwork;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -32,7 +34,7 @@ public class Album {
     private static final String ARTWORK_DIR = "album_art";
 
     private String title;
-    private Path artworkPath;
+    private @Nullable Path artworkPath;
     private final long createdAt;
     private boolean unknown;
     private final ArrayList<Disc> discs = new ArrayList<>();
@@ -71,7 +73,7 @@ public class Album {
         this.artworkPath = artworkPath;
     }
 
-    public void setArtworkBytes(byte[] data) {
+    public void setArtworkBytes(byte @NonNull [] data) {
         cacheArtwork(data);
     }
 
@@ -98,7 +100,7 @@ public class Album {
         this.unknown = unknown;
     }
 
-    public String getGenre() {
+    public @NonNull String getGenre() {
         for (Song song : getSongs()) {
             String genre = song.getGenre();
             if (!genre.isBlank()) {
@@ -108,7 +110,7 @@ public class Album {
         return "";
     }
 
-    public String getYear() {
+    public @NonNull String getYear() {
         for (Song song : getSongs()) {
             String year = song.getYear();
             if (!year.isBlank()) {
@@ -118,7 +120,7 @@ public class Album {
         return "";
     }
 
-    public String getComposer() {
+    public @NonNull String getComposer() {
         for (Song song : getSongs()) {
             String composer = song.getComposer();
             if (!composer.isBlank()) {
@@ -128,7 +130,7 @@ public class Album {
         return "";
     }
 
-    public String getGrouping() {
+    public @NonNull String getGrouping() {
         for (Song song : getSongs()) {
             String grouping = song.getGrouping();
             if (!grouping.isBlank()) {
@@ -138,7 +140,7 @@ public class Album {
         return "";
     }
 
-    public String getRating() {
+    public @NonNull String getRating() {
         for (Song song : getSongs()) {
             String rating = song.getRating();
             if (!rating.isBlank()) {
@@ -148,7 +150,7 @@ public class Album {
         return "";
     }
 
-    public String getBpm() {
+    public @NonNull String getBpm() {
         for (Song song : getSongs()) {
             String bpm = song.getBpm();
             if (!bpm.isBlank()) {
@@ -158,7 +160,7 @@ public class Album {
         return "";
     }
 
-    public String getComment() {
+    public @NonNull String getComment() {
         for (Song song : getSongs()) {
             String comment = song.getComment();
             if (!comment.isBlank()) {
@@ -168,7 +170,7 @@ public class Album {
         return "";
     }
 
-    public String getAlbumArtist() {
+    public @NonNull String getAlbumArtist() {
         String first = null;
         for (Disc disc : discs) {
             for (Song song : disc.getSongs()) {
@@ -227,7 +229,7 @@ public class Album {
     public record ArtistInfo(String artist, boolean variousArtists) {
     }
 
-    public ArtistInfo getArtist() {
+    public @NonNull ArtistInfo getArtist() {
         String firstAlbumArtist = null;
         boolean multipleAlbumArtists = false;
 
@@ -258,7 +260,7 @@ public class Album {
      * songs belong to different artists, and "Unknown Artist" when no usable
      * artist tag exists.
      */
-    private ArtistInfo resolveFromSongArtists() {
+    private @NonNull ArtistInfo resolveFromSongArtists() {
         String firstArtist = null;
         boolean multipleArtists = false;
 
@@ -284,11 +286,11 @@ public class Album {
         return new ArtistInfo(various ? "Various Artists" : firstArtist, various);
     }
 
-    private static String normalizeArtist(String artist) {
+    private static @NonNull String normalizeArtist(@Nullable String artist) {
         return artist == null ? "" : artist.trim().toLowerCase(Locale.ROOT);
     }
 
-    public List<Disc> getDiscs() {
+    public @NonNull List<Disc> getDiscs() {
         return List.copyOf(discs);
     }
 
@@ -296,7 +298,7 @@ public class Album {
         return discs.size() > 1;
     }
 
-    public List<Song> getSongs() {
+    public @NonNull List<Song> getSongs() {
         ArrayList<Song> songs = new ArrayList<>();
         for (Disc disc : discs) {
             songs.addAll(disc.getSongs());
@@ -347,7 +349,7 @@ public class Album {
         ).getImage();
     }
 
-    private void cacheArtwork(byte[] data) {
+    private void cacheArtwork(byte @NonNull [] data) {
         try {
             Path artDir = Main.appDir.resolve(ARTWORK_DIR);
             Files.createDirectories(artDir);
@@ -361,14 +363,14 @@ public class Album {
         }
     }
 
-    private static String fileSafe(String name) {
+    private static @NonNull String fileSafe(@NonNull String name) {
         String sanitized = name
                 .replaceAll("[\\\\/:*?\"<>|]", "_")
                 .trim();
         return sanitized.isBlank() ? "album" : sanitized;
     }
 
-    public void addSong(Song song) {
+    public void addSong(@NonNull Song song) {
         Objects.requireNonNull(song, "Song cannot be null");
 
         int discIndex = song.getDiscNumber();
@@ -393,7 +395,7 @@ public class Album {
         discs.sort(Comparator.comparingInt(Disc::getDiscIndex));
     }
 
-    private static void serialize(Album album, ConfigBuilder builder) {
+    private static void serialize(@NonNull Album album, @NonNull ConfigBuilder builder) {
         builder.setString("title", album.getTitle());
         builder.setLong("createdAt", album.getCreatedAt());
         if (album.isUnknown()) {
@@ -414,7 +416,7 @@ public class Album {
         builder.set("discs", discsArray);
     }
 
-    private static Album decodeFrom(ConfigBuilder builder) {
+    private static Album decodeFrom(@Nullable ConfigBuilder builder) {
         if (builder == null) {
             return null;
         }

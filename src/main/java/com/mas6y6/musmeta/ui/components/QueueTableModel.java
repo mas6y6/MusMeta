@@ -1,5 +1,8 @@
 package com.mas6y6.musmeta.ui.components;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,21 +13,21 @@ public class QueueTableModel<T> extends AbstractTableModel {
 
     private final List<T> items = new ArrayList<>();
 
-    private final String[] columnNames;
-    private final Function<T, ?>[] getters;
+    private final String @NonNull [] columnNames;
+    private final Function<T, ?> @NonNull [] getters;
     private final BiConsumer<T, Object>[] setters;
 
     @SafeVarargs
     public QueueTableModel(
-            String[] columnNames,
-            Function<T, ?>... getters
+            String @NonNull [] columnNames,
+            Function<T, ?> @NonNull ... getters
     ) {
         this(columnNames, getters, null);
     }
 
     public QueueTableModel(
-            String[] columnNames,
-            Function<T, ?>[] getters,
+            String @NonNull [] columnNames,
+            Function<T, ?> @NonNull [] getters,
             BiConsumer<T, Object>[] setters
     ) {
         if (columnNames.length != getters.length) {
@@ -38,7 +41,7 @@ public class QueueTableModel<T> extends AbstractTableModel {
         this.setters = setters;
     }
 
-    public List<T> getItems() {
+    public @NonNull List<T> getItems() {
         return items;
     }
 
@@ -49,7 +52,7 @@ public class QueueTableModel<T> extends AbstractTableModel {
         fireTableRowsInserted(row, row);
     }
 
-    public void addAll(List<T> newItems) {
+    public void addAll(@NonNull List<T> newItems) {
         if (newItems.isEmpty()) {
             return;
         }
@@ -128,7 +131,7 @@ public class QueueTableModel<T> extends AbstractTableModel {
     }
 
     @Override
-    public Class<?> getColumnClass(int column) {
+    public @NonNull Class<?> getColumnClass(int column) {
         if (column == 0) {
             return Integer.class;
         }
@@ -166,7 +169,7 @@ public class QueueTableModel<T> extends AbstractTableModel {
     }
 
     @Override
-    public void setValueAt(Object value, int row, int column) {
+    public void setValueAt(@Nullable Object value, int row, int column) {
         if (row < 0 || row >= items.size()) {
             return;
         }

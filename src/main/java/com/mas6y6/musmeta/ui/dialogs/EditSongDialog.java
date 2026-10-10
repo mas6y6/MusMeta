@@ -7,11 +7,12 @@ import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.ui.album.AlbumUI;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import org.jaudiotagger.tag.FieldKey;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
@@ -44,7 +45,7 @@ public class EditSongDialog extends JDialog {
     private static final int ARTWORK_SIZE = 180;
     private static final String MULTIPLE_VALUES = "Multiple Values";
 
-    private final List<Song> songs;
+    private final @NonNull List<Song> songs;
     private final boolean isSingleSong;
 
     // Single Song Fields
@@ -71,31 +72,26 @@ public class EditSongDialog extends JDialog {
     private final Map<String, JCheckBox> applyCheckboxes = new HashMap<>();
     private final Set<String> differingFields = new HashSet<>();
 
-    // Album entry state. {@code lastCommittedAlbum} guards the commit hooks so
-    // programmatic updates and repeated focus events only prompt once, and
-    // {@code suppressAlbumApply} stops those updates from ticking the apply box.
     private String lastCommittedAlbum = "";
-    private Boolean copyArtworkToNewAlbum;
+    private @Nullable Boolean copyArtworkToNewAlbum;
     private boolean suppressAlbumApply;
 
-    // One-artist-per-album toggle: when ticked, the artist above is written to
-    // every song of {@code uniformArtistAlbum}, not just the ones being edited.
     private JCheckBox uniformArtistCheck;
-    private String uniformArtistAlbum;
+    private @Nullable String uniformArtistAlbum;
 
     // Artwork
     private AlbumArtwork artworkLabel;
-    private ProcessTagsDialog.ArtworkAction artworkAction = ProcessTagsDialog.ArtworkAction.KEEP;
-    private byte[] newArtworkBytes;
-    private String newArtworkMimeType;
+    private ProcessTagsDialog.@NonNull ArtworkAction artworkAction = ProcessTagsDialog.ArtworkAction.KEEP;
+    private byte @Nullable [] newArtworkBytes;
+    private @Nullable String newArtworkMimeType;
 
-    public EditSongDialog(Window parent, Song song) {
+    public EditSongDialog(Window parent, @NonNull Song song) {
         this(parent, List.of(song));
     }
 
-    public EditSongDialog(Window parent, List<Song> songs) {
+    public EditSongDialog(Window parent, @NonNull List<Song> songs) {
         super(parent, songs.size() == 1 ? "Song Info" : "Multiple Items Info (" + songs.size() + " songs)", ModalityType.APPLICATION_MODAL);
-        this.songs = songs != null && !songs.isEmpty() ? songs : List.of();
+        this.songs = !songs.isEmpty() ? songs : List.of();
         this.isSingleSong = this.songs.size() == 1;
 
         setSize(DIALOG_SIZE);
@@ -110,7 +106,7 @@ public class EditSongDialog extends JDialog {
         initUniformArtistCheck();
 
         if (isSingleSong) {
-            Song song = songs.get(0);
+            Song song = songs.getFirst();
             titleField = new JTextField(song.getRawTitle());
             artistField = new JTextField(song.getRawArtist());
             initAlbumCombo(song.getRawAlbum());
@@ -203,11 +199,11 @@ public class EditSongDialog extends JDialog {
 
         lastCommittedAlbum = comboText(albumCombo);
 
-        albumCombo.addActionListener(e -> commitAlbumSelection());
+        albumCombo.addActionListener(_ -> commitAlbumSelection());
         if (albumCombo.getEditor().getEditorComponent() instanceof JTextComponent editor) {
             editor.addFocusListener(new FocusAdapter() {
                 @Override
-                public void focusLost(FocusEvent e) {
+                public void focusLost(FocusEvent ignored) {
                     commitAlbumSelection();
                 }
             });
@@ -226,7 +222,7 @@ public class EditSongDialog extends JDialog {
                 "Writes the artist above to every song of the album, and uses it as the album artist too"
         );
         uniformArtistCheck.setOpaque(false);
-        uniformArtistCheck.addActionListener(e -> onUniformArtistToggled());
+        uniformArtistCheck.addActionListener(_ -> onUniformArtistToggled());
     }
 
     private void onUniformArtistToggled() {
@@ -271,7 +267,7 @@ public class EditSongDialog extends JDialog {
      * @return the album the artist should be applied to, falling back to the
      *         album the selected songs already belong to
      */
-    private String selectedAlbumTitle() {
+    private @NonNull String selectedAlbumTitle() {
         String title = comboText(albumCombo);
         if (title.isBlank() || MULTIPLE_VALUES.equals(title)) {
             return commonAlbumOfSongs(songs);
@@ -292,7 +288,7 @@ public class EditSongDialog extends JDialog {
         onAlbumCommitted(previous, current);
     }
 
-    private void onAlbumCommitted(String previous, String current) {
+    private void onAlbumCommitted(String previous, @NonNull String current) {
         if (current.isBlank() || MULTIPLE_VALUES.equals(current)) {
             return;
         }
@@ -320,7 +316,7 @@ public class EditSongDialog extends JDialog {
      * Opens {@link NewAlbumDialog} prefilled with the typed title. Returns the
      * title to continue with, or {@code null} when the user backed out.
      */
-    private String promptCreateAlbum(String previous, String title) {
+    private @Nullable String promptCreateAlbum(String previous, String title) {
         NewAlbumDialog dialog = new NewAlbumDialog(ownerWindow());
         dialog.albumNameField.setText(title);
         dialog.setVisible(true);
@@ -346,7 +342,7 @@ public class EditSongDialog extends JDialog {
     }
 
     private CopyArtworkDialog.Choice promptArtworkCopy(String targetAlbum) {
-        Image artwork = songs.isEmpty() ? null : songs.get(0).getArtworkImage();
+        Image artwork = songs.isEmpty() ? null : songs.getFirst().getArtworkImage();
         CopyArtworkDialog.Choice choice = CopyArtworkDialog.ask(ownerWindow(), targetAlbum, artwork);
 
         if (choice != CopyArtworkDialog.Choice.CANCEL) {
@@ -359,14 +355,6 @@ public class EditSongDialog extends JDialog {
         return choice;
     }
 
-    /**
-     * Copies the album level details of the album the song is being moved onto,
-     * the way iTunes does: the song picks up that album's album artist, total
-     * tracks and disc layout, so its tags stay consistent with the album it now
-     * belongs to. Only the album name itself, the album artist, the track total
-     * and the disc number and total are taken over; the song's own title,
-     * artist and track number are left alone.
-     */
     private void inheritAlbumDetails(String targetAlbum) {
         Album album = Library.getInstance().getAlbum(targetAlbum);
         if (album == null) {
@@ -382,7 +370,7 @@ public class EditSongDialog extends JDialog {
         setSpinner(trackTotalSpinner, Math.max(0, album.getTrackTotal()));
 
         if (isSingleSong) {
-            int discNo = Math.min(Math.max(1, songs.get(0).getDiscNumber()), discTotal);
+            int discNo = Math.clamp(songs.getFirst().getDiscNumber(), 1, discTotal);
             setSpinner(discNoSpinner, discNo);
         }
 
@@ -392,7 +380,7 @@ public class EditSongDialog extends JDialog {
         tickApply("totals");
     }
 
-    private static void setText(JTextField field, String value) {
+    private static void setText(@Nullable JTextField field, @Nullable String value) {
         if (field == null) {
             return;
         }
@@ -400,12 +388,12 @@ public class EditSongDialog extends JDialog {
         field.setForeground(UIManager.getColor("TextField.foreground"));
     }
 
-    private static void setSpinner(JSpinner spinner, int value) {
+    private static void setSpinner(@Nullable JSpinner spinner, int value) {
         if (spinner == null) {
             return;
         }
         if (spinner.getModel() instanceof SpinnerNumberModel model) {
-            value = Math.min(Math.max(value, ((Number) model.getMinimum()).intValue()),
+            value = Math.clamp(value, ((Number) model.getMinimum()).intValue(),
                     ((Number) model.getMaximum()).intValue());
         }
         spinner.setValue(value);
@@ -428,7 +416,7 @@ public class EditSongDialog extends JDialog {
         lastCommittedAlbum = comboText(albumCombo);
     }
 
-    private Window ownerWindow() {
+    private @NonNull Window ownerWindow() {
         Window owner = getOwner();
         return owner != null ? owner : this;
     }
@@ -436,7 +424,7 @@ public class EditSongDialog extends JDialog {
     /**
      * @return the album title currently in the combo box, trimmed
      */
-    private static String comboText(JComboBox<String> combo) {
+    private static @NonNull String comboText(@NonNull JComboBox<String> combo) {
         Object selected = combo.getSelectedItem();
         if (selected == null) {
             selected = combo.isEditable() ? combo.getEditor().getItem() : null;
@@ -449,7 +437,7 @@ public class EditSongDialog extends JDialog {
      * a real album that is not already listed. A blank title is only shown in
      * the editor, never as a list entry.
      */
-    private static void setComboText(JComboBox<String> combo, String title) {
+    private static void setComboText(@NonNull JComboBox<String> combo, @Nullable String title) {
         String value = title == null ? "" : title;
         if (!value.isBlank() && findComboIndex(combo, value) < 0) {
             combo.addItem(value);
@@ -458,7 +446,7 @@ public class EditSongDialog extends JDialog {
         combo.getEditor().setItem(value);
     }
 
-    private static int findComboIndex(JComboBox<String> combo, String title) {
+    private static int findComboIndex(@NonNull JComboBox<String> combo, String title) {
         for (int i = 0; i < combo.getItemCount(); i++) {
             if (combo.getItemAt(i).equalsIgnoreCase(title)) {
                 return i;
@@ -467,7 +455,7 @@ public class EditSongDialog extends JDialog {
         return -1;
     }
 
-    private static String commonAlbumOfSongs(List<Song> songs) {
+    private static @NonNull String commonAlbumOfSongs(@NonNull List<Song> songs) {
         return isCommon(songs, Song::getRawAlbum) ? getCommonValue(songs, Song::getRawAlbum) : "";
     }
 
@@ -475,7 +463,7 @@ public class EditSongDialog extends JDialog {
      * @return {@code true} when the title is not the album every selected song
      *         currently belongs to
      */
-    private boolean albumDiffersFromSongs(String title) {
+    private boolean albumDiffersFromSongs(@NonNull String title) {
         for (Song song : songs) {
             if (!title.equalsIgnoreCase(song.getRawAlbum())) {
                 return true;
@@ -484,7 +472,7 @@ public class EditSongDialog extends JDialog {
         return false;
     }
 
-    private JTextField newMultipleTextField(List<Song> songs, Function<Song, String> extractor, String key) {
+    private @NonNull JTextField newMultipleTextField(@NonNull List<Song> songs, @NonNull Function<Song, String> extractor, String key) {
         JTextField field = new JTextField(getCommonValue(songs, extractor));
         if (!isCommon(songs, extractor)) {
             differingFields.add(key);
@@ -495,7 +483,7 @@ public class EditSongDialog extends JDialog {
         return field;
     }
 
-    private void initMultipleCombo(JComboBox<String> combo, List<Song> songs, Function<Song, String> extractor, String key) {
+    private void initMultipleCombo(@NonNull JComboBox<String> combo, @NonNull List<Song> songs, @NonNull Function<Song, String> extractor, String key) {
         if (isCommon(songs, extractor)) {
             combo.setSelectedItem(getCommonValue(songs, extractor));
         } else {
@@ -505,11 +493,11 @@ public class EditSongDialog extends JDialog {
         }
     }
 
-    private static boolean isCommon(List<Song> songs, Function<Song, String> extractor) {
+    private static boolean isCommon(@NonNull List<Song> songs, @NonNull Function<Song, String> extractor) {
         if (songs.isEmpty()) {
             return true;
         }
-        String first = extractor.apply(songs.get(0));
+        String first = extractor.apply(songs.getFirst());
         for (Song song : songs) {
             if (!Objects.equals(first, extractor.apply(song))) {
                 return false;
@@ -518,11 +506,11 @@ public class EditSongDialog extends JDialog {
         return true;
     }
 
-    private static int commonInt(List<Song> songs, ToIntFunction<Song> extractor) {
+    private static int commonInt(@NonNull List<Song> songs, @NonNull ToIntFunction<Song> extractor) {
         if (songs.isEmpty()) {
             return 0;
         }
-        int first = extractor.applyAsInt(songs.get(0));
+        int first = extractor.applyAsInt(songs.getFirst());
         for (Song song : songs) {
             if (extractor.applyAsInt(song) != first) {
                 return 0;
@@ -531,9 +519,9 @@ public class EditSongDialog extends JDialog {
         return first;
     }
 
-    private static String getCommonValue(List<Song> songs, Function<Song, String> extractor) {
+    private static @NonNull String getCommonValue(@NonNull List<Song> songs, @NonNull Function<Song, String> extractor) {
         if (songs.isEmpty()) return "";
-        String first = extractor.apply(songs.get(0));
+        String first = extractor.apply(songs.getFirst());
         for (Song s : songs) {
             if (!Objects.equals(first, extractor.apply(s))) {
                 return "";
@@ -561,7 +549,7 @@ public class EditSongDialog extends JDialog {
         setContentPane(contentPane);
     }
 
-    private JPanel createArtworkPanel() {
+    private @NonNull JPanel createArtworkPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setOpaque(false);
@@ -573,7 +561,7 @@ public class EditSongDialog extends JDialog {
 
         Image currentImage = null;
         if (isSingleSong && !songs.isEmpty()) {
-            currentImage = songs.get(0).getArtworkImage();
+            currentImage = songs.getFirst().getArtworkImage();
         }
         artworkLabel.setArtwork(currentImage != null ? currentImage : placeholderArtwork());
         artworkLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -582,7 +570,7 @@ public class EditSongDialog extends JDialog {
 
         artworkLabel.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(@NonNull MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     chooseArtworkFile();
                 }
@@ -591,12 +579,12 @@ public class EditSongDialog extends JDialog {
 
         artworkLabel.setDropTarget(new DropTarget(artworkLabel, new DropTargetAdapter() {
             @Override
-            public void drop(DropTargetDropEvent dtde) {
+            public void drop(@NonNull DropTargetDropEvent dtde) {
                 try {
                     dtde.acceptDrop(DnDConstants.ACTION_COPY);
                     Object data = dtde.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
                     if (data instanceof List<?> list && !list.isEmpty()) {
-                        Object first = list.get(0);
+                        Object first = list.getFirst();
                         if (first instanceof File file) {
                             applyArtworkFile(file);
                         }
@@ -613,7 +601,7 @@ public class EditSongDialog extends JDialog {
         JButton chooseButton = new JButton("Choose Artwork...");
         chooseButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         chooseButton.setMaximumSize(new Dimension(ARTWORK_SIZE, 30));
-        chooseButton.addActionListener(e -> chooseArtworkFile());
+        chooseButton.addActionListener(_ -> chooseArtworkFile());
         panel.add(chooseButton);
 
         panel.add(Box.createVerticalStrut(6));
@@ -621,7 +609,7 @@ public class EditSongDialog extends JDialog {
         JButton removeButton = new JButton("Remove Artwork");
         removeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         removeButton.setMaximumSize(new Dimension(ARTWORK_SIZE, 30));
-        removeButton.addActionListener(e -> {
+        removeButton.addActionListener(_ -> {
             artworkAction = ProcessTagsDialog.ArtworkAction.REMOVE;
             newArtworkBytes = null;
             newArtworkMimeType = null;
@@ -645,7 +633,7 @@ public class EditSongDialog extends JDialog {
         }
     }
 
-    private void applyArtworkFile(File file) {
+    private void applyArtworkFile(@NonNull File file) {
         try {
             Image img = ImageIO.read(file);
             if (img != null) {
@@ -662,7 +650,7 @@ public class EditSongDialog extends JDialog {
         }
     }
 
-    private JPanel createFormPanel() {
+    private @NonNull JPanel createFormPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(new EmptyBorder(4, 4, 4, 4));
 
@@ -735,7 +723,7 @@ public class EditSongDialog extends JDialog {
             // Compilation toggle
             JCheckBox applyCompCheck = new JCheckBox();
             applyCheckboxes.put("compilation", applyCompCheck);
-            compilationCheck.addActionListener(e -> applyCompCheck.setSelected(true));
+            compilationCheck.addActionListener(_ -> applyCompCheck.setSelected(true));
             JPanel compPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
             compPanel.setOpaque(false);
             compPanel.add(applyCompCheck);
@@ -754,7 +742,7 @@ public class EditSongDialog extends JDialog {
         return panel;
     }
 
-    private void addFormRow(JPanel panel, GridBagConstraints gbc, int row, String labelText, Component comp, String multiKey) {
+    private void addFormRow(@NonNull JPanel panel, @NonNull GridBagConstraints gbc, int row, String labelText, Component comp, @Nullable String multiKey) {
         if (!isSingleSong && multiKey != null) {
             JCheckBox applyCheck = new JCheckBox();
             applyCheckboxes.put(multiKey, applyCheck);
@@ -777,7 +765,7 @@ public class EditSongDialog extends JDialog {
                     public void changedUpdate(javax.swing.event.DocumentEvent e) { fieldEdited(tf, applyCheck); }
                 });
             } else if (comp instanceof JComboBox<?> cb) {
-                cb.addActionListener(e -> {
+                cb.addActionListener(_ -> {
                     if (!suppressAlbumApply) {
                         applyCheck.setSelected(true);
                     }
@@ -797,7 +785,7 @@ public class EditSongDialog extends JDialog {
         panel.add(comp, gbc);
     }
 
-    private void addAlbumToggleRow(JPanel panel, GridBagConstraints gbc, int row) {
+    private void addAlbumToggleRow(@NonNull JPanel panel, @NonNull GridBagConstraints gbc, int row) {
         gbc.gridx = 1;
         gbc.gridy = row;
         gbc.gridwidth = 1;
@@ -808,15 +796,15 @@ public class EditSongDialog extends JDialog {
         gbc.insets = new Insets(5, 6, 5, 6);
     }
 
-    private JPanel createButtonPanel() {
+    private @NonNull JPanel createButtonPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         panel.setOpaque(false);
 
         JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(e -> dispose());
+        cancelButton.addActionListener(_ -> dispose());
 
         JButton okButton = new JButton("OK");
-        okButton.addActionListener(e -> onSave());
+        okButton.addActionListener(_ -> onSave());
         getRootPane().setDefaultButton(okButton);
 
         panel.add(cancelButton);
@@ -844,7 +832,7 @@ public class EditSongDialog extends JDialog {
         List<ProcessTagsDialog.SongTagUpdate> updates = new ArrayList<>();
 
         if (isSingleSong) {
-            Song song = songs.get(0);
+            Song song = songs.getFirst();
             Map<FieldKey, String> toSet = new HashMap<>();
             Set<FieldKey> toDelete = new HashSet<>();
 
@@ -1074,12 +1062,12 @@ public class EditSongDialog extends JDialog {
         processDialog.startAndShow();
     }
 
-    private String uniformArtistValue() {
+    private @NonNull String uniformArtistValue() {
         String artist = artistField.getText().trim();
         return MULTIPLE_VALUES.equals(artist) ? "" : artist;
     }
 
-    private void addUniformArtistUpdates(List<ProcessTagsDialog.SongTagUpdate> updates) {
+    private void addUniformArtistUpdates(@NonNull List<ProcessTagsDialog.SongTagUpdate> updates) {
         if (!uniformArtistCheck.isSelected() || uniformArtistAlbum == null) {
             return;
         }
@@ -1121,7 +1109,7 @@ public class EditSongDialog extends JDialog {
         }
     }
 
-    private Map<String, byte[]> buildAlbumArtwork() {
+    private @NonNull Map<String, byte[]> buildAlbumArtwork() {
         if (!Boolean.TRUE.equals(copyArtworkToNewAlbum) || songs.isEmpty()) {
             return Map.of();
         }
@@ -1136,7 +1124,7 @@ public class EditSongDialog extends JDialog {
     }
 
     private byte[] resolveSourceArtwork() {
-        Song song = songs.get(0);
+        Song song = songs.getFirst();
 
         byte[] embedded = song.getArtworkData();
         if (embedded != null && embedded.length > 0) {
@@ -1159,14 +1147,14 @@ public class EditSongDialog extends JDialog {
         return cb != null && cb.isSelected();
     }
 
-    private boolean shouldApply(String key, JTextField field) {
+    private boolean shouldApply(String key, @NonNull JTextField field) {
         if (!isFieldChecked(key)) {
             return false;
         }
         return !(differingFields.contains(key) && MULTIPLE_VALUES.equals(field.getText().trim()));
     }
 
-    private boolean shouldApply(String key, JComboBox<String> combo) {
+    private boolean shouldApply(String key, @NonNull JComboBox<String> combo) {
         if (!isFieldChecked(key)) {
             return false;
         }
@@ -1175,17 +1163,17 @@ public class EditSongDialog extends JDialog {
         return !(differingFields.contains(key) && placeholder);
     }
 
-    private void fieldEdited(JTextField field, JCheckBox applyCheck) {
+    private void fieldEdited(@NonNull JTextField field, @NonNull JCheckBox applyCheck) {
         applyCheck.setSelected(true);
         field.setForeground(UIManager.getColor("TextField.foreground"));
     }
 
-    private static String resolvedAlbumArtist(Song song) {
+    private static String resolvedAlbumArtist(@NonNull Song song) {
         String albumArtist = song.getRawAlbumArtist();
         return albumArtist.isBlank() ? song.getRawArtist() : albumArtist;
     }
 
-    private static String ratingToLabel(String rating) {
+    private static String ratingToLabel(@Nullable String rating) {
         if (rating == null || rating.isBlank() || "0".equals(rating)) {
             return EditAlbumDialog.RATINGS[0];
         }
@@ -1201,7 +1189,7 @@ public class EditSongDialog extends JDialog {
         return EditAlbumDialog.RATINGS[0];
     }
 
-    private static String labelToRating(String label) {
+    private static @NonNull String labelToRating(@Nullable String label) {
         if (label == null || label.startsWith("No rating")) {
             return "";
         }

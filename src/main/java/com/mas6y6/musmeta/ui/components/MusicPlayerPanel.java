@@ -10,6 +10,8 @@ import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.mas6y6.musmeta.ui.dialogs.MusicQueueDialog;
 import com.mas6y6.musmeta.utils.ColorWrapper;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -65,7 +67,7 @@ public class MusicPlayerPanel extends JPanel {
         bindListeners();
     }
 
-    private JComponent trackInfo() {
+    private @NonNull JComponent trackInfo() {
         artwork = new AlbumArtwork(8);
         artwork.setPreferredSize(new Dimension(ARTWORK_SIZE, ARTWORK_SIZE));
         artwork.setMaximumSize(artwork.getPreferredSize());
@@ -98,7 +100,7 @@ public class MusicPlayerPanel extends JPanel {
         return info;
     }
 
-    private JComponent controls() {
+    private @NonNull JComponent controls() {
         previousButton = transportButton(ICON_PREV, "Previous");
         previousButton.addActionListener(e -> MusicPlayer.getInstance().previous());
 
@@ -181,7 +183,7 @@ public class MusicPlayerPanel extends JPanel {
         }
     }
 
-    private JComponent rightControls() {
+    private @NonNull JComponent rightControls() {
         queueButton = transportButton(ICON_QUEUE, "Queue");
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
@@ -196,7 +198,7 @@ public class MusicPlayerPanel extends JPanel {
         return right;
     }
 
-    private JComponent volume() {
+    private @NonNull JComponent volume() {
         volumeIconLabel = new JLabel(ICON_VOL_HIGH);
         volumeIconLabel.setPreferredSize(new Dimension(16, 16));
 
@@ -232,7 +234,7 @@ public class MusicPlayerPanel extends JPanel {
             }
 
             @Override
-            public void songChanged(Song song) {
+            public void songChanged(@Nullable Song song) {
                 runOnEDT(() -> {
                     if (song == null) {
                         clearTrack();
@@ -263,13 +265,13 @@ public class MusicPlayerPanel extends JPanel {
             }
 
             @Override
-            public void onPosition(Duration position) {
+            public void onPosition(@NonNull Duration position) {
                 runOnEDT(() -> updatePosition(position));
             }
         });
     }
 
-    private void updatePosition(Duration position) {
+    private void updatePosition(@NonNull Duration position) {
         int seconds = (int) position.toSeconds();
         currentTimeLabel.setText(formatTime(seconds));
 
@@ -303,7 +305,7 @@ public class MusicPlayerPanel extends JPanel {
         volumeIconLabel.setIcon(icon);
     }
 
-    private JButton transportButton(Icon icon, String toolTip) {
+    private @NonNull JButton transportButton(Icon icon, String toolTip) {
         JButton button = new JButton(icon);
         button.setContentAreaFilled(false);
         button.setBorderPainted(false);
@@ -316,7 +318,7 @@ public class MusicPlayerPanel extends JPanel {
         return button;
     }
 
-    private static JLabel timeLabel(String text) {
+    private static @NonNull JLabel timeLabel(String text) {
         JLabel label = new JLabel(text);
         label.setFont(label.getFont().deriveFont(Font.PLAIN, 10f));
         label.setForeground(UIManager.getColor("Label.disabledForeground"));
@@ -325,7 +327,7 @@ public class MusicPlayerPanel extends JPanel {
         return label;
     }
 
-    public void setTrack(Song song) {
+    public void setTrack(@Nullable Song song) {
         if (song == null) {
             clearTrack();
             return;
@@ -334,7 +336,7 @@ public class MusicPlayerPanel extends JPanel {
         artwork.setArtwork(song.getArtworkImage());
     }
 
-    public void setTrackInfo(String title, String artist) {
+    public void setTrackInfo(@Nullable String title, @Nullable String artist) {
         titleLabel.setText(title == null || title.isBlank() ? "Untitled" : title);
         artistLabel.setText(artist == null || artist.isBlank() ? " " : artist);
     }
@@ -368,21 +370,21 @@ public class MusicPlayerPanel extends JPanel {
         }
     }
 
-    private static String formatTime(int totalSeconds) {
+    private static @NonNull String formatTime(int totalSeconds) {
         if (totalSeconds <= 0) {
             return "0:00";
         }
         return (totalSeconds / 60) + ":" + String.format("%02d", totalSeconds % 60);
     }
 
-    private static String formatDuration(Duration duration) {
+    private static @NonNull String formatDuration(@Nullable Duration duration) {
         if (duration == null || duration.isNegative()) {
             return "0:00";
         }
         return formatTime((int) duration.toSeconds());
     }
 
-    private static void runOnEDT(Runnable runnable) {
+    private static void runOnEDT(@NonNull Runnable runnable) {
         if (SwingUtilities.isEventDispatchThread()) {
             runnable.run();
         } else {

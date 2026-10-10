@@ -4,6 +4,8 @@ import com.mas6y6.musmeta.audio.AudioManager;
 import com.mas6y6.musmeta.audio.FFmpegAudioStream;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.settings.Settings;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,7 +128,7 @@ public class MusicPlayer {
     private final AtomicInteger pendingSkipIndex =
             new AtomicInteger(NO_SKIP);
 
-    private volatile Thread thread;
+    private volatile @Nullable Thread thread;
 
     private volatile boolean isPlaying = false;
     private volatile boolean stopped = true;
@@ -137,7 +139,7 @@ public class MusicPlayer {
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
     }
 
-    public static MusicPlayer getInstance() {
+    public static @NonNull MusicPlayer getInstance() {
         if (instance == null) {
             instance = new MusicPlayer();
         }
@@ -145,11 +147,11 @@ public class MusicPlayer {
         return instance;
     }
 
-    public List<Song> getQueue() {
+    public @NonNull List<Song> getQueue() {
         return List.copyOf(queue);
     }
 
-    public void addToQueue(Song... songs) {
+    public void addToQueue(Song @Nullable ... songs) {
         if (songs == null || songs.length == 0) {
             return;
         }
@@ -159,7 +161,7 @@ public class MusicPlayer {
         notifyQueueChanged();
     }
 
-    public Song getCurrentSong() {
+    public @Nullable Song getCurrentSong() {
         int index = currentSongIndex;
 
         if (index < 0 || index >= queue.size()) {
@@ -294,7 +296,7 @@ public class MusicPlayer {
         }
     }
 
-    private void play(Song song) throws IOException {
+    private void play(@NonNull Song song) throws IOException {
         notifySongChanged(song);
 
         AudioManager.getInstance().play(
@@ -437,7 +439,7 @@ public class MusicPlayer {
         return AudioManager.getInstance().isPaused();
     }
 
-    public void addListener(Listener listener) {
+    public void addListener(@Nullable Listener listener) {
         if (listener == null) {
             return;
         }
@@ -445,7 +447,7 @@ public class MusicPlayer {
         listeners.addIfAbsent(listener);
     }
 
-    public void removeListener(Listener listener) {
+    public void removeListener(@Nullable Listener listener) {
         if (listener == null) {
             return;
         }

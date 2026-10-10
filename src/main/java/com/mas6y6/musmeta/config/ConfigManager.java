@@ -9,6 +9,8 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.io.BufferedReader;
@@ -26,8 +28,8 @@ import java.util.Objects;
 public class ConfigManager {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(ConfigManager.class);
 
-    public static Gson GSON = createGson();
-    private static ConfigManager instance;
+    public static @NonNull Gson GSON = createGson();
+    private static @Nullable ConfigManager instance;
 
     private static final Map<Class<?>, ConfigCodec<?>> codecs = new LinkedHashMap<>();
 
@@ -40,7 +42,7 @@ public class ConfigManager {
 
     }
 
-    public static synchronized ConfigManager getInstance() {
+    public static synchronized @NonNull ConfigManager getInstance() {
         if (instance == null) {
             instance = new ConfigManager();
         }
@@ -70,7 +72,7 @@ public class ConfigManager {
         return false;
     }
 
-    public static Path getDefaultConfigPath() {
+    public static @NonNull Path getDefaultConfigPath() {
         String configured = System.getProperty("musmeta.config.path");
         if (configured == null || configured.isBlank()) {
             configured = System.getProperty("musmeta.config");
@@ -108,7 +110,7 @@ public class ConfigManager {
         return customConfigPath;
     }
 
-    public synchronized SubConfig registerConfig(String name) {
+    public synchronized @NonNull SubConfig registerConfig(String name) {
         Objects.requireNonNull(name, "Config name cannot be null");
         SubConfig config = configs.get(name);
         if (config == null) {
@@ -140,7 +142,7 @@ public class ConfigManager {
         return configs.containsKey(name) || unmappedConfigs.containsKey(name);
     }
 
-    public synchronized Map<String, SubConfig> getConfigs() {
+    public synchronized @NonNull Map<String, SubConfig> getConfigs() {
         return Collections.unmodifiableMap(configs);
     }
 
@@ -167,7 +169,7 @@ public class ConfigManager {
         save(getConfigPath());
     }
 
-    public synchronized void save(Path path) throws IOException {
+    public synchronized void save(@Nullable Path path) throws IOException {
         if (path == null) {
             return;
         }
@@ -195,7 +197,7 @@ public class ConfigManager {
         load(getConfigPath());
     }
 
-    public synchronized void load(Path path) throws IOException {
+    public synchronized void load(@NonNull Path path) throws IOException {
         Objects.requireNonNull(path, "Path cannot be null");
         if (!Files.exists(path)) {
             return;
@@ -248,7 +250,7 @@ public class ConfigManager {
     }
 
     @SuppressWarnings("unchecked")
-    public static synchronized <T> ConfigCodec<T> getCodec(Class<T> clazz) {
+    public static synchronized <T> ConfigCodec<T> getCodec(@Nullable Class<T> clazz) {
         if (clazz == null) return null;
         ConfigCodec<?> codec = codecs.get(clazz);
         if (codec != null) {
@@ -271,12 +273,12 @@ public class ConfigManager {
         codecs.clear();
     }
 
-    public static Gson createGson() {
+    public static @NonNull Gson createGson() {
         return new GsonBuilder()
                 .registerTypeAdapterFactory(new ConfigSerializableAdapterFactory())
                 .registerTypeHierarchyAdapter(Path.class, new TypeAdapter<Path>() {
                     @Override
-                    public void write(JsonWriter out, Path value) throws IOException {
+                    public void write(@NonNull JsonWriter out, @Nullable Path value) throws IOException {
                         if (value == null) {
                             out.nullValue();
                         } else {
@@ -285,7 +287,7 @@ public class ConfigManager {
                     }
 
                     @Override
-                    public Path read(JsonReader in) throws IOException {
+                    public @Nullable Path read(@NonNull JsonReader in) throws IOException {
                         if (in.peek() == JsonToken.NULL) {
                             in.nextNull();
                             return null;

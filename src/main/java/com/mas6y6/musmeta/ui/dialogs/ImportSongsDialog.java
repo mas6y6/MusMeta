@@ -12,6 +12,8 @@ import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.FieldKey;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +41,7 @@ public class ImportSongsDialog extends JDialog {
     }
 
     private final Album album;
-    private final Window owner;
+    private final @NonNull Window owner;
 
     private final List<Candidate> candidates = new ArrayList<>();
     private final Set<String> knownPaths = new HashSet<>();
@@ -54,7 +56,7 @@ public class ImportSongsDialog extends JDialog {
         }
 
         @Override
-        public Class<?> getColumnClass(int columnIndex) {
+        public @NonNull Class<?> getColumnClass(int columnIndex) {
             return columnIndex == 0 ? Boolean.class : String.class;
         }
     };
@@ -65,7 +67,7 @@ public class ImportSongsDialog extends JDialog {
     private final JButton removeButton = new JButton("Remove");
     private final JButton importButton = new JButton("Import");
 
-    public ImportSongsDialog(Window owner, Album album) {
+    public ImportSongsDialog(@Nullable Window owner, Album album) {
         super(owner, "Import Songs", ModalityType.APPLICATION_MODAL);
         this.owner = owner != null ? owner : this;
         this.album = album;
@@ -83,7 +85,7 @@ public class ImportSongsDialog extends JDialog {
         setContentPane(content());
     }
 
-    private List<Candidate> libraryCandidates() {
+    private @NonNull List<Candidate> libraryCandidates() {
         Set<Song> own = identitySet(album.getSongs());
         Set<String> paths = new HashSet<>();
 
@@ -113,7 +115,7 @@ public class ImportSongsDialog extends JDialog {
 
     //region Layout
 
-    private JComponent content() {
+    private @NonNull JComponent content() {
         JPanel page = new JPanel(new BorderLayout(10, 12));
         page.setBorder(new EmptyBorder(20, 25, 20, 25));
         page.add(header(), BorderLayout.NORTH);
@@ -122,7 +124,7 @@ public class ImportSongsDialog extends JDialog {
         return page;
     }
 
-    private JComponent header() {
+    private @NonNull JComponent header() {
         JPanel header = new JPanel();
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
 
@@ -144,7 +146,7 @@ public class ImportSongsDialog extends JDialog {
         return header;
     }
 
-    private JComponent listPanel() {
+    private @NonNull JComponent listPanel() {
         table.setRowHeight(26);
         table.setShowVerticalLines(false);
         table.getColumnModel().getColumn(0).setMaxWidth(32);
@@ -165,7 +167,7 @@ public class ImportSongsDialog extends JDialog {
         return panel;
     }
 
-    private JComponent listButtons() {
+    private @NonNull JComponent listButtons() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         panel.setOpaque(false);
 
@@ -189,7 +191,7 @@ public class ImportSongsDialog extends JDialog {
         return panel;
     }
 
-    private JComponent footer() {
+    private @NonNull JComponent footer() {
         summary.setFont(summary.getFont().deriveFont(Font.PLAIN, 11f));
         summary.setForeground(UIManager.getColor("Label.disabledForeground"));
 
@@ -214,7 +216,7 @@ public class ImportSongsDialog extends JDialog {
 
     //region Candidate list
 
-    private void addRow(Candidate candidate, boolean checked) {
+    private void addRow(@NonNull Candidate candidate, boolean checked) {
         Song song = candidate.song();
         File file = song.getSourceAudioFile();
         model.addRow(new Object[]{
@@ -232,7 +234,7 @@ public class ImportSongsDialog extends JDialog {
         }
     }
 
-    private List<Candidate> selectedCandidates() {
+    private @NonNull List<Candidate> selectedCandidates() {
         List<Candidate> selected = new ArrayList<>();
         for (int row = 0; row < model.getRowCount() && row < candidates.size(); row++) {
             if (Boolean.TRUE.equals(model.getValueAt(row, 0))) {
@@ -312,13 +314,13 @@ public class ImportSongsDialog extends JDialog {
      * Reads the chosen files off the event thread, since reading the tags and
      * audio headers of a large selection takes long enough to be noticeable.
      */
-    private void readFiles(File[] files) {
+    private void readFiles(File @NonNull [] files) {
         addFilesButton.setEnabled(false);
         summary.setText("Reading " + files.length + (files.length == 1 ? " file..." : " files..."));
 
         new SwingWorker<List<Candidate>, Void>() {
             @Override
-            protected List<Candidate> doInBackground() {
+            protected @NonNull List<Candidate> doInBackground() {
                 List<Candidate> read = new ArrayList<>();
                 for (File file : files) {
                     try {
@@ -433,7 +435,7 @@ public class ImportSongsDialog extends JDialog {
      *
      * @return the files that should actually be imported
      */
-    private List<Song> resolveDuplicates(List<Song> incoming) {
+    private @NonNull List<Song> resolveDuplicates(@NonNull List<Song> incoming) {
         if (incoming.isEmpty()) {
             return List.of();
         }
@@ -488,9 +490,9 @@ public class ImportSongsDialog extends JDialog {
      *
      * @param decisions the answer given per album tag
      */
-    private List<ProcessTagsDialog.SongTagUpdate> buildUpdates(
-            List<Song> songs,
-            Map<AlbumTags.Essential, ImportTagConflictDialog.Choice> decisions
+    private @NonNull List<ProcessTagsDialog.SongTagUpdate> buildUpdates(
+            @NonNull List<Song> songs,
+            @NonNull Map<AlbumTags.Essential, ImportTagConflictDialog.Choice> decisions
     ) {
         String title = album.getTitle();
         int discTotal = album.getDiscTotal();
@@ -536,14 +538,14 @@ public class ImportSongsDialog extends JDialog {
     }
 
     private static boolean useAlbumValue(
-            Map<AlbumTags.Essential, ImportTagConflictDialog.Choice> decisions,
+            @NonNull Map<AlbumTags.Essential, ImportTagConflictDialog.Choice> decisions,
             AlbumTags.Essential tag
     ) {
         return decisions.getOrDefault(tag, ImportTagConflictDialog.Choice.USE_ALBUM_VALUE)
                 == ImportTagConflictDialog.Choice.USE_ALBUM_VALUE;
     }
 
-    private void openSongEditor(List<Song> songs) {
+    private void openSongEditor(@NonNull List<Song> songs) {
         if (songs.size() == 1) {
             new EditSongDialog(owner, songs.get(0)).setVisible(true);
         } else {
@@ -553,13 +555,13 @@ public class ImportSongsDialog extends JDialog {
 
     //endregion
 
-    private static <T> Set<T> identitySet(List<T> items) {
+    private static <T> @NonNull Set<T> identitySet(@NonNull List<T> items) {
         Set<T> set = Collections.newSetFromMap(new IdentityHashMap<>());
         set.addAll(items);
         return set;
     }
 
-    private static String pathOf(Song song) {
+    private static @NonNull String pathOf(@NonNull Song song) {
         File file = song.getSourceAudioFile();
         return file == null ? "" : file.toPath().toAbsolutePath().normalize().toString();
     }

@@ -6,6 +6,8 @@ import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
 import org.jaudiotagger.audio.AudioFileIO;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +65,7 @@ public final class AlbumFormatNormalizer {
         }
 
         @Override
-        public String toString() {
+        public @NonNull String toString() {
             return extension.toUpperCase(Locale.ROOT);
         }
     }
@@ -78,7 +80,7 @@ public final class AlbumFormatNormalizer {
      * Prompts once per mixed-format album. Choosing "Convert all remaining"
      * applies the selected format to every later mixed-format album.
      */
-    public static void promptToNormalizeMixedAlbums(Component parent, Collection<Album> albums) {
+    public static void promptToNormalizeMixedAlbums(Component parent, @NonNull Collection<Album> albums) {
         Path ffmpeg = FFmpegUtils.getFFmpegExecutable();
         if (ffmpeg == null) {
             MDialog.showMessageDialog(parent,
@@ -130,7 +132,7 @@ public final class AlbumFormatNormalizer {
      * Converts every track in {@code album} that is not already in
      * {@code targetFormat}. Callers can use this without displaying a prompt.
      */
-    public static ConversionResult normalize(Album album, AudioFormat targetFormat) {
+    public static @NonNull ConversionResult normalize(@NonNull Album album, @NonNull AudioFormat targetFormat) {
         Path ffmpeg = FFmpegUtils.getFFmpegExecutable();
         if (ffmpeg == null) {
             throw new IllegalStateException("FFmpeg is required to convert album audio formats.");
@@ -144,10 +146,10 @@ public final class AlbumFormatNormalizer {
      * FFmpeg has successfully written and validated their replacement.
      * Progress is reported as completed/total over the supplied collection.
      */
-    public static ConversionResult normalize(
-            Collection<Song> songs,
-            AudioFormat targetFormat,
-            ConversionProgress progress
+    public static @NonNull ConversionResult normalize(
+            @NonNull Collection<Song> songs,
+            @NonNull AudioFormat targetFormat,
+            @Nullable ConversionProgress progress
     ) {
         Path ffmpeg = FFmpegUtils.getFFmpegExecutable();
         if (ffmpeg == null) {
@@ -183,7 +185,7 @@ public final class AlbumFormatNormalizer {
      * Resolves an {@link AudioFormat} from a stored setting value (its extension,
      * e.g. {@code "flac"}). Unknown or blank values fall back to FLAC.
      */
-    public static AudioFormat fromSetting(String extension) {
+    public static @NonNull AudioFormat fromSetting(@Nullable String extension) {
         String normalized = extension == null ? "" : extension.trim().toLowerCase(Locale.ROOT);
         for (AudioFormat format : AudioFormat.values()) {
             if (format.extension().equals(normalized)) {
@@ -194,7 +196,7 @@ public final class AlbumFormatNormalizer {
     }
 
     /** All supported convertable audio formats, used by settings UI. */
-    public static List<AudioFormat> allFormats() {
+    public static @NonNull List<AudioFormat> allFormats() {
         return List.of(AudioFormat.values());
     }
 
@@ -216,10 +218,10 @@ public final class AlbumFormatNormalizer {
      * @return the number of songs converted
      */
     public static int convertIncompatibleToFolder(
-            Collection<Song> songs,
+            @NonNull Collection<Song> songs,
             AudioFormat targetFormat,
-            Path musicRoot,
-            Path outputDir
+            @NonNull Path musicRoot,
+            @NonNull Path outputDir
     ) {
         return convertIncompatibleToFolder(songs, targetFormat, musicRoot, outputDir, null);
     }
@@ -229,11 +231,11 @@ public final class AlbumFormatNormalizer {
      * but reports progress through {@code progress} after each file is processed.
      */
     public static int convertIncompatibleToFolder(
-            Collection<Song> songs,
-            AudioFormat targetFormat,
-            Path musicRoot,
-            Path outputDir,
-            ConversionProgress progress
+            @NonNull Collection<Song> songs,
+            @Nullable AudioFormat targetFormat,
+            @NonNull Path musicRoot,
+            @NonNull Path outputDir,
+            @Nullable ConversionProgress progress
     ) {
         if (targetFormat == null || songs.isEmpty()) {
             return 0;
@@ -310,12 +312,12 @@ public final class AlbumFormatNormalizer {
     }
 
     private static int convertSequentially(
-            Collection<Song> candidates,
-            Path music,
-            Path outputDir,
-            AudioFormat targetFormat,
-            Path ffmpeg,
-            ConversionProgress progress
+            @NonNull Collection<Song> candidates,
+            @NonNull Path music,
+            @NonNull Path outputDir,
+            @NonNull AudioFormat targetFormat,
+            @NonNull Path ffmpeg,
+            @Nullable ConversionProgress progress
     ) {
         int total = candidates.size();
         int converted = 0;
@@ -338,7 +340,7 @@ public final class AlbumFormatNormalizer {
         return converted;
     }
 
-    private static Path resolveTarget(Path outputDir, Path relative, AudioFormat format) {
+    private static @NonNull Path resolveTarget(@NonNull Path outputDir, @NonNull Path relative, @NonNull AudioFormat format) {
         Path parent = relative.getParent();
         String fileName = relative.getFileName().toString();
         int extensionStart = fileName.lastIndexOf('.');
@@ -348,7 +350,7 @@ public final class AlbumFormatNormalizer {
         return outputDir.resolve(target);
     }
 
-    private static void convertTo(Song song, Path source, Path target, AudioFormat format, Path ffmpeg)
+    private static void convertTo(@NonNull Song song, @NonNull Path source, @NonNull Path target, @NonNull AudioFormat format, @NonNull Path ffmpeg)
             throws Exception {
         transcode(source, target, format, ffmpeg);
         song.replaceAudioFile(AudioFileIO.read(target.toFile()));
@@ -361,7 +363,7 @@ public final class AlbumFormatNormalizer {
      *
      * @return the path of the converted file, owned by the caller
      */
-    public static Path convertToTemporaryFile(Path source, AudioFormat targetFormat, Path tempDir)
+    public static @NonNull Path convertToTemporaryFile(@NonNull Path source, @NonNull AudioFormat targetFormat, @NonNull Path tempDir)
             throws Exception {
         Path ffmpeg = FFmpegUtils.getFFmpegExecutable();
         if (ffmpeg == null) {
@@ -384,7 +386,7 @@ public final class AlbumFormatNormalizer {
      * the result, so a failed or interrupted conversion never leaves a partial
      * file behind.
      */
-    private static void transcode(Path source, Path target, AudioFormat format, Path ffmpeg)
+    private static void transcode(@NonNull Path source, @NonNull Path target, @NonNull AudioFormat format, @NonNull Path ffmpeg)
             throws Exception {
         Path parent = target.getParent();
         Files.createDirectories(parent == null ? Path.of(".") : parent);
@@ -454,7 +456,7 @@ public final class AlbumFormatNormalizer {
      * Deletes {@code file}, retrying briefly if it is transiently locked by
      * another process (e.g. an FFmpeg handle not yet released on Windows).
      */
-    private static void deleteWithRetry(Path file) throws IOException {
+    private static void deleteWithRetry(@NonNull Path file) throws IOException {
         int attempts = 0;
         while (true) {
             try {
@@ -472,7 +474,7 @@ public final class AlbumFormatNormalizer {
     /**
      * Deletes {@code file} if it exists, retrying on transient locks.
      */
-    private static void deleteIfExistsWithRetry(Path file) {
+    private static void deleteIfExistsWithRetry(@NonNull Path file) {
         if (!Files.exists(file)) {
             return;
         }
@@ -487,7 +489,7 @@ public final class AlbumFormatNormalizer {
      * Atomically moves {@code from} to {@code to}, retrying briefly if the source
      * is transiently locked.
      */
-    private static void moveWithRetry(Path from, Path to) throws IOException {
+    private static void moveWithRetry(@NonNull Path from, @NonNull Path to) throws IOException {
         int attempts = 0;
         while (true) {
             try {
@@ -510,7 +512,7 @@ public final class AlbumFormatNormalizer {
         }
     }
 
-    private static void destroyProcess(Process process) {
+    private static void destroyProcess(@Nullable Process process) {
         if (process == null) {
             return;
         }
@@ -529,7 +531,7 @@ public final class AlbumFormatNormalizer {
         }
     }
 
-    private static AudioFormat promptForFormat(Component parent, Album album, Set<String> formats) {
+    private static @Nullable AudioFormat promptForFormat(Component parent, @NonNull Album album, @NonNull Set<String> formats) {
         AudioFormat recommended = recommendedFormat(album, formats);
         JComboBox<AudioFormat> formatPicker = new JComboBox<>(AudioFormat.values());
         formatPicker.setSelectedItem(recommended);
@@ -544,7 +546,7 @@ public final class AlbumFormatNormalizer {
         return choice == JOptionPane.OK_OPTION ? (AudioFormat) formatPicker.getSelectedItem() : null;
     }
 
-    private static ConversionResult normalize(Album album, AudioFormat targetFormat, Path ffmpeg) {
+    private static @NonNull ConversionResult normalize(@NonNull Album album, @NonNull AudioFormat targetFormat, @NonNull Path ffmpeg) {
         int converted = 0;
         List<Path> failures = new ArrayList<>();
         for (Song song : songsIn(album)) {
@@ -564,7 +566,7 @@ public final class AlbumFormatNormalizer {
         return new ConversionResult(converted, List.copyOf(failures));
     }
 
-    private static void convert(Song song, Path source, AudioFormat targetFormat, Path ffmpeg)
+    private static void convert(@NonNull Song song, @NonNull Path source, @NonNull AudioFormat targetFormat, @NonNull Path ffmpeg)
             throws Exception {
         String fileName = source.getFileName().toString();
         int extensionStart = fileName.lastIndexOf('.');
@@ -598,7 +600,7 @@ public final class AlbumFormatNormalizer {
         }
     }
 
-    private static Set<String> extensionsIn(Album album) {
+    private static @NonNull Set<String> extensionsIn(@NonNull Album album) {
         Set<String> formats = new TreeSet<>();
         for (Song song : songsIn(album)) {
             formats.add(extensionOf(song.getAudioFile().getFile().toPath()));
@@ -606,7 +608,7 @@ public final class AlbumFormatNormalizer {
         return formats;
     }
 
-    private static AudioFormat recommendedFormat(Album album, Set<String> formats) {
+    private static @NonNull AudioFormat recommendedFormat(@NonNull Album album, @NonNull Set<String> formats) {
         Map<String, Integer> counts = new HashMap<>();
         for (Song song : songsIn(album)) {
             counts.merge(extensionOf(song.getAudioFile().getFile().toPath()), 1, Integer::sum);
@@ -620,11 +622,11 @@ public final class AlbumFormatNormalizer {
                 .orElse(AudioFormat.FLAC);
     }
 
-    private static List<Song> songsIn(Album album) {
+    private static @NonNull List<Song> songsIn(@NonNull Album album) {
         return album.getDiscs().stream().map(Disc::getSongs).flatMap(Collection::stream).toList();
     }
 
-    private static String extensionOf(Path file) {
+    private static @NonNull String extensionOf(@NonNull Path file) {
         String name = file.getFileName().toString();
         int extensionStart = name.lastIndexOf('.');
         if (extensionStart < 0 || extensionStart == name.length() - 1) {
@@ -633,7 +635,7 @@ public final class AlbumFormatNormalizer {
         return name.substring(extensionStart + 1).toLowerCase(Locale.ROOT);
     }
 
-    private static String formatDescription(Set<String> formats) {
+    private static @NonNull String formatDescription(@NonNull Set<String> formats) {
         return formats.stream().map(format -> format.toUpperCase(Locale.ROOT))
                 .collect(java.util.stream.Collectors.joining(", "));
     }

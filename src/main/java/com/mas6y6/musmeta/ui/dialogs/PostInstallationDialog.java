@@ -14,6 +14,8 @@ import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.settings.Updates;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.MusMetaFrame;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
 import javax.swing.*;
@@ -42,7 +44,7 @@ public class PostInstallationDialog extends MusMetaFrame {
     // SETUP VALUES
 
     private boolean isffmpegAutoInstall = true;
-    private String ffmpegBinPath = null;
+    private @Nullable String ffmpegBinPath = null;
     private JTextField pathField;
 
 
@@ -258,7 +260,7 @@ public class PostInstallationDialog extends MusMetaFrame {
         };
     }
 
-    public JPanel welcomePage() {
+    public @NonNull JPanel welcomePage() {
         JPanel page = new JPanel(new BorderLayout(20, 20));
         page.setBorder(BorderFactory.createEmptyBorder(
                 30, 40, 30, 40
@@ -291,7 +293,7 @@ public class PostInstallationDialog extends MusMetaFrame {
         return page;
     }
 
-    private JPanel completionPage() {
+    private @NonNull JPanel completionPage() {
         JPanel page = new JPanel(new BorderLayout(20, 20));
         page.setBorder(BorderFactory.createEmptyBorder(
                 30, 40, 30, 40
@@ -321,7 +323,7 @@ public class PostInstallationDialog extends MusMetaFrame {
         return page;
     }
 
-    public JPanel autoCheckUpdates() {
+    public @NonNull JPanel autoCheckUpdates() {
         JPanel page = new JPanel(new BorderLayout(20, 20));
         page.setBorder(BorderFactory.createEmptyBorder(
                 30, 40, 30, 40
@@ -384,7 +386,7 @@ public class PostInstallationDialog extends MusMetaFrame {
         return page;
     }
 
-    public JPanel themePage() {
+    public @NonNull JPanel themePage() {
         JPanel page = new JPanel(new BorderLayout(20, 20));
         page.setBorder(BorderFactory.createEmptyBorder(
                 30, 40, 30, 40
@@ -473,7 +475,7 @@ public class PostInstallationDialog extends MusMetaFrame {
     }
 
 
-    public JPanel musicPathPage() {
+    public @NonNull JPanel musicPathPage() {
         JPanel page = new JPanel(new BorderLayout(20, 20));
         page.setBorder(BorderFactory.createEmptyBorder(
                 30, 40, 30, 40
@@ -586,7 +588,7 @@ public class PostInstallationDialog extends MusMetaFrame {
     /*
         FFMPEG
     */
-    public JPanel ffmpegInstallation() {
+    public @NonNull JPanel ffmpegInstallation() {
         JPanel page = new JPanel(new BorderLayout(20, 20));
         page.setBorder(BorderFactory.createEmptyBorder(
                 30, 40, 30, 40

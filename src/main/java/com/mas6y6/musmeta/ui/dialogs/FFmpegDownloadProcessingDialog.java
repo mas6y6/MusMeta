@@ -3,6 +3,7 @@ package com.mas6y6.musmeta.ui.dialogs;
 import com.mas6y6.musmeta.Constants;
 import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialogBase;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
+import org.jspecify.annotations.NonNull;
 
 import java.awt.*;
 import java.nio.file.Path;
@@ -27,17 +28,17 @@ public class FFmpegDownloadProcessingDialog extends ProcessingDialogBase {
     }
 
     @Override
-    protected String getProcessTitle() {
+    protected @NonNull String getProcessTitle() {
         return "Installing FFmpeg";
     }
 
     @Override
-    protected String getInitialStatus() {
+    protected @NonNull String getInitialStatus() {
         return "Preparing installation...";
     }
 
     @Override
-    protected String getWorkerThreadName() {
+    protected @NonNull String getWorkerThreadName() {
         return "FFmpeg-Installer-Thread";
     }
 
@@ -77,27 +78,22 @@ public class FFmpegDownloadProcessingDialog extends ProcessingDialogBase {
     }
 
     @Override
-    protected String getSuccessStatus() {
+    protected @NonNull String getSuccessStatus() {
         return "FFmpeg installation complete!";
     }
 
     @Override
-    protected String getSuccessDetails() {
-        return "Ready to use";
-    }
-
-    @Override
-    protected String getFailureStatus() {
+    protected @NonNull String getFailureStatus() {
         return "Installation failed.";
     }
 
     @Override
-    protected String getFailureDialogTitle() {
+    protected @NonNull String getFailureDialogTitle() {
         return "FFmpeg Installation Error";
     }
 
     @Override
-    protected String getFailureMessage() {
+    protected @NonNull String getFailureMessage() {
         return "Failed to install FFmpeg:\n"
                 + (getErrorMessage() != null
                 ? getErrorMessage()

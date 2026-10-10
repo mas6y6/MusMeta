@@ -6,6 +6,8 @@ import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.formdev.flatlaf.util.SystemFileChooser;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,8 +32,8 @@ public class NewAlbumDialog extends JDialog {
 
     public final JTextField albumNameField = new JTextField();
     private final AlbumArtwork dropZone = createDropZone();
-    private File albumImageFile = null;
-    private Album createdAlbum = null;
+    private @Nullable File albumImageFile = null;
+    private @Nullable Album createdAlbum = null;
 
     public NewAlbumDialog(Window parent) {
         super(parent, "Create new album", ModalityType.APPLICATION_MODAL);
@@ -57,7 +59,7 @@ public class NewAlbumDialog extends JDialog {
         );
     }
 
-    private AlbumArtwork createDropZone() {
+    private @NonNull AlbumArtwork createDropZone() {
         AlbumArtwork box = new AlbumArtwork(
                 "Drag image here or click to select",
                 12
@@ -83,7 +85,7 @@ public class NewAlbumDialog extends JDialog {
         return box;
     }
 
-    private JPanel fields() {
+    private @NonNull JPanel fields() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.add(dropZone, BorderLayout.NORTH);
 
@@ -113,7 +115,7 @@ public class NewAlbumDialog extends JDialog {
         }
     }
 
-    private void setImage(File file) {
+    private void setImage(@NonNull File file) {
         albumImageFile = file;
 
         dropZone.setArtwork(
@@ -151,7 +153,7 @@ public class NewAlbumDialog extends JDialog {
         }
     }
 
-    private Path storeArtwork(String albumName) {
+    private @Nullable Path storeArtwork(@NonNull String albumName) {
         if (albumImageFile == null) {
             return null;
         }
@@ -195,14 +197,14 @@ public class NewAlbumDialog extends JDialog {
         }
     }
 
-    private static String thumbnailName(String albumName) {
+    private static @NonNull String thumbnailName(@NonNull String albumName) {
         String sanitized = albumName
                 .replaceAll("[\\\\/:*?\"<>|]", "_")
                 .trim();
         return sanitized.isBlank() ? "album" : sanitized;
     }
 
-    private JPanel buttons() {
+    private @NonNull JPanel buttons() {
         JPanel buttonPanel = new JPanel(
                 new FlowLayout(FlowLayout.RIGHT, 10, 0)
         );
@@ -222,12 +224,12 @@ public class NewAlbumDialog extends JDialog {
     private class ImageDropHandler extends TransferHandler {
 
         @Override
-        public boolean canImport(TransferSupport support) {
+        public boolean canImport(@NonNull TransferSupport support) {
             return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
         }
 
         @Override
-        public boolean importData(TransferSupport support) {
+        public boolean importData(@NonNull TransferSupport support) {
             if (!canImport(support)) {
                 return false;
             }

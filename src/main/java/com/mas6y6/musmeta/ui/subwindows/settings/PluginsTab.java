@@ -4,6 +4,7 @@ import com.mas6y6.musmeta.Bootstrap;
 import com.mas6y6.musmeta.plugin.PluginManager;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.subwindows.settings.base.SettingTab;
+import org.jspecify.annotations.NonNull;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -20,7 +21,7 @@ public class PluginsTab extends SettingTab {
 
     private static final String[] COLUMNS = {"Enabled", "Plugin Name"};
 
-    private final DefaultTableModel model;
+    private final @NonNull DefaultTableModel model;
     private final List<String> rowIds = new ArrayList<>();
     private boolean edited = false     ;
     private boolean closePromptHooked = false;
@@ -46,7 +47,7 @@ public class PluginsTab extends SettingTab {
 
         model = new DefaultTableModel(COLUMNS, 0) {
             @Override
-            public Class<?> getColumnClass(int columnIndex) {
+            public @NonNull Class<?> getColumnClass(int columnIndex) {
                 return columnIndex == 0 ? Boolean.class : String.class;
             }
 

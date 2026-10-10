@@ -17,6 +17,7 @@ import com.mas6y6.musmeta.launch.LaunchScreen;
 import com.mas6y6.musmeta.ui.dialogs.MissingSongsDialog;
 import com.mas6y6.musmeta.ui.dialogs.PostInstallationDialog;
 import com.mas6y6.musmeta.utils.PlatformSetup;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 
 import javax.swing.*;
@@ -31,7 +32,7 @@ import java.util.List;
 
 public class Main {
 
-    public static Path getAppDir() {
+    public static @NonNull Path getAppDir() {
         String home = System.getProperty("musmeta.home");
         if (home != null && !home.isBlank()) {
             return Path.of(home);

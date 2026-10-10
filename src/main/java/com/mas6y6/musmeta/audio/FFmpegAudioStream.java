@@ -1,5 +1,8 @@
 package com.mas6y6.musmeta.audio;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import javax.sound.sampled.AudioFormat;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,8 +34,8 @@ public class FFmpegAudioStream implements AudioStream {
             false
     );
 
-    private Process process;
-    private InputStream input;
+    private @Nullable Process process;
+    private @Nullable InputStream input;
 
     private Duration position = Duration.ZERO;
     private volatile Duration duration;
@@ -47,7 +50,7 @@ public class FFmpegAudioStream implements AudioStream {
         startProcess(Duration.ZERO);
     }
 
-    private void startProcess(Duration startPosition)
+    private void startProcess(@NonNull Duration startPosition)
             throws IOException {
 
         double seconds = startPosition.toNanos() / 1_000_000_000.0;
@@ -75,12 +78,12 @@ public class FFmpegAudioStream implements AudioStream {
     }
 
     @Override
-    public AudioFormat getFormat() {
+    public @NonNull AudioFormat getFormat() {
         return format;
     }
 
     @Override
-    public int read(byte[] buffer, int offset, int length)
+    public int read(byte @NonNull [] buffer, int offset, int length)
             throws IOException {
 
         checkClosed();
@@ -102,7 +105,7 @@ public class FFmpegAudioStream implements AudioStream {
     }
 
     @Override
-    public void seek(Duration position)
+    public void seek(@NonNull Duration position)
             throws IOException {
 
         checkClosed();

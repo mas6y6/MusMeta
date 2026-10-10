@@ -1,5 +1,8 @@
 package com.mas6y6.musmeta.ui.components.album;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -13,11 +16,11 @@ public class AlbumArtwork extends JLabel {
 
     private final int radius;
 
-    private Image source;
+    private @Nullable Image source;
 
     private boolean sourceBounded;
 
-    private BufferedImage cache;
+    private @Nullable BufferedImage cache;
     private int cacheWidth;
     private int cacheHeight;
 
@@ -39,7 +42,7 @@ public class AlbumArtwork extends JLabel {
         setOpaque(false);
     }
 
-    public void setArtwork(Image artwork) {
+    public void setArtwork(@Nullable Image artwork) {
         this.source = artwork;
         this.sourceBounded = false;
         this.cache = null;
@@ -57,7 +60,7 @@ public class AlbumArtwork extends JLabel {
     }
 
     @Override
-    protected void paintComponent(Graphics g) {
+    protected void paintComponent(@NonNull Graphics g) {
         int width = getWidth();
         int height = getHeight();
 
@@ -109,7 +112,7 @@ public class AlbumArtwork extends JLabel {
         }
     }
 
-    private BufferedImage artwork(Graphics2D g2, int width, int height) {
+    private @Nullable BufferedImage artwork(@NonNull Graphics2D g2, int width, int height) {
         if (source == null) {
             return null;
         }
@@ -167,7 +170,7 @@ public class AlbumArtwork extends JLabel {
                 MAX_DEVICE_SIZE);
     }
 
-    private static Image boundedCopy(Image image, int deviceWidth, int deviceHeight) {
+    private static @Nullable Image boundedCopy(Image image, int deviceWidth, int deviceHeight) {
         BufferedImage cropped = crop(image, deviceWidth, deviceHeight);
 
         if (cropped == null) {
@@ -184,7 +187,7 @@ public class AlbumArtwork extends JLabel {
         return cropped;
     }
 
-    private static BufferedImage render(
+    private static @Nullable BufferedImage render(
             Image source,
             int width,
             int height,
@@ -206,7 +209,7 @@ public class AlbumArtwork extends JLabel {
         return result;
     }
 
-    private static BufferedImage crop(Image image, int targetWidth, int targetHeight) {
+    private static @Nullable BufferedImage crop(Image image, int targetWidth, int targetHeight) {
         BufferedImage buffered = toBufferedImage(image);
 
         if (buffered == null) {
@@ -237,7 +240,7 @@ public class AlbumArtwork extends JLabel {
         );
     }
 
-    private static BufferedImage scale(BufferedImage image, int targetWidth, int targetHeight) {
+    private static @NonNull BufferedImage scale(BufferedImage image, int targetWidth, int targetHeight) {
         BufferedImage current = image;
         int width = current.getWidth();
         int height = current.getHeight();
@@ -269,7 +272,7 @@ public class AlbumArtwork extends JLabel {
         );
     }
 
-    private static BufferedImage drawScaled(
+    private static @NonNull BufferedImage drawScaled(
             Image image,
             int width,
             int height,
@@ -310,7 +313,7 @@ public class AlbumArtwork extends JLabel {
         return result;
     }
 
-    private static void applyRoundedMask(BufferedImage image, float arcWidth, float arcHeight) {
+    private static void applyRoundedMask(@NonNull BufferedImage image, float arcWidth, float arcHeight) {
         int width = image.getWidth();
         int height = image.getHeight();
 
@@ -355,7 +358,7 @@ public class AlbumArtwork extends JLabel {
         }
     }
 
-    private static BufferedImage toBufferedImage(Image image) {
+    private static @Nullable BufferedImage toBufferedImage(Image image) {
         if (image instanceof BufferedImage buffered) {
             return buffered;
         }

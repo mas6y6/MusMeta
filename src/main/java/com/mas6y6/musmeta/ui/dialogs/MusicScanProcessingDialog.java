@@ -8,6 +8,7 @@ import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialogBase;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
+import org.jspecify.annotations.NonNull;
 
 import java.awt.*;
 import java.nio.file.Path;
@@ -16,7 +17,7 @@ import java.util.List;
 public class MusicScanProcessingDialog extends ProcessingDialogBase {
     private final Path path;
 
-    public MusicScanProcessingDialog(Window owner, boolean useDefaultMusicDir, String path) {
+    public MusicScanProcessingDialog(Window owner, boolean useDefaultMusicDir, @NonNull String path) {
         if (useDefaultMusicDir) {
             this.path = Settings.MUSIC_DIRECTORY_PATH.get();
         } else

@@ -1,6 +1,8 @@
 package com.mas6y6.musmeta.launch;
 
 import com.mas6y6.musmeta.utils.VersionSource;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +19,7 @@ public final class LaunchScreen extends JWindow {
 
     private static volatile LaunchScreen instance;
 
-    private final JLabel statusLabel;
+    private final @NonNull JLabel statusLabel;
 
     private LaunchScreen() {
         setBackground(BACKGROUND);
@@ -80,7 +82,7 @@ public final class LaunchScreen extends JWindow {
         ));
     }
 
-    private static JLabel createBanner() {
+    private static @NonNull JLabel createBanner() {
         Image image = loadBanner();
         if (image != null) {
             return new JLabel(new ImageIcon(image));
@@ -91,7 +93,7 @@ public final class LaunchScreen extends JWindow {
         return fallback;
     }
 
-    private static Image loadBanner() {
+    private static @Nullable Image loadBanner() {
         try (InputStream in = LaunchScreen.class
                 .getResourceAsStream("/banner.png")) {
             if (in == null) {

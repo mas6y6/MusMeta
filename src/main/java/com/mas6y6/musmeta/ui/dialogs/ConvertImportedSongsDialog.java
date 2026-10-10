@@ -5,6 +5,8 @@ import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialogBase;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.awt.Window;
 import java.io.File;
@@ -14,14 +16,14 @@ import java.util.Locale;
 
 public class ConvertImportedSongsDialog extends ProcessingDialogBase {
 
-    private final List<Song> songs;
+    private final @NonNull List<Song> songs;
 
-    public ConvertImportedSongsDialog(Window owner, List<Song> songs) {
+    public ConvertImportedSongsDialog(Window owner, @NonNull List<Song> songs) {
         super(owner, "Converting Music", ProgressMode.DETERMINATE);
         this.songs = List.copyOf(songs);
     }
 
-    public static boolean isNeeded(List<Song> songs, AlbumFormatNormalizer.AudioFormat target) {
+    public static boolean isNeeded(@Nullable List<Song> songs, AlbumFormatNormalizer.@Nullable AudioFormat target) {
         if (target == null || songs == null || songs.isEmpty()) {
             return false;
         }
@@ -68,31 +70,31 @@ public class ConvertImportedSongsDialog extends ProcessingDialogBase {
     }
 
     @Override
-    protected String getProcessTitle() {
+    protected @NonNull String getProcessTitle() {
         return "Converting Music";
     }
 
     @Override
-    protected String getInitialStatus() {
+    protected @NonNull String getInitialStatus() {
         return "Preparing conversion...";
     }
 
     @Override
-    protected String getWorkerThreadName() {
+    protected @NonNull String getWorkerThreadName() {
         return "Import-Convert-Thread";
     }
 
     @Override
-    protected String getSuccessStatus() {
+    protected @NonNull String getSuccessStatus() {
         return "Songs converted!";
     }
 
     @Override
-    protected String getSuccessDetails() {
+    protected @NonNull String getSuccessDetails() {
         return "The imported songs are ready";
     }
 
-    private static String extensionOf(File file) {
+    private static @NonNull String extensionOf(@NonNull File file) {
         return com.google.common.io.Files.getFileExtension(file.getName()).toLowerCase(Locale.ROOT);
     }
 }

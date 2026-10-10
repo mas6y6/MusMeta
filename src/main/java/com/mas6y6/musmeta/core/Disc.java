@@ -4,6 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.mas6y6.musmeta.config.ConfigBuilder;
 import com.mas6y6.musmeta.config.ConfigCodec;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,15 +35,15 @@ public class Disc {
         return discTotal;
     }
 
-    public List<Song> getSongs() {
+    public @NonNull List<Song> getSongs() {
         return List.copyOf(songs);
     }
 
-    public List<String> getMissingSongPaths() {
+    public @NonNull List<String> getMissingSongPaths() {
         return List.copyOf(missingSongPaths);
     }
 
-    public void addMissingSongPath(String path) {
+    public void addMissingSongPath(@Nullable String path) {
         if (path != null && !path.isBlank()) {
             missingSongPaths.add(path);
         }
@@ -66,7 +68,7 @@ public class Disc {
                 .thenComparing(Song::getTitle, String.CASE_INSENSITIVE_ORDER));
     }
 
-    private static void serialize(Disc disc, ConfigBuilder builder) {
+    private static void serialize(@NonNull Disc disc, @NonNull ConfigBuilder builder) {
         builder.setInt("index", disc.getDiscIndex());
         builder.setInt("total", disc.getDiscTotal());
 
@@ -84,7 +86,7 @@ public class Disc {
         builder.set("songs", songsArray);
     }
 
-    private static Disc decodeFrom(ConfigBuilder builder) {
+    private static Disc decodeFrom(@Nullable ConfigBuilder builder) {
         if (builder == null) {
             return null;
         }

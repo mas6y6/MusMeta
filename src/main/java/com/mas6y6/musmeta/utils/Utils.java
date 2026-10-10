@@ -1,6 +1,8 @@
 package com.mas6y6.musmeta.utils;
 
 import com.mas6y6.musmeta.ui.album.AlbumUI;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,7 +38,7 @@ public class Utils {
         return false;
     }
 
-    public static BufferedImage prepareArtwork(Image image) {
+    public static @NonNull BufferedImage prepareArtwork(@Nullable Image image) {
         if (image == null) {
             image = new ImageIcon(
                     Objects.requireNonNull(
@@ -96,7 +98,7 @@ public class Utils {
     );
 
 
-    public static String toSafeFilename(String input) {
+    public static @NonNull String toSafeFilename(@Nullable String input) {
         if (input == null || input.isBlank()) {
             return "untitled";
         }

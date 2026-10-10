@@ -1,5 +1,6 @@
 package com.mas6y6.musmeta.ui.dialogs.base;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,7 @@ public abstract class ProcessingDialogBase {
     private volatile boolean cancelled;
     private volatile boolean success;
 
-    private volatile String errorMessage;
+    private volatile @Nullable String errorMessage;
 
     private Thread workerThread;
 
@@ -60,7 +61,7 @@ public abstract class ProcessingDialogBase {
     protected ProcessingDialogBase(
             Window owner,
             String title,
-            ProgressMode progressMode
+            @NonNull ProgressMode progressMode
     ) {
         this(
                 owner,
@@ -74,7 +75,7 @@ public abstract class ProcessingDialogBase {
             Window owner,
             String title,
             Dimension size,
-            ProgressMode progressMode
+            @NonNull ProgressMode progressMode
     ) {
         this.owner = owner;
         this.title = title;
@@ -124,7 +125,7 @@ public abstract class ProcessingDialogBase {
         }
     }
 
-    private JPanel initUI(ProgressMode progressMode) {
+    private @NonNull JPanel initUI(@NonNull ProgressMode progressMode) {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(
                 new BoxLayout(mainPanel, BoxLayout.Y_AXIS)
@@ -250,7 +251,7 @@ public abstract class ProcessingDialogBase {
     }
 
     private void configureProgressBar(
-            ProgressMode mode
+            @NonNull ProgressMode mode
     ) {
         switch (mode) {
 
@@ -471,9 +472,9 @@ public abstract class ProcessingDialogBase {
     }
 
     protected final void updateProgress(
-            String status,
+            @Nullable String status,
             @Nullable Integer percentage,
-            String details
+            @Nullable String details
     ) {
         if (GraphicsEnvironment.isHeadless()) {
             if (status != null && !status.isBlank()) {
@@ -552,7 +553,7 @@ public abstract class ProcessingDialogBase {
         dispose();
     }
 
-    protected String getCancelMessage() {
+    protected @NonNull String getCancelMessage() {
         return "The operation is still in progress. "
                 + "Are you sure you want to cancel?";
     }
@@ -573,19 +574,19 @@ public abstract class ProcessingDialogBase {
         return errorMessage;
     }
 
-    protected final JLabel getStatusLabel() {
+    protected final @NonNull JLabel getStatusLabel() {
         return statusLabel;
     }
 
-    protected final JLabel getDetailLabel() {
+    protected final @NonNull JLabel getDetailLabel() {
         return detailLabel;
     }
 
-    protected final JProgressBar getProgressBar() {
+    protected final @NonNull JProgressBar getProgressBar() {
         return progressBar;
     }
 
-    protected final JButton getActionButton() {
+    protected final @NonNull JButton getActionButton() {
         return actionButton;
     }
 }

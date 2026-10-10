@@ -2,6 +2,8 @@ package com.mas6y6.musmeta.ui.dialogs;
 
 import com.mas6y6.musmeta.core.Duplicates;
 import com.mas6y6.musmeta.core.Song;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,9 +27,9 @@ public class DuplicateImportDialog extends JDialog {
     private record GroupSpec(Duplicates.Group group, List<Option> options, List<JRadioButton> buttons) {
     }
 
-    public static Map<Duplicates.Group, Song> showAndResolve(
+    public static @Nullable Map<Duplicates.Group, Song> showAndResolve(
             Window owner,
-            List<Duplicates.Group> groups
+            @Nullable List<Duplicates.Group> groups
     ) {
         if (groups == null || groups.isEmpty()) {
             return Map.of();
@@ -55,9 +57,9 @@ public class DuplicateImportDialog extends JDialog {
         return result[0];
     }
 
-    public static Map<Duplicates.Group, Song> resolve(
+    public static @Nullable Map<Duplicates.Group, Song> resolve(
             Window owner,
-            List<Duplicates.Group> groups
+            @Nullable List<Duplicates.Group> groups
     ) {
         if (groups == null || groups.isEmpty()) {
             return Map.of();
@@ -71,7 +73,7 @@ public class DuplicateImportDialog extends JDialog {
         return dialog.cancelled ? null : dialog.choices;
     }
 
-    private DuplicateImportDialog(Window owner, List<Duplicates.Group> duplicateGroups) {
+    private DuplicateImportDialog(Window owner, @NonNull List<Duplicates.Group> duplicateGroups) {
         super(owner, "Resolve Duplicate Songs", ModalityType.APPLICATION_MODAL);
         setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         setSize(DIALOG_SIZE);
@@ -86,7 +88,7 @@ public class DuplicateImportDialog extends JDialog {
         setContentPane(page);
     }
 
-    private JComponent header(List<Duplicates.Group> duplicateGroups) {
+    private @NonNull JComponent header(@NonNull List<Duplicates.Group> duplicateGroups) {
         JPanel header = new JPanel();
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
 
@@ -111,7 +113,7 @@ public class DuplicateImportDialog extends JDialog {
         return header;
     }
 
-    private JComponent body(List<Duplicates.Group> duplicateGroups) {
+    private @NonNull JComponent body(@NonNull List<Duplicates.Group> duplicateGroups) {
         JPanel list = new JPanel();
         list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
 
@@ -123,7 +125,7 @@ public class DuplicateImportDialog extends JDialog {
         return new JScrollPane(list);
     }
 
-    private JComponent groupPanel(Duplicates.Group group) {
+    private @NonNull JComponent groupPanel(Duplicates.@NonNull Group group) {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createCompoundBorder(
@@ -177,7 +179,7 @@ public class DuplicateImportDialog extends JDialog {
         return panel;
     }
 
-    private JComponent buttons() {
+    private @NonNull JComponent buttons() {
         JButton apply = new JButton("Apply");
         apply.addActionListener(e -> {
             for (GroupSpec spec : specs) {
@@ -203,7 +205,7 @@ public class DuplicateImportDialog extends JDialog {
         return panel;
     }
 
-    private static String trackTitle(Song song) {
+    private static String trackTitle(@NonNull Song song) {
         String title = song.getTitle();
         if (song.getArtist() != null && !song.getArtist().isBlank()) {
             return title + "  —  " + song.getArtist();
@@ -211,18 +213,18 @@ public class DuplicateImportDialog extends JDialog {
         return title;
     }
 
-    private static String albumName(Song song) {
+    private static @NonNull String albumName(@NonNull Song song) {
         return "Album: " + song.getAlbum();
     }
 
-    private static String keepLabel(List<Song> existing) {
+    private static @NonNull String keepLabel(@NonNull List<Song> existing) {
         if (existing.size() == 1) {
             return "Keep existing: " + fileName(existing.get(0));
         }
         return "Keep existing (" + existing.size() + " songs already in library)";
     }
 
-    private static String fileName(Song song) {
+    private static @NonNull String fileName(@NonNull Song song) {
         return song.getAudioFile().getFile().getName();
     }
 }

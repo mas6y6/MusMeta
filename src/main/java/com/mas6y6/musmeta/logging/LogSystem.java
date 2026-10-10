@@ -1,5 +1,8 @@
 package com.mas6y6.musmeta.logging;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -26,7 +29,7 @@ public final class LogSystem {
     private static final AtomicBoolean INITIALIZED = new AtomicBoolean(false);
 
     private static Path customLogsDirectory;
-    private static OutputStream fileOutputStream;
+    private static @Nullable OutputStream fileOutputStream;
     private static PrintStream originalOut;
     private static PrintStream originalErr;
     private static PrintStream teeOut;
@@ -35,7 +38,7 @@ public final class LogSystem {
     private LogSystem() {
     }
 
-    public static Path defaultLogsDirectory() {
+    public static @NonNull Path defaultLogsDirectory() {
         String configured = System.getProperty("musmeta.logs.dir");
         if (configured == null || configured.isBlank()) {
             configured = System.getProperty("musmeta.logs");
@@ -65,7 +68,7 @@ public final class LogSystem {
         customLogsDirectory = path;
     }
 
-    public static Path getLatestLogPath() {
+    public static @NonNull Path getLatestLogPath() {
         return getLogsDirectory().resolve(LATEST_LOG_FILENAME);
     }
 
@@ -122,7 +125,7 @@ public final class LogSystem {
         }
     }
 
-    private static boolean isDebugRequested(String[] args) {
+    private static boolean isDebugRequested(String @Nullable [] args) {
         if (Boolean.getBoolean("musmeta.debug")) {
             return true;
         }
@@ -150,13 +153,13 @@ public final class LogSystem {
         }
     }
 
-    private static void setPropertyIfAbsent(String key, String value) {
+    private static void setPropertyIfAbsent(@NonNull String key, @NonNull String value) {
         if (System.getProperty(key) == null) {
             System.setProperty(key, value);
         }
     }
 
-    private static void rotateLog(Path latestLog, Path logsDir) {
+    private static void rotateLog(@NonNull Path latestLog, @NonNull Path logsDir) {
         try {
             LocalDate date;
             try {
@@ -225,9 +228,9 @@ public final class LogSystem {
     }
 
     private static class TeeOutputStream extends OutputStream {
-        private final OutputStream console;
-        private final OutputStream file;
-        private final Object lock;
+        private final @NonNull OutputStream console;
+        private final @NonNull OutputStream file;
+        private final @NonNull Object lock;
 
         public TeeOutputStream(OutputStream console, OutputStream file, Object lock) {
             this.console = Objects.requireNonNull(console, "console cannot be null");
@@ -247,7 +250,7 @@ public final class LogSystem {
         }
 
         @Override
-        public void write(byte[] b, int off, int len) throws IOException {
+        public void write(byte @NonNull [] b, int off, int len) throws IOException {
             console.write(b, off, len);
             synchronized (lock) {
                 file.write(b, off, len);

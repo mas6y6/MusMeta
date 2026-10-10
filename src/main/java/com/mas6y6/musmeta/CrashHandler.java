@@ -1,5 +1,7 @@
 package com.mas6y6.musmeta;
 
+import org.jspecify.annotations.NonNull;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
@@ -24,7 +26,7 @@ public final class CrashHandler {
     private CrashHandler() {
     }
 
-    public static Path defaultCrashDirectory() {
+    public static @NonNull Path defaultCrashDirectory() {
         String configured = System.getProperty("musmeta.crash.dir");
         if (configured != null && !configured.isBlank()) {
             return Path.of(configured);
@@ -43,7 +45,7 @@ public final class CrashHandler {
         return Path.of(System.getProperty("user.home"), ".musmeta", "crash-reports");
     }
 
-    public static void handle(Thread thread, Throwable throwable) {
+    public static void handle(@NonNull Thread thread, @NonNull Throwable throwable) {
         if (!CRASHING.compareAndSet(false, true)) {
             // Do not block the EDT: it is responsible for processing the
             // already-open modal dialog's close event.

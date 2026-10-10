@@ -1,5 +1,7 @@
 package com.mas6y6.musmeta.audio;
 
+import org.jspecify.annotations.Nullable;
+
 import javax.sound.sampled.AudioFormat;
 import java.io.IOException;
 import java.time.Duration;
@@ -14,7 +16,7 @@ public interface AudioStream extends AutoCloseable {
 
     Duration getPosition();
 
-    default Duration getDuration() {
+    default @Nullable Duration getDuration() {
         return null;
     }
 

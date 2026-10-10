@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mas6y6.musmeta.settings.Settings;
 import org.apache.commons.lang3.SystemUtils;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +34,7 @@ public class FFmpegUtils {
     private static final String FFMPEG_STATIC_GITHUB_API =
             "https://api.github.com/repos/eugeneware/ffmpeg-static/releases/latest";
 
-    public static Path getFFmpegExecutable() {
+    public static @Nullable Path getFFmpegExecutable() {
         try {
             if (Settings.FFMPEG_INSTALLATION_PATH != null) {
                 String configuredPath = Settings.FFMPEG_INSTALLATION_PATH.get();
@@ -73,15 +75,15 @@ public class FFmpegUtils {
         return null;
     }
 
-    public static Path getFFmpegPath() {
+    public static @Nullable Path getFFmpegPath() {
         return getFFmpegExecutable();
     }
 
-    public static Path findFFmpegExecutable() {
+    public static @Nullable Path findFFmpegExecutable() {
         return getFFmpegExecutable();
     }
 
-    public static Path findFFmpegExecutable(Path binDir) {
+    public static Path findFFmpegExecutable(@Nullable Path binDir) {
         if (binDir == null || !Files.exists(binDir)) {
             return null;
         }
@@ -129,7 +131,7 @@ public class FFmpegUtils {
         return null;
     }
 
-    public static boolean validateFFmpegExecutable(Path executable) {
+    public static boolean validateFFmpegExecutable(@Nullable Path executable) {
         if (executable == null || !Files.isRegularFile(executable)) {
             return false;
         }
@@ -166,11 +168,11 @@ public class FFmpegUtils {
         return validateFFmpegExecutable(executable);
     }
 
-    public static boolean installFFmpeg(Path installationDir) {
+    public static boolean installFFmpeg(@NonNull Path installationDir) {
         return installFFmpeg(installationDir, null);
     }
 
-    public static boolean installFFmpeg(Path installationDir, InstallProgressListener listener) {
+    public static boolean installFFmpeg(@NonNull Path installationDir, @Nullable InstallProgressListener listener) {
         try {
             Files.createDirectories(installationDir);
 
@@ -200,8 +202,8 @@ public class FFmpegUtils {
     }
 
     private static boolean installWindowsFFmpeg(
-            Path installationDir,
-            InstallProgressListener listener
+            @NonNull Path installationDir,
+            @Nullable InstallProgressListener listener
     ) throws IOException, InterruptedException {
 
         if (listener != null) {
@@ -306,8 +308,8 @@ public class FFmpegUtils {
     }
 
     private static boolean installMacOSFFmpeg(
-            Path installationDir,
-            InstallProgressListener listener
+            @NonNull Path installationDir,
+            @Nullable InstallProgressListener listener
     ) throws IOException, InterruptedException {
 
         if (listener != null) {
@@ -391,7 +393,7 @@ public class FFmpegUtils {
         return true;
     }
 
-    public static List<LinuxPackageManager> getSupportedLinuxPackageManagers() {
+    public static @NonNull List<LinuxPackageManager> getSupportedLinuxPackageManagers() {
         return List.of(
                 new LinuxPackageManager("apt-get", true, List.of(
                         List.of("apt-get", "update"),
@@ -437,7 +439,7 @@ public class FFmpegUtils {
         );
     }
 
-    public static boolean isCommandAvailable(String commandName) {
+    public static boolean isCommandAvailable(@Nullable String commandName) {
         if (commandName == null || commandName.isBlank()) {
             return false;
         }
@@ -468,7 +470,7 @@ public class FFmpegUtils {
         }
     }
 
-    public static Path findSystemExecutable(String commandName) {
+    public static Path findSystemExecutable(@Nullable String commandName) {
         if (commandName == null || commandName.isBlank()) {
             return null;
         }
@@ -507,8 +509,8 @@ public class FFmpegUtils {
     }
 
     private static boolean installLinuxFFmpeg(
-            Path installationDir,
-            InstallProgressListener listener
+            @NonNull Path installationDir,
+            @Nullable InstallProgressListener listener
     ) throws IOException, InterruptedException {
         if (listener != null) {
             listener.onProgress("Checking for existing FFmpeg...", -1, "");
@@ -639,8 +641,8 @@ public class FFmpegUtils {
      * download/validation fails, so callers can fall back to a package manager.
      */
     private static boolean installLinuxBinaryFFmpeg(
-            Path installationDir,
-            InstallProgressListener listener
+            @NonNull Path installationDir,
+            @Nullable InstallProgressListener listener
     ) throws IOException, InterruptedException {
 
         String assetName = linuxBinaryAssetName();
@@ -715,7 +717,7 @@ public class FFmpegUtils {
         return true;
     }
 
-    private static String linuxBinaryAssetName() {
+    private static @Nullable String linuxBinaryAssetName() {
         String arch = System.getProperty("os.arch", "")
                 .toLowerCase(Locale.ROOT);
         switch (arch) {
@@ -740,7 +742,7 @@ public class FFmpegUtils {
         }
     }
 
-    private static boolean setupLinuxInstallationDir(Path installationDir, Path systemFfmpeg) throws IOException {
+    private static boolean setupLinuxInstallationDir(@NonNull Path installationDir, @NonNull Path systemFfmpeg) throws IOException {
         Path extractionDir = installationDir.resolve("ffmpeg");
         deleteDirectory(extractionDir);
         Files.createDirectories(extractionDir);
@@ -764,10 +766,10 @@ public class FFmpegUtils {
         return true;
     }
 
-    private static Path downloadFFmpeg(
-            String url,
-            Path destination,
-            InstallProgressListener listener
+    private static @NonNull Path downloadFFmpeg(
+            @NonNull String url,
+            @NonNull Path destination,
+            @Nullable InstallProgressListener listener
     ) throws IOException, InterruptedException {
 
         HttpClient client = HttpClient.newBuilder()
@@ -847,7 +849,7 @@ public class FFmpegUtils {
         return destination;
     }
 
-    public static String getSingleRootDirectoryPrefix(Path zip) throws IOException {
+    public static @Nullable String getSingleRootDirectoryPrefix(@NonNull Path zip) throws IOException {
         try (ZipFile zipFile = new ZipFile(zip.toFile())) {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
             String rootDir = null;
@@ -898,8 +900,8 @@ public class FFmpegUtils {
     }
 
     public static void extractZip(
-            Path zip,
-            Path destination
+            @NonNull Path zip,
+            @NonNull Path destination
     ) throws IOException {
         String rootPrefix = getSingleRootDirectoryPrefix(zip);
         Path normalizedDest = destination.toAbsolutePath().normalize();
@@ -953,8 +955,8 @@ public class FFmpegUtils {
         }
     }
 
-    private static Path findExecutable(
-            Path directory,
+    private static @Nullable Path findExecutable(
+            @NonNull Path directory,
             String filename
     ) throws IOException {
 
@@ -973,7 +975,7 @@ public class FFmpegUtils {
     }
 
     private static boolean validateFFmpeg(
-            Path executable
+            @NonNull Path executable
     ) throws IOException, InterruptedException {
 
         if (!Files.isRegularFile(executable)) {
@@ -1008,8 +1010,8 @@ public class FFmpegUtils {
     }
 
     private static boolean verifyDigest(
-            Path file,
-            String expectedDigest
+            @NonNull Path file,
+            @Nullable String expectedDigest
     ) throws IOException {
 
         if (expectedDigest == null || expectedDigest.isBlank()) {
@@ -1048,7 +1050,7 @@ public class FFmpegUtils {
     }
 
     private static void deleteDirectory(
-            Path directory
+            @NonNull Path directory
     ) throws IOException {
 
         if (!Files.exists(directory)) {
@@ -1071,7 +1073,7 @@ public class FFmpegUtils {
         }
     }
 
-    private static GithubRelease getLatestRelease(String apiUrl)
+    private static GithubRelease getLatestRelease(@NonNull String apiUrl)
             throws IOException, InterruptedException {
 
         HttpClient client = HttpClient.newHttpClient();

@@ -1,5 +1,7 @@
 package com.mas6y6.musmeta.utils;
 
+import org.jspecify.annotations.NonNull;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -13,7 +15,7 @@ public final class VersionSource {
     private static final Properties PROPERTIES = loadProperties();
     private static final String VERSION = PROPERTIES.getProperty("version", UNKNOWN);
 
-    private static Properties loadProperties() {
+    private static @NonNull Properties loadProperties() {
         Properties properties = new Properties();
 
         try (InputStream input = VersionSource.class.getResourceAsStream(RESOURCE)) {
@@ -34,7 +36,7 @@ public final class VersionSource {
         return VERSION;
     }
 
-    public static Version getVersion() {
+    public static @NonNull Version getVersion() {
         if (VERSION.equals(UNKNOWN)) {
             throw new RuntimeException("Unable to load MusMeta version");
         }

@@ -5,19 +5,20 @@ import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialogBase;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
+import org.jspecify.annotations.NonNull;
 
 import java.awt.Window;
 import java.util.List;
 
 public class ReformatMusicDialog extends ProcessingDialogBase {
 
-    private final List<Song> songs;
+    private final @NonNull List<Song> songs;
     private final AlbumFormatNormalizer.AudioFormat targetFormat;
     private int failed;
 
     public ReformatMusicDialog(
             Window owner,
-            List<Song> songs,
+            @NonNull List<Song> songs,
             AlbumFormatNormalizer.AudioFormat targetFormat
     ) {
         super(owner, "Reformatting Music", ProgressMode.DETERMINATE);
@@ -55,32 +56,32 @@ public class ReformatMusicDialog extends ProcessingDialogBase {
     }
 
     @Override
-    protected String getProcessTitle() {
+    protected @NonNull String getProcessTitle() {
         return "Reformatting Music";
     }
 
     @Override
-    protected String getInitialStatus() {
+    protected @NonNull String getInitialStatus() {
         return "Preparing conversion...";
     }
 
     @Override
-    protected String getWorkerThreadName() {
+    protected @NonNull String getWorkerThreadName() {
         return "Reformat-Thread";
     }
 
     @Override
-    protected String getSuccessStatus() {
+    protected @NonNull String getSuccessStatus() {
         return "Songs converted!";
     }
 
     @Override
-    protected String getSuccessDetails() {
+    protected @NonNull String getSuccessDetails() {
         return "All songs converted successfully";
     }
 
     @Override
-    protected String getFailureStatus() {
+    protected @NonNull String getFailureStatus() {
         return "Some songs could not be converted.";
     }
 
@@ -92,7 +93,7 @@ public class ReformatMusicDialog extends ProcessingDialogBase {
     }
 
     @Override
-    protected String getFailureDialogTitle() {
+    protected @NonNull String getFailureDialogTitle() {
         return "Conversion Incomplete";
     }
 }

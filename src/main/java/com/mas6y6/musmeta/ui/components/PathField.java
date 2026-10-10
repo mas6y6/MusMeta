@@ -1,13 +1,14 @@
 package com.mas6y6.musmeta.ui.components;
 
 import com.formdev.flatlaf.util.SystemFileChooser;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.io.File;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -23,8 +24,8 @@ public class PathField extends JPanel {
         void onPathChanged(String newPath);
     }
 
-    private final JTextField pathField;
-    private final JButton browseButton;
+    private final @NonNull JTextField pathField;
+    private final @NonNull JButton browseButton;
     private DialogType dialogType;
 
     private SystemFileChooser fileChooser;
@@ -109,7 +110,7 @@ public class PathField extends JPanel {
         return pathField.getText();
     }
 
-    public void setPath(String path) {
+    public void setPath(@Nullable String path) {
         String oldPath = getPath();
         String newPath = path != null ? path : "";
 

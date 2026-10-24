@@ -7,8 +7,8 @@ import org.jspecify.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-public class MDialog extends JOptionPane {
-    private MDialog() {
+public class MPromptDialog extends JOptionPane {
+    private MPromptDialog() {
     }
 
     public static void showMessageDialog(Component parentComponent, Object message,

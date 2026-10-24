@@ -9,8 +9,10 @@ import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.mas6y6.musmeta.ui.dialogs.*;
-import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.MPromptDialog;
 import com.mas6y6.musmeta.ui.dialogs.export.ExportMusicProcessingDialog;
+import com.mas6y6.musmeta.ui.dialogs.processing.ProcessTagsProcessingDialog;
+import com.mas6y6.musmeta.ui.dialogs.processing.ReformatMusicProcessingDialog;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
 import org.jaudiotagger.tag.FieldKey;
@@ -105,7 +107,7 @@ public class AlbumDetailTab extends JPanel {
     private void reformatSongs() {
         List<Song> allSongs = album.getSongs();
         if (allSongs.isEmpty()) {
-            MDialog.showMessageDialog(
+            MPromptDialog.showMessageDialog(
                     MainWindow.INSTANCE,
                     "This album has no songs to reformat.",
                     "Reformat Songs",
@@ -115,7 +117,7 @@ public class AlbumDetailTab extends JPanel {
         }
 
         if (FFmpegUtils.getFFmpegExecutable() == null) {
-            MDialog.showMessageDialog(
+            MPromptDialog.showMessageDialog(
                     MainWindow.INSTANCE,
                     "FFmpeg is required to convert audio formats.\n"
                             + "Set up an FFmpeg binary in Settings > FFmpeg first.",
@@ -144,7 +146,7 @@ public class AlbumDetailTab extends JPanel {
                 "Target format:", formatPicker,
                 "Songs:", scopePicker
         };
-        int choice = MDialog.showConfirmDialog(
+        int choice = MPromptDialog.showConfirmDialog(
                 MainWindow.INSTANCE,
                 message,
                 "Reformat Songs",
@@ -168,7 +170,7 @@ public class AlbumDetailTab extends JPanel {
             scope = selected;
         }
 
-        new ReformatMusicDialog(MainWindow.INSTANCE, scope, target).startAndShow();
+        new ReformatMusicProcessingDialog(MainWindow.INSTANCE, scope, target).startAndShow();
 
         reloadTrackTable();
         MainWindow.INSTANCE.getLibraryUI().refresh();
@@ -489,14 +491,14 @@ public class AlbumDetailTab extends JPanel {
             int firstRow = Math.max(e.getFirstRow(), 0);
             int lastRow = Math.min(e.getLastRow(), model.getRowCount() - 1);
 
-            ArrayList<ProcessTagsDialog.SongTagUpdate> records = new ArrayList<>();
+            ArrayList<ProcessTagsProcessingDialog.SongTagUpdate> records = new ArrayList<>();
 
             for (int row = firstRow; row <= lastRow; row++) {
                 Object value = model.getValueAt(row, 1);
                 int trackNumber = cellTrackNumber(value);
 
                 if (trackNumber <= 0) {
-                    if (MDialog.showConfirmDialog(
+                    if (MPromptDialog.showConfirmDialog(
                             MainWindow.INSTANCE,
                             "The value you inputted is "+value+" and can break song indexing.\nDo you want to continue?",
                             "Empty value",
@@ -510,7 +512,7 @@ public class AlbumDetailTab extends JPanel {
 
                 int trackTotal = Math.max(album.getTrackTotal(), trackNumber);
 
-                records.add(new ProcessTagsDialog.SongTagUpdate(
+                records.add(new ProcessTagsProcessingDialog.SongTagUpdate(
                         songs.get(row),
                         Map.of(
                                 FieldKey.TRACK,
@@ -520,14 +522,14 @@ public class AlbumDetailTab extends JPanel {
                         ),
                         Set.of(),
                         album.isCompilation(),
-                        ProcessTagsDialog.ArtworkAction.KEEP,
+                        ProcessTagsProcessingDialog.ArtworkAction.KEEP,
                         songs.get(row).getArtworkData(),
                         null
                 ));
             }
 
             if (!records.isEmpty()) {
-                new ProcessTagsDialog(MainWindow.INSTANCE, records).startAndShow();
+                new ProcessTagsProcessingDialog(MainWindow.INSTANCE, records).startAndShow();
             }
         } finally {
             updating.set(false);
@@ -699,6 +701,12 @@ public class AlbumDetailTab extends JPanel {
         editAlbum.addActionListener(_ -> new EditAlbumDialog(MainWindow.INSTANCE, album).setVisible(true));
         popupMenu.add(editAlbum);
 
+        var exportAlbum = new JMenuItem("Export Song...");
+        exportAlbum.addActionListener(e -> {
+            new ExportMusicProcessingDialog(MainWindow.INSTANCE, songsToEdit).openAndStart();
+        });
+        popupMenu.add(exportAlbum);
+
         popupMenu.addSeparator();
 
         JMenuItem selectAll = new JMenuItem("Select All");
@@ -727,7 +735,7 @@ public class AlbumDetailTab extends JPanel {
         JMenuItem delete = new JMenuItem("Delete");
         delete.addActionListener(_ -> {
             if (
-                    MDialog.showOptionDialog(
+                    MPromptDialog.showOptionDialog(
                             MainWindow.INSTANCE,
                             "Do you want to delete the selected song(s)?",
                             "Delete Song(s)?",

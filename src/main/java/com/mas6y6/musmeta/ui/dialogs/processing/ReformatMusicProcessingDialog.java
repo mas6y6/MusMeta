@@ -1,4 +1,4 @@
-package com.mas6y6.musmeta.ui.dialogs;
+package com.mas6y6.musmeta.ui.dialogs.processing;
 
 import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
@@ -10,13 +10,13 @@ import org.jspecify.annotations.NonNull;
 import java.awt.Window;
 import java.util.List;
 
-public class ReformatMusicDialog extends ProcessingDialogBase {
+public class ReformatMusicProcessingDialog extends ProcessingDialogBase {
 
     private final @NonNull List<Song> songs;
     private final AlbumFormatNormalizer.AudioFormat targetFormat;
     private int failed;
 
-    public ReformatMusicDialog(
+    public ReformatMusicProcessingDialog(
             Window owner,
             @NonNull List<Song> songs,
             AlbumFormatNormalizer.AudioFormat targetFormat

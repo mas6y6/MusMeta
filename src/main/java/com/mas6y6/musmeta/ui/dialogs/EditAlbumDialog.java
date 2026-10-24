@@ -5,6 +5,7 @@ import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.ui.album.AlbumUI;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
+import com.mas6y6.musmeta.ui.dialogs.processing.ProcessTagsProcessingDialog;
 import org.jaudiotagger.tag.FieldKey;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -74,7 +75,7 @@ public class EditAlbumDialog extends JDialog {
     private JTextField commentField;
 
     private AlbumArtwork artworkLabel;
-    private ProcessTagsDialog.@NonNull ArtworkAction artworkAction = ProcessTagsDialog.ArtworkAction.KEEP;
+    private ProcessTagsProcessingDialog.@NonNull ArtworkAction artworkAction = ProcessTagsProcessingDialog.ArtworkAction.KEEP;
     private byte @Nullable [] newArtworkBytes;
     private @Nullable String newArtworkMimeType;
 
@@ -255,7 +256,7 @@ public class EditAlbumDialog extends JDialog {
         removeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         removeButton.setMaximumSize(new Dimension(ARTWORK_SIZE, 30));
         removeButton.addActionListener(e -> {
-            artworkAction = ProcessTagsDialog.ArtworkAction.REMOVE;
+            artworkAction = ProcessTagsProcessingDialog.ArtworkAction.REMOVE;
             newArtworkBytes = null;
             newArtworkMimeType = null;
             artworkLabel.setArtwork(placeholderArtwork());
@@ -287,7 +288,7 @@ public class EditAlbumDialog extends JDialog {
                 String mime = "image/png".equals(ext) ? "image/png" : "image/jpeg";
                 newArtworkBytes = bytes;
                 newArtworkMimeType = mime;
-                artworkAction = ProcessTagsDialog.ArtworkAction.REPLACE;
+                artworkAction = ProcessTagsProcessingDialog.ArtworkAction.REPLACE;
                 artworkLabel.setArtwork(img);
             }
         } catch (Exception ex) {
@@ -397,7 +398,7 @@ public class EditAlbumDialog extends JDialog {
 
         album.setTitle(newTitle);
 
-        List<ProcessTagsDialog.SongTagUpdate> updates = new ArrayList<>();
+        List<ProcessTagsProcessingDialog.SongTagUpdate> updates = new ArrayList<>();
         List<Song> songs = album.getSongs();
 
         for (Song song : songs) {
@@ -468,7 +469,7 @@ public class EditAlbumDialog extends JDialog {
                 toDelete.add(FieldKey.COMMENT);
             }
 
-            updates.add(new ProcessTagsDialog.SongTagUpdate(
+            updates.add(new ProcessTagsProcessingDialog.SongTagUpdate(
                     song,
                     toSet,
                     toDelete,
@@ -481,7 +482,7 @@ public class EditAlbumDialog extends JDialog {
 
         dispose();
 
-        var processDialog = new ProcessTagsDialog(
+        var processDialog = new ProcessTagsProcessingDialog(
                 getOwner(),
                 updates,
                 album,

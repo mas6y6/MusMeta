@@ -8,7 +8,9 @@ import com.mas6y6.musmeta.core.Duplicates;
 import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.settings.Settings;
-import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.MPromptDialog;
+import com.mas6y6.musmeta.ui.dialogs.processing.ConvertImportedSongsProcessingDialog;
+import com.mas6y6.musmeta.ui.dialogs.processing.ProcessTagsProcessingDialog;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.FieldKey;
@@ -380,7 +382,7 @@ public class ImportSongsDialog extends JDialog {
         toImport.addAll(newFiles);
 
         if (toImport.isEmpty()) {
-            MDialog.showMessageDialog(
+            MPromptDialog.showMessageDialog(
                     this,
                     "None of the selected songs will be imported.",
                     "Nothing to Import",
@@ -397,7 +399,7 @@ public class ImportSongsDialog extends JDialog {
             return;
         }
 
-        List<ProcessTagsDialog.SongTagUpdate> updates = buildUpdates(toImport, decisions);
+        List<ProcessTagsProcessingDialog.SongTagUpdate> updates = buildUpdates(toImport, decisions);
 
         dispose();
 
@@ -408,7 +410,7 @@ public class ImportSongsDialog extends JDialog {
         // imported and are only moved between albums here, so they are skipped.
         convertIfNeeded(newFiles);
 
-        var processDialog = new ProcessTagsDialog(owner, updates);
+        var processDialog = new ProcessTagsProcessingDialog(owner, updates);
         processDialog.setOnComplete(() -> openSongEditor(toImport));
         processDialog.startAndShow();
     }
@@ -423,8 +425,8 @@ public class ImportSongsDialog extends JDialog {
         AlbumFormatNormalizer.AudioFormat target =
                 AlbumFormatNormalizer.fromSetting(Settings.AUDIO_TARGET_FORMAT.get());
 
-        if (ConvertImportedSongsDialog.isNeeded(songs, target)) {
-            new ConvertImportedSongsDialog(owner, songs).startAndShow();
+        if (ConvertImportedSongsProcessingDialog.isNeeded(songs, target)) {
+            new ConvertImportedSongsProcessingDialog(owner, songs).startAndShow();
         }
     }
 
@@ -490,7 +492,7 @@ public class ImportSongsDialog extends JDialog {
      *
      * @param decisions the answer given per album tag
      */
-    private @NonNull List<ProcessTagsDialog.SongTagUpdate> buildUpdates(
+    private @NonNull List<ProcessTagsProcessingDialog.SongTagUpdate> buildUpdates(
             @NonNull List<Song> songs,
             @NonNull Map<AlbumTags.Essential, ImportTagConflictDialog.Choice> decisions
     ) {
@@ -504,7 +506,7 @@ public class ImportSongsDialog extends JDialog {
                 ? album.isCompilation()
                 : null;
 
-        List<ProcessTagsDialog.SongTagUpdate> updates = new ArrayList<>();
+        List<ProcessTagsProcessingDialog.SongTagUpdate> updates = new ArrayList<>();
         for (Song song : songs) {
             Map<FieldKey, String> toSet = new HashMap<>();
             Set<FieldKey> toDelete = new HashSet<>();
@@ -523,12 +525,12 @@ public class ImportSongsDialog extends JDialog {
             toSet.put(FieldKey.DISC_TOTAL, String.valueOf(discTotal));
             toSet.put(FieldKey.TRACK_TOTAL, String.valueOf(Math.max(trackTotal, song.getTrackTotal())));
 
-            updates.add(new ProcessTagsDialog.SongTagUpdate(
+            updates.add(new ProcessTagsProcessingDialog.SongTagUpdate(
                     song,
                     toSet,
                     toDelete,
                     compilation,
-                    ProcessTagsDialog.ArtworkAction.KEEP,
+                    ProcessTagsProcessingDialog.ArtworkAction.KEEP,
                     null,
                     null
             ));

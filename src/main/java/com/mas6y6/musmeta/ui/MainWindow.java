@@ -14,12 +14,12 @@ import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.musicplayer.MusicPlayer;
 import com.mas6y6.musmeta.ui.components.MusicPlayerPanel;
 import com.mas6y6.musmeta.ui.dialogs.export.ExportMusicProcessingDialog;
-import com.mas6y6.musmeta.ui.dialogs.ProcessMusicDialog;
+import com.mas6y6.musmeta.ui.dialogs.processing.ProcessMusicProcessingDialog;
 import com.mas6y6.musmeta.ui.tabs.AlbumDetailTab;
 
 import java.io.File;
 import com.mas6y6.musmeta.ui.album.LibraryUI;
-import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.MPromptDialog;
 import com.mas6y6.musmeta.ui.dialogs.MusicScanDialog;
 import com.mas6y6.musmeta.ui.subwindows.AboutWindow;
 import com.mas6y6.musmeta.ui.subwindows.SettingsWindow;
@@ -65,7 +65,7 @@ public class MainWindow extends MainAppFrame {
     public boolean onClose(JFrame frame) {
         LOGGER.debug("Closing main window");
 
-        boolean close = JOptionPane.YES_OPTION == MDialog.showConfirmDialog(
+        boolean close = JOptionPane.YES_OPTION == MPromptDialog.showConfirmDialog(
                 frame,
                 "Do you want to close MusMeta?",
                 "Confirmation",
@@ -251,7 +251,7 @@ public class MainWindow extends MainAppFrame {
                     }
                 }
                 if (selectedFiles != null && selectedFiles.length > 0) {
-                    var dialog = new ProcessMusicDialog(this, selectedFiles);
+                    var dialog = new ProcessMusicProcessingDialog(this, selectedFiles);
                     dialog.startAndShow();
                 }
             }
@@ -479,6 +479,10 @@ public class MainWindow extends MainAppFrame {
         );
 
         //endregion
+
+        getRootPane().setTransferHandler(
+                new MainWindowTransferHandler()
+        );
     }
 
     public Component getSelectedTab() {

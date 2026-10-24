@@ -1,4 +1,6 @@
-package com.mas6y6.musmeta.ui.dialogs;
+package com.mas6y6.musmeta.ui.dialogs.processing;
+
+import com.mas6y6.musmeta.ui.dialogs.DuplicateImportDialog;
 
 import com.mas6y6.musmeta.Main;
 import com.mas6y6.musmeta.core.Core;

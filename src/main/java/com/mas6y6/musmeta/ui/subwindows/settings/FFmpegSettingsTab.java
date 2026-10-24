@@ -2,8 +2,8 @@ package com.mas6y6.musmeta.ui.subwindows.settings;
 
 import com.mas6y6.musmeta.Main;
 import com.mas6y6.musmeta.settings.Settings;
-import com.mas6y6.musmeta.ui.dialogs.FFmpegDownloadProcessingDialog;
-import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
+import com.mas6y6.musmeta.ui.dialogs.processing.FFmpegDownloadProcessingDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.MPromptDialog;
 import com.mas6y6.musmeta.ui.subwindows.settings.base.SettingTab;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
 import com.formdev.flatlaf.util.SystemFileChooser;
@@ -223,7 +223,7 @@ public class FFmpegSettingsTab extends SettingTab {
         Path exec = FFmpegUtils.findFFmpegExecutable(bin);
 
         if (exec == null) {
-            MDialog.showMessageDialog(
+            MPromptDialog.showMessageDialog(
                     this,
                     "No FFmpeg executable was found in the selected directory.\n"
                             + "Please select a directory that contains the 'ffmpeg' binary.",
@@ -234,7 +234,7 @@ public class FFmpegSettingsTab extends SettingTab {
         }
 
         if (!FFmpegUtils.validateFFmpegExecutable(exec)) {
-            MDialog.showMessageDialog(
+            MPromptDialog.showMessageDialog(
                     this,
                     "The FFmpeg executable in the selected directory is invalid or failed to run.",
                     "FFmpeg Validation",
@@ -260,7 +260,7 @@ public class FFmpegSettingsTab extends SettingTab {
 
         refreshStatus();
         if (success) {
-            MDialog.showMessageDialog(
+            MPromptDialog.showMessageDialog(
                     this,
                     "FFmpeg was reinstalled successfully.",
                     "FFmpeg",

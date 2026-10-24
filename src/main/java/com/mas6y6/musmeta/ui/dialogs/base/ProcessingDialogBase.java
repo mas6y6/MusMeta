@@ -418,7 +418,7 @@ public abstract class ProcessingDialogBase {
         actionButton.setEnabled(true);
 
         if (!GraphicsEnvironment.isHeadless() && dialog != null) {
-            MDialog.showMessageDialog(
+            MPromptDialog.showMessageDialog(
                     dialog,
                     getFailureMessage(),
                     getFailureDialogTitle(),
@@ -527,7 +527,7 @@ public abstract class ProcessingDialogBase {
         }
 
         if (!GraphicsEnvironment.isHeadless() && dialog != null) {
-            int choice = MDialog.showConfirmDialog(
+            int choice = MPromptDialog.showConfirmDialog(
                     dialog,
                     getCancelMessage(),
                     "Cancel Operation",

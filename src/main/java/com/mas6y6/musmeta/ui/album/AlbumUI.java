@@ -7,7 +7,8 @@ import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.MusicPlayerPanel;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.mas6y6.musmeta.ui.dialogs.EditAlbumDialog;
-import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.MPromptDialog;
+import com.mas6y6.musmeta.ui.dialogs.export.ExportMusicProcessingDialog;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -293,16 +294,26 @@ public class AlbumUI extends JPanel {
         popupMenu.add(openInNewTab);
         openInNewTab.addActionListener(e -> {MainWindow.INSTANCE.openAlbumTab(album);});
 
-        var editAlbum = new JMenuItem("Edit Album");
+        popupMenu.addSeparator();
+
+        var editAlbum = new JMenuItem("Edit Album...");
         editAlbum.addActionListener(e -> {
             new EditAlbumDialog(MainWindow.INSTANCE, album).setVisible(true);
         });
         popupMenu.add(editAlbum);
 
-        var deleteAlbum = new JMenuItem("Delete Album");
+        var exportAlbum = new JMenuItem("Export Album...");
+        exportAlbum.addActionListener(e -> {
+            new ExportMusicProcessingDialog(MainWindow.INSTANCE, album.getSongs()).openAndStart();
+        });
+        popupMenu.add(exportAlbum);
+
+        popupMenu.addSeparator();
+
+        var deleteAlbum = new JMenuItem("Delete Album...");
         deleteAlbum.addActionListener(e -> {
              if (
-                MDialog.showOptionDialog(
+                MPromptDialog.showOptionDialog(
                     MainWindow.INSTANCE,
                     "Are you sure you want to delete this album?",
                     "Delete Album?",

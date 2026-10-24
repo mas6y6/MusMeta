@@ -1,4 +1,4 @@
-package com.mas6y6.musmeta.ui.dialogs;
+package com.mas6y6.musmeta.ui.dialogs.processing;
 
 import com.mas6y6.musmeta.Constants;
 import com.mas6y6.musmeta.ui.dialogs.base.ProcessingDialogBase;

@@ -1,4 +1,6 @@
-package com.mas6y6.musmeta.ui.dialogs;
+package com.mas6y6.musmeta.ui.dialogs.processing;
+
+import com.mas6y6.musmeta.ui.dialogs.DuplicateImportDialog;
 
 import com.mas6y6.musmeta.Constants;
 import com.mas6y6.musmeta.Main;
@@ -30,14 +32,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class ProcessMusicDialog extends ProcessingDialogBase {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProcessMusicDialog.class);
+public class ProcessMusicProcessingDialog extends ProcessingDialogBase {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProcessMusicProcessingDialog.class);
 
     private final File @NonNull [] files;
     private final @NonNull List<Song> songsWithoutTags;
     private final @NonNull List<Song> processedSongs;
 
-    public ProcessMusicDialog(Window owner, File @Nullable [] files) {
+    public ProcessMusicProcessingDialog(Window owner, File @Nullable [] files) {
         super(owner, "Processing audio files");
         this.files = files != null ? files : new File[0];
         this.songsWithoutTags = new ArrayList<>();

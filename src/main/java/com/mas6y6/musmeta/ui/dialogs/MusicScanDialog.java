@@ -1,6 +1,7 @@
 package com.mas6y6.musmeta.ui.dialogs;
 
 import com.mas6y6.musmeta.settings.Settings;
+import com.mas6y6.musmeta.ui.dialogs.processing.MusicScanProcessingDialog;
 import com.formdev.flatlaf.util.SystemFileChooser;
 import org.jspecify.annotations.NonNull;
 

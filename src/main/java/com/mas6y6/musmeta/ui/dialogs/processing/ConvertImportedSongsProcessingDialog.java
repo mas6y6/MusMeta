@@ -1,4 +1,4 @@
-package com.mas6y6.musmeta.ui.dialogs;
+package com.mas6y6.musmeta.ui.dialogs.processing;
 
 import com.mas6y6.musmeta.Main;
 import com.mas6y6.musmeta.core.Song;
@@ -14,11 +14,11 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 
-public class ConvertImportedSongsDialog extends ProcessingDialogBase {
+public class ConvertImportedSongsProcessingDialog extends ProcessingDialogBase {
 
     private final @NonNull List<Song> songs;
 
-    public ConvertImportedSongsDialog(Window owner, @NonNull List<Song> songs) {
+    public ConvertImportedSongsProcessingDialog(Window owner, @NonNull List<Song> songs) {
         super(owner, "Converting Music", ProgressMode.DETERMINATE);
         this.songs = List.copyOf(songs);
     }

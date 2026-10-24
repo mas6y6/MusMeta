@@ -38,6 +38,9 @@ public class Settings {
     public static ConfigContainer<Updates> UPDATES =
             ConfigManager.getInstance().getConfig("app").register("updates", Updates.PROMPT_ONLY);
 
+    public static ConfigContainer<String> SKIPPED_UPDATE_VERSION =
+            ConfigManager.getInstance().getConfig("app").register("skipped_update_version", "");
+
     public static ConfigContainer<Theme> PREFERRED_THEME =
             ConfigManager.getInstance().getConfig("app").register("preferred_theme", Theme.SYSTEM);
 

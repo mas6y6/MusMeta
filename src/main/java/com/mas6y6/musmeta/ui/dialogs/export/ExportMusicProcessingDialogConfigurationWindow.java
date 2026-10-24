@@ -2,7 +2,7 @@ package com.mas6y6.musmeta.ui.dialogs.export;
 
 import com.formdev.flatlaf.util.SystemFileChooser;
 import com.mas6y6.musmeta.ui.components.PathField;
-import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.MPromptDialog;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -157,7 +157,7 @@ public class ExportMusicProcessingDialogConfigurationWindow extends JDialog {
         AlbumFormatNormalizer.AudioFormat format = selectedFormat();
 
         if (processingDialog.requiresFFmpeg(format)) {
-            MDialog.showMessageDialog(
+            MPromptDialog.showMessageDialog(
                     this,
                     "FFmpeg is required to convert songs to " + format + ".",
                     "FFmpeg Required",

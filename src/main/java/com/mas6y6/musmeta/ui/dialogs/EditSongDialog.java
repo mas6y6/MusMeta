@@ -6,6 +6,7 @@ import com.mas6y6.musmeta.core.Library;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.ui.album.AlbumUI;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
+import com.mas6y6.musmeta.ui.dialogs.processing.ProcessTagsProcessingDialog;
 import org.jaudiotagger.tag.FieldKey;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -81,7 +82,7 @@ public class EditSongDialog extends JDialog {
 
     // Artwork
     private AlbumArtwork artworkLabel;
-    private ProcessTagsDialog.@NonNull ArtworkAction artworkAction = ProcessTagsDialog.ArtworkAction.KEEP;
+    private ProcessTagsProcessingDialog.@NonNull ArtworkAction artworkAction = ProcessTagsProcessingDialog.ArtworkAction.KEEP;
     private byte @Nullable [] newArtworkBytes;
     private @Nullable String newArtworkMimeType;
 
@@ -610,7 +611,7 @@ public class EditSongDialog extends JDialog {
         removeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         removeButton.setMaximumSize(new Dimension(ARTWORK_SIZE, 30));
         removeButton.addActionListener(_ -> {
-            artworkAction = ProcessTagsDialog.ArtworkAction.REMOVE;
+            artworkAction = ProcessTagsProcessingDialog.ArtworkAction.REMOVE;
             newArtworkBytes = null;
             newArtworkMimeType = null;
             artworkLabel.setArtwork(placeholderArtwork());
@@ -642,7 +643,7 @@ public class EditSongDialog extends JDialog {
                 String mime = "image/png".equals(ext) ? "image/png" : "image/jpeg";
                 newArtworkBytes = bytes;
                 newArtworkMimeType = mime;
-                artworkAction = ProcessTagsDialog.ArtworkAction.REPLACE;
+                artworkAction = ProcessTagsProcessingDialog.ArtworkAction.REPLACE;
                 artworkLabel.setArtwork(img);
             }
         } catch (Exception ex) {
@@ -829,7 +830,7 @@ public class EditSongDialog extends JDialog {
             return;
         }
 
-        List<ProcessTagsDialog.SongTagUpdate> updates = new ArrayList<>();
+        List<ProcessTagsProcessingDialog.SongTagUpdate> updates = new ArrayList<>();
 
         if (isSingleSong) {
             Song song = songs.getFirst();
@@ -938,7 +939,7 @@ public class EditSongDialog extends JDialog {
 
             boolean compilation = compilationCheck.isSelected();
 
-            updates.add(new ProcessTagsDialog.SongTagUpdate(
+            updates.add(new ProcessTagsProcessingDialog.SongTagUpdate(
                     song,
                     toSet,
                     toDelete,
@@ -1034,7 +1035,7 @@ public class EditSongDialog extends JDialog {
                     else toDelete.add(FieldKey.COMMENT);
                 }
 
-                updates.add(new ProcessTagsDialog.SongTagUpdate(
+                updates.add(new ProcessTagsProcessingDialog.SongTagUpdate(
                         song,
                         toSet,
                         toDelete,
@@ -1052,7 +1053,7 @@ public class EditSongDialog extends JDialog {
 
         dispose();
 
-        var processDialog = new ProcessTagsDialog(
+        var processDialog = new ProcessTagsProcessingDialog(
                 getOwner(),
                 updates,
                 null,
@@ -1067,7 +1068,7 @@ public class EditSongDialog extends JDialog {
         return MULTIPLE_VALUES.equals(artist) ? "" : artist;
     }
 
-    private void addUniformArtistUpdates(@NonNull List<ProcessTagsDialog.SongTagUpdate> updates) {
+    private void addUniformArtistUpdates(@NonNull List<ProcessTagsProcessingDialog.SongTagUpdate> updates) {
         if (!uniformArtistCheck.isSelected() || uniformArtistAlbum == null) {
             return;
         }
@@ -1083,7 +1084,7 @@ public class EditSongDialog extends JDialog {
         }
 
         Set<Song> alreadyEdited = Collections.newSetFromMap(new IdentityHashMap<>());
-        for (ProcessTagsDialog.SongTagUpdate update : updates) {
+        for (ProcessTagsProcessingDialog.SongTagUpdate update : updates) {
             alreadyEdited.add(update.song());
         }
 
@@ -1097,12 +1098,12 @@ public class EditSongDialog extends JDialog {
             toSet.put(FieldKey.ARTIST, artist);
             toSet.put(FieldKey.ALBUM_ARTIST, artist);
 
-            updates.add(new ProcessTagsDialog.SongTagUpdate(
+            updates.add(new ProcessTagsProcessingDialog.SongTagUpdate(
                     song,
                     toSet,
                     Set.of(),
                     null,
-                    ProcessTagsDialog.ArtworkAction.KEEP,
+                    ProcessTagsProcessingDialog.ArtworkAction.KEEP,
                     null,
                     null
             ));

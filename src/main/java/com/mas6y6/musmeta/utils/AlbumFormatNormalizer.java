@@ -4,7 +4,7 @@ import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Disc;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.settings.Settings;
-import com.mas6y6.musmeta.ui.dialogs.base.MDialog;
+import com.mas6y6.musmeta.ui.dialogs.base.MPromptDialog;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -25,11 +25,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Prompts for and normalizes mixed audio formats within scanned albums.
- * Source files are only removed after FFmpeg has successfully written their
- * replacement, and an existing target file is never overwritten.
- */
 public final class AlbumFormatNormalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(AlbumFormatNormalizer.class);
 
@@ -76,14 +71,10 @@ public final class AlbumFormatNormalizer {
         }
     }
 
-    /**
-     * Prompts once per mixed-format album. Choosing "Convert all remaining"
-     * applies the selected format to every later mixed-format album.
-     */
     public static void promptToNormalizeMixedAlbums(Component parent, @NonNull Collection<Album> albums) {
         Path ffmpeg = FFmpegUtils.getFFmpegExecutable();
         if (ffmpeg == null) {
-            MDialog.showMessageDialog(parent,
+            MPromptDialog.showMessageDialog(parent,
                     "FFmpeg is required to convert album audio formats.",
                     "FFmpeg Required", JOptionPane.WARNING_MESSAGE);
             return;
@@ -103,7 +94,7 @@ public final class AlbumFormatNormalizer {
                     continue;
                 }
 
-                int action = MDialog.showOptionDialog(parent,
+                int action = MPromptDialog.showOptionDialog(parent,
                         "Convert the tracks in \"" + album.getTitle() + "\" to " + target
                                 + "?\nOriginal files are replaced only after a successful conversion.",
                         "Normalize Album Format",
@@ -120,7 +111,7 @@ public final class AlbumFormatNormalizer {
 
             ConversionResult result = normalize(album, target, ffmpeg);
             if (!result.succeeded()) {
-                MDialog.showMessageDialog(parent,
+                MPromptDialog.showMessageDialog(parent,
                         "Converted " + result.converted() + " track(s) in \"" + album.getTitle()
                                 + "\". " + result.failedFiles().size() + " track(s) could not be converted.",
                         "Some Tracks Were Not Converted", JOptionPane.WARNING_MESSAGE);
@@ -128,10 +119,6 @@ public final class AlbumFormatNormalizer {
         }
     }
 
-    /**
-     * Converts every track in {@code album} that is not already in
-     * {@code targetFormat}. Callers can use this without displaying a prompt.
-     */
     public static @NonNull ConversionResult normalize(@NonNull Album album, @NonNull AudioFormat targetFormat) {
         Path ffmpeg = FFmpegUtils.getFFmpegExecutable();
         if (ffmpeg == null) {
@@ -140,12 +127,6 @@ public final class AlbumFormatNormalizer {
         return normalize(songsIn(album), targetFormat, null);
     }
 
-    /**
-     * Converts every song in {@code songs} that is not already in
-     * {@code targetFormat}, in place. Source files are only removed after
-     * FFmpeg has successfully written and validated their replacement.
-     * Progress is reported as completed/total over the supplied collection.
-     */
     public static @NonNull ConversionResult normalize(
             @NonNull Collection<Song> songs,
             @NonNull AudioFormat targetFormat,
@@ -181,10 +162,6 @@ public final class AlbumFormatNormalizer {
         return new ConversionResult(converted, List.copyOf(failures));
     }
 
-    /**
-     * Resolves an {@link AudioFormat} from a stored setting value (its extension,
-     * e.g. {@code "flac"}). Unknown or blank values fall back to FLAC.
-     */
     public static @NonNull AudioFormat fromSetting(@Nullable String extension) {
         String normalized = extension == null ? "" : extension.trim().toLowerCase(Locale.ROOT);
         for (AudioFormat format : AudioFormat.values()) {
@@ -206,17 +183,6 @@ public final class AlbumFormatNormalizer {
         void update(int completed, int total, String details);
     }
 
-    /**
-     * Converts every song that is not already in {@code targetFormat} into the
-     * {@code outputDir} subfolder, mirroring each song's path relative to
-     * {@code musicRoot}. The converted file is written to the output folder and
-     * the library's {@code Song} is re-pointed to it; the original source file is
-     * left untouched. A song whose converted copy already exists in the output
-     * folder is skipped, so re-scans don't convert the same file twice.
-     * Songs already in the target format are left untouched.
-     *
-     * @return the number of songs converted
-     */
     public static int convertIncompatibleToFolder(
             @NonNull Collection<Song> songs,
             AudioFormat targetFormat,
@@ -226,10 +192,6 @@ public final class AlbumFormatNormalizer {
         return convertIncompatibleToFolder(songs, targetFormat, musicRoot, outputDir, null);
     }
 
-    /**
-     * Like {@link #convertIncompatibleToFolder(Collection, AudioFormat, Path, Path)}
-     * but reports progress through {@code progress} after each file is processed.
-     */
     public static int convertIncompatibleToFolder(
             @NonNull Collection<Song> songs,
             @Nullable AudioFormat targetFormat,
@@ -356,13 +318,7 @@ public final class AlbumFormatNormalizer {
         song.replaceAudioFile(AudioFileIO.read(target.toFile()));
     }
 
-    /**
-     * Transcodes {@code source} into a new file inside {@code tempDir} without
-     * touching the original file or the library, so callers that only need a
-     * converted copy (e.g. exports) can delete it when they are done.
-     *
-     * @return the path of the converted file, owned by the caller
-     */
+
     public static @NonNull Path convertToTemporaryFile(@NonNull Path source, @NonNull AudioFormat targetFormat, @NonNull Path tempDir)
             throws Exception {
         Path ffmpeg = FFmpegUtils.getFFmpegExecutable();
@@ -381,11 +337,6 @@ public final class AlbumFormatNormalizer {
         return target;
     }
 
-    /**
-     * Runs FFmpeg on {@code source} and atomically replaces {@code target} with
-     * the result, so a failed or interrupted conversion never leaves a partial
-     * file behind.
-     */
     private static void transcode(@NonNull Path source, @NonNull Path target, @NonNull AudioFormat format, @NonNull Path ffmpeg)
             throws Exception {
         Path parent = target.getParent();
@@ -452,10 +403,6 @@ public final class AlbumFormatNormalizer {
     private static final long LOCK_RETRY_DELAY_MS = 25;
     private static final int LOCK_RETRY_ATTEMPTS = 40;
 
-    /**
-     * Deletes {@code file}, retrying briefly if it is transiently locked by
-     * another process (e.g. an FFmpeg handle not yet released on Windows).
-     */
     private static void deleteWithRetry(@NonNull Path file) throws IOException {
         int attempts = 0;
         while (true) {
@@ -471,9 +418,6 @@ public final class AlbumFormatNormalizer {
         }
     }
 
-    /**
-     * Deletes {@code file} if it exists, retrying on transient locks.
-     */
     private static void deleteIfExistsWithRetry(@NonNull Path file) {
         if (!Files.exists(file)) {
             return;
@@ -485,10 +429,6 @@ public final class AlbumFormatNormalizer {
         }
     }
 
-    /**
-     * Atomically moves {@code from} to {@code to}, retrying briefly if the source
-     * is transiently locked.
-     */
     private static void moveWithRetry(@NonNull Path from, @NonNull Path to) throws IOException {
         int attempts = 0;
         while (true) {
@@ -541,7 +481,7 @@ public final class AlbumFormatNormalizer {
                 "Choose one format for its tracks:",
                 formatPicker
         };
-        int choice = MDialog.showConfirmDialog(parent, message, "Mixed Album Formats",
+        int choice = MPromptDialog.showConfirmDialog(parent, message, "Mixed Album Formats",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
         return choice == JOptionPane.OK_OPTION ? (AudioFormat) formatPicker.getSelectedItem() : null;
     }

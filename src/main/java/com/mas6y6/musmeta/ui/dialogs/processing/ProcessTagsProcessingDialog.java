@@ -1,4 +1,4 @@
-package com.mas6y6.musmeta.ui.dialogs;
+package com.mas6y6.musmeta.ui.dialogs.processing;
 
 import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Library;
@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ProcessTagsDialog extends ProcessingDialogBase {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProcessTagsDialog.class);
+public class ProcessTagsProcessingDialog extends ProcessingDialogBase {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProcessTagsProcessingDialog.class);
 
     public enum ArtworkAction {
         KEEP,
@@ -44,16 +44,16 @@ public class ProcessTagsDialog extends ProcessingDialogBase {
 
     private Runnable onComplete;
 
-    public ProcessTagsDialog(Window owner, List<SongTagUpdate> updates) {
+    public ProcessTagsProcessingDialog(Window owner, List<SongTagUpdate> updates) {
         this(owner, updates, null, null, null);
     }
 
-    public ProcessTagsDialog(Window owner, List<SongTagUpdate> updates, Album targetAlbum, String oldAlbumTitle) {
+    public ProcessTagsProcessingDialog(Window owner, List<SongTagUpdate> updates, Album targetAlbum, String oldAlbumTitle) {
         this(owner, updates, targetAlbum, oldAlbumTitle, null);
     }
 
-    public ProcessTagsDialog(Window owner, @Nullable List<SongTagUpdate> updates, Album targetAlbum,
-                             String oldAlbumTitle, @Nullable Map<String, byte[]> albumArtwork) {
+    public ProcessTagsProcessingDialog(Window owner, @Nullable List<SongTagUpdate> updates, Album targetAlbum,
+                                       String oldAlbumTitle, @Nullable Map<String, byte[]> albumArtwork) {
         super(owner, "Applying Tags", ProgressMode.DETERMINATE);
         this.updates = updates != null ? updates : List.of();
         this.targetAlbum = targetAlbum;

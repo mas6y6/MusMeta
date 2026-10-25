@@ -185,20 +185,34 @@ tasks.register('fatJar') {
 // against a single artifact.
 // ============================================================
 
+
 publishing {
     publications {
         musmeta(MavenPublication) {
             artifactId = 'MusMeta'
+            artifact(tasks.named('jar'))
+
+            pom {
+                name = 'MusMeta'
+                description = 'MusMeta plugin API.'
+            }
+        }
+
+        musmetaApp(MavenPublication) {
+            artifactId = 'MusMeta-app'
+
             artifact(tasks.named('shadowJar')) {
                 classifier = ''
             }
+
             pom {
-                name = 'MusMeta'
-                description = 'MusMeta music metadata editor and plugin framework.'
+                name = 'MusMeta Standalone'
+                description = 'Standalone MusMeta application for plugin development.'
             }
         }
     }
 }
+
 
 
 // ============================================================

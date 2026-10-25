@@ -40,7 +40,13 @@ public final class LaunchScreen extends JWindow {
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
         );
 
-        JLabel version = new JLabel("v" + VersionSource.getString());
+        JLabel version = new JLabel();
+
+        version.setText(
+                VersionSource.getVersion().isHomebuilt() ? "" : "v" +
+                        VersionSource.getString()
+        );
+
         version.setFont(loadFont().deriveFont(13f));
         version.setForeground(ACCENT);
         version.setAlignmentX(Component.LEFT_ALIGNMENT);

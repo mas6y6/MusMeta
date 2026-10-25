@@ -1,5 +1,7 @@
 package com.mas6y6.musmeta.plugin.api;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 
 public record PluginDescriptor(
@@ -10,7 +12,8 @@ public record PluginDescriptor(
         List<String> authors,
         String main,
         List<String> mixins,
-        List<String> dependencies) {
+        List<String> dependencies,
+        @Nullable String musmeta) {
 
     public PluginDescriptor {
         if (id == null || id.isBlank()) {
@@ -19,5 +22,6 @@ public record PluginDescriptor(
         authors = authors == null ? List.of() : List.copyOf(authors);
         mixins = mixins == null ? List.of() : List.copyOf(mixins);
         dependencies = dependencies == null ? List.of() : List.copyOf(dependencies);
+        musmeta = musmeta == null || musmeta.isBlank() ? null : musmeta.trim();
     }
 }

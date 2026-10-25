@@ -2,6 +2,7 @@ package com.mas6y6.musmeta.plugin;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
+import com.mas6y6.musmeta.plugin.api.MusMetaVersions;
 import com.mas6y6.musmeta.plugin.api.Plugin;
 import com.mas6y6.musmeta.plugin.api.PluginContext;
 import com.mas6y6.musmeta.plugin.api.PluginDescriptor;
@@ -117,6 +118,12 @@ public final class PluginManager {
             PluginDescriptor descriptor = readDescriptor(jar);
             if (disabledPluginIds.contains(descriptor.id())) {
                 LOGGER.info("Skipping disabled plugin '{}' (configured not to load on startup).", descriptor.id());
+                return;
+            }
+            if (!MusMetaVersions.isCompatible(descriptor.musmeta())) {
+                LOGGER.error(
+                        "Skipping plugin '{}': requires MusMeta {} or newer with the same major version, but running {}.",
+                        descriptor.id(), descriptor.musmeta(), MusMetaVersions.runningVersion());
                 return;
             }
             PluginClassLoader classLoader = new PluginClassLoader(descriptor.id(), jar, PluginManager.class.getClassLoader());

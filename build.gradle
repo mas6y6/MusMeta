@@ -185,12 +185,18 @@ tasks.register('fatJar') {
 // against a single artifact.
 // ============================================================
 
+
 publishing {
     publications {
         musmeta(MavenPublication) {
             from components.java
 
             artifactId = 'MusMeta'
+
+            // Separate artifact for plugin-development runtime use.
+            artifact(tasks.named('shadowJar')) {
+                classifier = 'all'
+            }
 
             pom {
                 name = 'MusMeta'

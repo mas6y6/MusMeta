@@ -185,15 +185,17 @@ tasks.register('fatJar') {
 // against a single artifact.
 // ============================================================
 
-
 publishing {
     publications {
         musmeta(MavenPublication) {
-            from components.java
-
             artifactId = 'MusMeta'
 
-            // Separate artifact for plugin-development runtime use.
+            // Thin JAR: MusMeta's own classes and resources.
+            artifact(tasks.named('jar')) {
+                classifier = ''
+            }
+
+            // Fat JAR: standalone runtime for plugin development.
             artifact(tasks.named('shadowJar')) {
                 classifier = 'all'
             }
@@ -205,6 +207,7 @@ publishing {
         }
     }
 }
+
 
 // ============================================================
 // Resources

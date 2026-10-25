@@ -1,3 +1,6 @@
+
+import org.jetbrains.gradle.ext.Application
+
 plugins {
     id 'java'
     id 'application'
@@ -7,56 +10,80 @@ plugins {
     id 'com.gradleup.shadow' version '9.6.1'
 }
 
-import org.jetbrains.gradle.ext.Application
-
 group = 'com.mas6y6'
 
-def cliVersion = gradle.startParameter.projectProperties['version']
+// ============================================================
+// Version detection
+// ============================================================
+
+def cliVersion = providers.gradleProperty('version').orNull
 
 def git = { List<String> args ->
     try {
         def proc = new ProcessBuilder(['git'] + args)
                 .redirectErrorStream(true)
                 .start()
+
         def output = proc.inputStream.text
         def code = proc.waitFor()
+
         [exitValue: code, output: output.trim()]
     } catch (Exception e) {
         [exitValue: -1, output: '']
     }
 }
 
+def tag = git(['describe', '--tags', '--exact-match'])
+def lastTag = git(['describe', '--tags', '--abbrev=0'])
+def headCommit = git(['rev-parse', '--short', 'HEAD'])
+
+def githubCommit = headCommit.exitValue == 0 && headCommit.output
+        ? headCommit.output
+        : ''
+
 def homebuilt
+def displayVersion
 
 if (cliVersion) {
-    version = cliVersion
-    homebuilt = false
-} else {
-    def tag = git(['describe', '--tags', '--exact-match'])
-    def commit = git(['rev-parse', '--short', 'HEAD'])
-
-    if (tag.exitValue == 0 && tag.output) {
-        version = tag.output
-        homebuilt = false
-    } else if (commit.exitValue == 0 && commit.output) {
-        version = "Homebuilt - #${commit.output}"
-        homebuilt = true
-    } else {
-        version = 'HOMEBUILT'
-        homebuilt = true
+    if (cliVersion =~ /\s/) {
+        throw new GradleException(
+                "The Maven version must not contain whitespace: '${cliVersion}'"
+        )
     }
+    version = cliVersion
+    displayVersion = cliVersion
+    homebuilt = false
+} else if (tag.exitValue == 0 && tag.output) {
+    version = tag.output
+    displayVersion = tag.output
+    homebuilt = false
+} else if (githubCommit) {
+    // Valid Maven version for development builds.
+    version = "0.0.0-dev.${githubCommit}"
+    displayVersion = "Nightly - #${githubCommit}"
+    homebuilt = true
+} else {
+    version = '0.0.0-dev.unknown'
+    displayVersion = 'Nightly'
+    homebuilt = true
 }
 
-def lastTag = git(['describe', '--tags', '--abbrev=0'])
-def installerVersion = version.find(/\d+\.\d+\.\d+/) ?:
-        (lastTag.exitValue == 0 && lastTag.output ? lastTag.output.find(/\d+\.\d+\.\d+/) : null) ?:
-        '1.0.0'
+def installerVersion =
+        displayVersion.find(/\d+\.\d+\.\d+/) ?:
+                (lastTag.exitValue == 0 && lastTag.output
+                        ? lastTag.output.find(/\d+\.\d+\.\d+/)
+                        : null) ?:
+                        '1.0.0'
 
-def headCommit = git(['rev-parse', '--short', 'HEAD'])
-def githubCommit = headCommit.exitValue == 0 && headCommit.output ? headCommit.output : ''
 def musmetaVersion = homebuilt
-        ? (lastTag.exitValue == 0 && lastTag.output ? lastTag.output : 'unknown')
+        ? (lastTag.exitValue == 0 && lastTag.output
+        ? lastTag.output
+        : 'unknown')
         : version
+
+// ============================================================
+// Java
+// ============================================================
 
 java {
     toolchain {
@@ -84,8 +111,13 @@ idea.project.settings.runConfigurations {
     }
 }
 
+// ============================================================
+// Clean run resources
+// ============================================================
+
 def cleanRunResources = tasks.register('cleanRunResources') {
     description = 'Deletes processed resources so the application always starts with freshly expanded resources.'
+
     doLast {
         delete layout.buildDirectory.dir('resources/main')
     }
@@ -99,19 +131,37 @@ tasks.named('processResources') {
     mustRunAfter cleanRunResources
 }
 
+// ============================================================
+// Repositories
+// ============================================================
+
 repositories {
     mavenCentral()
-    maven { url = 'https://jitpack.io' }
-    maven { url = 'https://maven.fabricmc.net/'}
+
+    maven {
+        url = 'https://jitpack.io'
+    }
+
+    maven {
+        url = 'https://maven.fabricmc.net/'
+    }
 }
+
+// ============================================================
+// Source sets
+// ============================================================
 
 sourceSets {
     main {
         java {
-            srcDir("third-party/jaudiotagger/src/main/java")
+            srcDir('third-party/jaudiotagger/src/main/java')
         }
     }
 }
+
+// ============================================================
+// Dependencies
+// ============================================================
 
 dependencies {
     implementation project(':plugins:framework')
@@ -138,19 +188,25 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // jAudioTagger
-
+    // jAudioTagger dependencies
     implementation("com.squareup.okio:okio:$okio")
     implementation("org.assertj:assertj-core:$assertj")
     implementation("org.json:json:$orgjson")
 }
 
+// ============================================================
+// Tests
+// ============================================================
+
 test {
     useJUnitPlatform()
+
     systemProperty 'java.awt.headless', 'true'
     systemProperty 'musmeta.test', 'true'
-    systemProperty 'musmeta.config', "${layout.buildDirectory.get().asFile}/test-config/config.json"
-    systemProperty 'musmeta.logs.dir', "${layout.buildDirectory.get().asFile}/test-logs"
+    systemProperty 'musmeta.config',
+            "${layout.buildDirectory.get().asFile}/test-config/config.json"
+    systemProperty 'musmeta.logs.dir',
+            "${layout.buildDirectory.get().asFile}/test-logs"
 }
 
 // ============================================================
@@ -166,7 +222,11 @@ tasks.named('shadowJar') {
         attributes(
                 'Main-Class': application.mainClass.get()
         )
-        attributes(['Implementation-Version': asm], 'org/objectweb/asm/')
+
+        attributes(
+                ['Implementation-Version': asm],
+                'org/objectweb/asm/'
+        )
     }
 }
 
@@ -177,19 +237,23 @@ tasks.register('fatJar') {
 }
 
 // ============================================================
-// Publishing (app + framework fat JAR to JitPack / Maven)
+// Publishing
 //
-// JitPack resolves this as `com.github.mas6y6:MusMeta:<tag>`.
-// Publishing the shadow component keeps the app classes and the
-// plugin framework together so plugins can use `compileOnly`
-// against a single artifact.
+// Plugin API:
+//   com.github.mas6y6:MusMeta:<version>
+//
+// Standalone application:
+//   com.github.mas6y6:MusMeta-app:<version>
+//
+// The API uses the thin JAR. The standalone application uses
+// the Shadow JAR without a classifier, under a separate artifact ID.
 // ============================================================
-
 
 publishing {
     publications {
         musmeta(MavenPublication) {
             artifactId = 'MusMeta'
+
             artifact(tasks.named('jar'))
 
             pom {
@@ -207,13 +271,12 @@ publishing {
 
             pom {
                 name = 'MusMeta Standalone'
-                description = 'Standalone MusMeta application for plugin development.'
+                description =
+                        'Standalone MusMeta application for plugin development.'
             }
         }
     }
 }
-
-
 
 // ============================================================
 // Resources
@@ -222,7 +285,7 @@ publishing {
 tasks.named('processResources') {
     filesMatching('musmeta.properties') {
         expand(
-                version: project.version,
+                version: displayVersion,
                 musmetaVersion: musmetaVersion,
                 githubCommit: githubCommit,
                 homebuilt: homebuilt
@@ -230,17 +293,15 @@ tasks.named('processResources') {
     }
 
     filesMatching('about.md') {
-        expand(version: project.version)
+        expand(version: displayVersion)
     }
 }
-
 
 // ============================================================
 // Runtime / jlink / jpackage
 // ============================================================
 
 runtime {
-
     // --------------------------------------------------------
     // jlink
     // --------------------------------------------------------
@@ -251,7 +312,6 @@ runtime {
             '--no-header-files',
             '--no-man-pages'
     ])
-
 
     modules.set([
             // Core
@@ -401,12 +461,11 @@ runtime {
     }
 }
 
-
 // ============================================================
 // jpackage dependencies
 // ============================================================
 
-// Shadow JAR → jpackage image
+// Shadow JAR -> jpackage image
 tasks.named('jpackageImage') {
     dependsOn tasks.named('shadowJar')
 }
@@ -416,11 +475,17 @@ tasks.named('jpackageImage') {
 // ============================================================
 
 def hostOsName = System.getProperty('os.name').toLowerCase()
+
 def hostPlatform = hostOsName.contains('windows') ? 'windows' :
         hostOsName.contains('mac') ? 'macos' :
                 hostOsName.contains('linux') ? 'linux' : 'portable'
+
 def isHostLinux = hostOsName.contains('linux')
-def nativeInstallerSupported = hostOsName.contains('windows') || hostOsName.contains('mac') || hostOsName.contains('linux')
+
+def nativeInstallerSupported =
+        hostOsName.contains('windows') ||
+                hostOsName.contains('mac') ||
+                hostOsName.contains('linux')
 
 // ============================================================
 // Portable ZIP
@@ -429,12 +494,15 @@ def nativeInstallerSupported = hostOsName.contains('windows') || hostOsName.cont
 tasks.register('portableZip', Zip) {
     group = 'distribution'
     description = 'Creates an install-free application archive with its bundled runtime.'
-    // jpackage owns the application-image output directory as well as the
-    // platform installer, so depend on it to keep Gradle's task validation
-    // and archive contents deterministic.
+
+    // jpackage owns the application-image output directory as well as
+    // the platform installer, so depend on it to keep Gradle's task
+    // validation and archive contents deterministic.
     dependsOn tasks.named('jpackage')
 
-    archiveFileName = "MusMeta-${project.version}-${hostPlatform}-portable.zip"
+    archiveFileName =
+            "MusMeta-${project.version}-${hostPlatform}-portable.zip"
+
     destinationDirectory = layout.buildDirectory.dir('dist')
 
     from(layout.buildDirectory.dir('jpackage/MusMeta')) {
@@ -455,17 +523,25 @@ tasks.register('createPortableApplication') {
 tasks.register('appImage') {
     group = 'distribution'
     description = 'Creates a standalone AppImage for Linux.'
+
     if (nativeInstallerSupported) {
         dependsOn tasks.named('jpackage')
     }
 
     def appDir = layout.buildDirectory.dir('appimage/MusMeta.AppDir')
     def appImageOutputDir = layout.buildDirectory.dir('appimage')
-    def outputAppImageName = "MusMeta-${project.version}-x86_64.AppImage"
+
+    def outputAppImageName =
+            "MusMeta-${project.version}-x86_64.AppImage"
 
     inputs.dir(layout.buildDirectory.dir('jpackage/MusMeta'))
     inputs.file('src/main/resources/icon.png')
-    outputs.file(appImageOutputDir.map { it.file(outputAppImageName) })
+
+    outputs.file(
+            appImageOutputDir.map {
+                it.file(outputAppImageName)
+            }
+    )
 
     onlyIf {
         isHostLinux
@@ -473,6 +549,7 @@ tasks.register('appImage') {
 
     doLast {
         def appDirFile = appDir.get().asFile
+
         appDirFile.deleteDir()
         appDirFile.mkdirs()
 
@@ -484,12 +561,14 @@ tasks.register('appImage') {
 
         // 2. Copy icon
         def iconFile = file('src/main/resources/icon.png')
+
         if (iconFile.exists()) {
             project.copy {
                 from iconFile
                 into appDirFile
                 rename { 'MusMeta.png' }
             }
+
             project.copy {
                 from iconFile
                 into appDirFile
@@ -499,6 +578,7 @@ tasks.register('appImage') {
 
         // 3. Create desktop file
         def desktopFile = new File(appDirFile, 'MusMeta.desktop')
+
         desktopFile.text = """[Desktop Entry]
 Type=Application
 Name=MusMeta
@@ -512,10 +592,11 @@ StartupWMClass=MusMeta
 
         // 4. Create AppRun script
         def appRunFile = new File(appDirFile, 'AppRun')
-        appRunFile.text = """#!/bin/sh
-APPDIR="\$(dirname "\$(readlink -f "\$0")")"
-exec "\$APPDIR/bin/MusMeta" "\$@"
-"""
+
+        appRunFile.text = '''#!/bin/sh
+APPDIR="$(dirname "$(readlink -f "$0")")"
+exec "$APPDIR/bin/MusMeta" "$@"
+'''
 
         // Ensure executable permissions
         fileTree(appDirFile).matching {
@@ -529,34 +610,47 @@ exec "\$APPDIR/bin/MusMeta" "\$@"
 
         // 5. Run appimagetool
         def outputDirFile = appImageOutputDir.get().asFile
+
         outputDirFile.mkdirs()
+
         def outputFile = new File(outputDirFile, outputAppImageName)
 
-        def appimageToolCmd = System.getenv('APPIMAGETOOL') ?: 'appimagetool'
-        def processBuilder = new ProcessBuilder(appimageToolCmd, appDirFile.absolutePath, outputFile.absolutePath)
+        def appimageToolCmd =
+                System.getenv('APPIMAGETOOL') ?: 'appimagetool'
+
+        def processBuilder = new ProcessBuilder(
+                appimageToolCmd,
+                appDirFile.absolutePath,
+                outputFile.absolutePath
+        )
+
         processBuilder.environment().put('ARCH', 'x86_64')
         processBuilder.inheritIO()
+
         def process = processBuilder.start()
         int exitCode = process.waitFor()
+
         if (exitCode != 0) {
-            throw new GradleException("appimagetool failed with exit code ${exitCode}")
+            throw new GradleException(
+                    "appimagetool failed with exit code ${exitCode}"
+            )
         }
     }
 }
-
 
 // ============================================================
 // Collect final distributions
 // ============================================================
 
 tasks.register('collectDistributions', Copy) {
-
     dependsOn tasks.named('shadowJar')
+
     if (isHostLinux) {
         dependsOn tasks.named('appImage')
     } else {
         dependsOn tasks.named('portableZip')
     }
+
     if (nativeInstallerSupported) {
         dependsOn tasks.named('jpackage')
     }
@@ -588,7 +682,6 @@ tasks.register('collectDistributions', Copy) {
         include '*.AppImage'
     }
 }
-
 
 // ============================================================
 // Build lifecycle

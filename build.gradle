@@ -14,13 +14,19 @@ group = 'com.mas6y6'
 
 // ============================================================
 // Version detection
+//
+//   Release:      tag v1.3.4       -> 1.3.4
+//   Pre-release:  tag v1.3.4-beta  -> prelease - 1.3.4-beta
+//   Nightly:      branch build     -> nightly - <branch>/#<commit>
+//
+// A -Pversion=<version> override wins over tag detection. CI and
+// JitPack use this to make the version explicit.
 // ============================================================
-
-def cliVersion = providers.gradleProperty('version').orNull
 
 def git = { List<String> args ->
     try {
         def proc = new ProcessBuilder(['git'] + args)
+                .directory(project.projectDir)
                 .redirectErrorStream(true)
                 .start()
 
@@ -33,52 +39,85 @@ def git = { List<String> args ->
     }
 }
 
-def tag = git(['describe', '--tags', '--exact-match'])
-def lastTag = git(['describe', '--tags', '--abbrev=0'])
-def headCommit = git(['rev-parse', '--short', 'HEAD'])
+def env = System.getenv()
 
+def headCommit = git(['rev-parse', '--short=7', 'HEAD'])
 def githubCommit = headCommit.exitValue == 0 && headCommit.output
         ? headCommit.output
-        : ''
+        : (env['GITHUB_SHA'] ?: '').take(7)
 
-def homebuilt
-def displayVersion
+def branchResult = git(['rev-parse', '--abbrev-ref', 'HEAD'])
+def branch = env['GITHUB_HEAD_REF']?.trim()
+        ?: (env['GITHUB_REF_TYPE']?.trim() == 'branch'
+                ? env['GITHUB_REF_NAME']?.trim()
+                : null)
+        ?: (branchResult.exitValue == 0
+                && branchResult.output
+                && branchResult.output != 'HEAD'
+                ? branchResult.output
+                : null)
+        ?: 'detached'
 
-if (cliVersion) {
-    if (cliVersion =~ /\s/) {
-        throw new GradleException(
-                "The Maven version must not contain whitespace: '${cliVersion}'"
-        )
-    }
-    version = cliVersion
-    displayVersion = cliVersion
-    homebuilt = false
-} else if (tag.exitValue == 0 && tag.output) {
-    version = tag.output
-    displayVersion = tag.output
-    homebuilt = false
-} else if (githubCommit) {
-    // Valid Maven version for development builds.
-    version = "0.0.0-dev.${githubCommit}"
-    displayVersion = "Nightly - #${githubCommit}"
-    homebuilt = true
-} else {
-    version = '0.0.0-dev.unknown'
-    displayVersion = 'Nightly'
-    homebuilt = true
+def tag = git(['describe', '--tags', '--exact-match', 'HEAD'])
+def lastTag = git(['describe', '--tags', '--abbrev=0'])
+
+def versionTagPattern = /^v?\d+\.\d+\.\d+(?:[-+].*)?$/
+
+def cliVersion = providers.gradleProperty('version').orNull?.trim()
+if (cliVersion?.startsWith('v')) {
+    cliVersion = cliVersion.substring(1)
 }
 
-def installerVersion =
-        displayVersion.find(/\d+\.\d+\.\d+/) ?:
-                (lastTag.exitValue == 0 && lastTag.output
-                        ? lastTag.output.find(/\d+\.\d+\.\d+/)
-                        : null) ?:
-                        '1.0.0'
+def releaseVersion = null
+if (cliVersion) {
+    releaseVersion = cliVersion
+} else if (tag.exitValue == 0 && tag.output ==~ versionTagPattern) {
+    releaseVersion = tag.output.startsWith('v')
+            ? tag.output.substring(1)
+            : tag.output
+}
+
+if (releaseVersion =~ /\s/) {
+    throw new GradleException(
+            "The Maven version must not contain whitespace: '${releaseVersion}'"
+    )
+}
+
+def homebuilt = releaseVersion == null
+def displayVersion
+
+if (!homebuilt) {
+    version = releaseVersion
+    displayVersion = releaseVersion.contains('-')
+            ? "prelease - ${releaseVersion}"
+            : releaseVersion
+} else {
+    def safeBranch = branch
+            .replaceAll(/[^A-Za-z0-9._-]+/, '.')
+            .replaceAll(/\.+/, '.')
+            .replaceAll(/^\.+|\.+$/, '')
+
+    if (!safeBranch) {
+        safeBranch = 'detached'
+    }
+
+    def shortCommit = githubCommit ?: 'unknown'
+
+    version = "0.0.0-nightly.${safeBranch}.${shortCommit}"
+    displayVersion = "nightly - ${branch}/#${shortCommit}"
+}
+
+def lastTagName = lastTag.exitValue == 0 && lastTag.output
+        ? lastTag.output
+        : null
+def lastTagVersion = lastTagName?.replaceFirst(/^v/, '')
+
+def installerVersion = homebuilt
+        ? (lastTagVersion?.find(/\d+\.\d+\.\d+/) ?: '1.0.0')
+        : (version.find(/\d+\.\d+\.\d+/) ?: '1.0.0')
 
 def musmetaVersion = homebuilt
-        ? (lastTag.exitValue == 0 && lastTag.output
-        ? lastTag.output
-        : 'unknown')
+        ? (lastTagVersion ?: 'unknown')
         : version
 
 // ============================================================
@@ -220,7 +259,9 @@ tasks.named('shadowJar') {
 
     manifest {
         attributes(
-                'Main-Class': application.mainClass.get()
+                'Main-Class': application.mainClass.get(),
+                'Implementation-Title': 'MusMeta',
+                'Implementation-Version': project.version
         )
 
         attributes(

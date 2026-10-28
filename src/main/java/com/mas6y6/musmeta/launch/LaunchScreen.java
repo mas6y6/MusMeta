@@ -42,10 +42,7 @@ public final class LaunchScreen extends JWindow {
 
         JLabel version = new JLabel();
 
-        version.setText(
-                VersionSource.getVersion().isHomebuilt() ? "" : "v" +
-                        VersionSource.getString()
-        );
+        version.setText(VersionSource.getString());
 
         version.setFont(loadFont().deriveFont(13f));
         version.setForeground(ACCENT);

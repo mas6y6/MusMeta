@@ -155,16 +155,8 @@ public class Bootstrap implements Runnable {
 
         @Override
         public String @NonNull [] getVersion() {
-            String version = Bootstrap.class
-                    .getPackage()
-                    .getImplementationVersion();
-
-            if (version == null) {
-                version = "development";
-            }
-
             return new String[] {
-                    "MusMeta " + version
+                    "MusMeta " + VersionSource.getString()
             };
         }
     }

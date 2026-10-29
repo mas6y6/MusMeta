@@ -15,11 +15,11 @@ group = 'com.mas6y6'
 // ============================================================
 // Version detection
 //
-//   Release:      tag v1.3.4       -> 1.3.4
-//   Pre-release:  tag v1.3.4-beta  -> prelease - 1.3.4-beta
-//   Nightly:      branch build     -> nightly - <branch>/#<commit>
+//   Release:      tag v1.3.4 or VERSION on main -> 1.3.4
+//   Pre-release:  tag v1.3.4-beta               -> prelease - 1.3.4-beta
+//   Nightly:      branch build                  -> nightly - <branch>/#<commit>
 //
-// A -Pversion=<version> override wins over tag detection. CI and
+// A -Pversion=<version> override wins over everything else. CI and
 // JitPack use this to make the version explicit.
 // ============================================================
 
@@ -63,6 +63,11 @@ def lastTag = git(['describe', '--tags', '--abbrev=0'])
 
 def versionTagPattern = /^v?\d+\.\d+\.\d+(?:[-+].*)?$/
 
+def versionFile = file('VERSION')
+def fileVersion = versionFile.exists()
+        ? versionFile.text.trim().replaceFirst(/^v/, '')
+        : ''
+
 def cliVersion = providers.gradleProperty('version').orNull?.trim()
 if (cliVersion?.startsWith('v')) {
     cliVersion = cliVersion.substring(1)
@@ -75,6 +80,8 @@ if (cliVersion) {
     releaseVersion = tag.output.startsWith('v')
             ? tag.output.substring(1)
             : tag.output
+} else if (branch == 'main' && fileVersion) {
+    releaseVersion = fileVersion
 }
 
 if (releaseVersion =~ /\s/) {
@@ -324,6 +331,11 @@ publishing {
 // ============================================================
 
 tasks.named('processResources') {
+    inputs.property('version', displayVersion)
+    inputs.property('musmetaVersion', musmetaVersion)
+    inputs.property('githubCommit', githubCommit)
+    inputs.property('homebuilt', homebuilt)
+
     filesMatching('musmeta.properties') {
         expand(
                 version: displayVersion,

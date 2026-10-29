@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.mas6y6'
-version = providers.gradleProperty('version').get()
+version = rootProject.version
 
 java {
     toolchain {

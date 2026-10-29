@@ -30,6 +30,13 @@ git submodule update --init --recursive
 This will download and initialize all required submodules before building the project.
 
 
+# Releasing
+
+The application version is stored in the [`VERSION`](VERSION) file at the repository root. Bump it before pushing to `main`; the Release workflow will build all platforms and publish a GitHub release tagged `v<version>`.
+
+Branch builds are published as nightly artifacts and are not released.
+
+
 # Libraries used
 
 **Thanks to the open source community for making the libraries that make this project is possible.**

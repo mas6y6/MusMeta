@@ -14,6 +14,7 @@ import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.launch.LaunchScreen;
+import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.ui.dialogs.MissingSongsDialog;
 import com.mas6y6.musmeta.ui.dialogs.PostInstallationDialog;
 import com.mas6y6.musmeta.utils.PlatformSetup;
@@ -49,7 +50,6 @@ public class Main {
 
     public static final Path appDir = getAppDir();
     public static final Path musMetaDirectory = appDir.resolve("MusMeta");
-    public static Font outfitMedium;
     public static Font outfitExtraBold;
 
     public static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Main.class);
@@ -124,13 +124,13 @@ public class Main {
                 try {
                     UIManager.setLookAndFeel(new FlatDarkLaf());
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.error("Failed to set dark theme", e);
                 }
             } else {
                 try {
                     UIManager.setLookAndFeel(new FlatLightLaf());
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.error("Failed to set light theme", e);
                 }
             }
 
@@ -155,7 +155,7 @@ public class Main {
                         }
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.error("Failed to set theme", e);
                 }
             });
         } else {
@@ -173,6 +173,7 @@ public class Main {
                 LaunchScreen.closeIfOpen();
                 configureDockIcon();
                 new PostInstallationDialog();
+                Registries.EVENT_BUS.post("app.started", null);
             });
         } else {
             SwingUtilities.invokeLater(() -> {
@@ -180,6 +181,7 @@ public class Main {
                 configureDockIcon();
                 MainWindow.INSTANCE.setVisible(true);
                 showMissingSongsPromptIfAny();
+                Registries.EVENT_BUS.post("app.started", null);
             });
         }
 

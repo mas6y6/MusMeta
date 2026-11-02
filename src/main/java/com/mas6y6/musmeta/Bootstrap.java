@@ -103,6 +103,7 @@ public class Bootstrap implements Runnable {
             LOGGER.info("MusMeta shutdown in progress...");
 
             MusicPlayer.getInstance().stop();
+            Registries.EVENT_BUS.shutdown();
             pluginManager.shutdown();
 
             if (Settings.SETUP_COMPLETED.get()) {

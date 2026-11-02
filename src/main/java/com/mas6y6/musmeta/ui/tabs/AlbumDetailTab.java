@@ -8,6 +8,7 @@ import com.mas6y6.musmeta.musicplayer.MusicPlayer;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
+import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.ui.dialogs.*;
 import com.mas6y6.musmeta.ui.dialogs.base.MPromptDialog;
 import com.mas6y6.musmeta.ui.dialogs.export.ExportMusicProcessingDialog;
@@ -723,6 +724,8 @@ public class AlbumDetailTab extends JPanel {
             JMenuItem delete = createDelete(songsToEdit);
             popupMenu.add(delete);
         }
+
+        Registries.CONTEXT_MENU_ITEMS.getAll().forEach(entry -> popupMenu.add(entry.getValue()));
 
         if (mouseEvent.getComponent() instanceof JTable table) {
             popupMenu.show(table, mouseEvent.getX(), mouseEvent.getY());

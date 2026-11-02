@@ -418,7 +418,6 @@ public class MainWindow extends MainAppFrame {
             toolbar.add(Box.createHorizontalGlue());
 
             JLabel titleLabel = new JLabel("MusMeta");
-            titleLabel.getGraphics().setColor(getBackground().darker());
             titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 14f));
             toolbar.add(titleLabel);
 

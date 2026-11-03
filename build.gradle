@@ -210,7 +210,7 @@ sourceSets {
 // ============================================================
 
 dependencies {
-    implementation project(':plugins:framework')
+    implementation project(':framework')
 
     implementation("com.google.guava:guava:$guava")
 

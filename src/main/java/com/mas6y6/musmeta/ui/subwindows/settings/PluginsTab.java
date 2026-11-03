@@ -4,6 +4,7 @@ import com.mas6y6.musmeta.Bootstrap;
 import com.mas6y6.musmeta.plugin.PluginManager;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.subwindows.settings.base.SettingTab;
+import com.mas6y6.musmeta.utils.SmoothScroll;
 import org.jspecify.annotations.NonNull;
 
 import javax.swing.*;
@@ -89,6 +90,7 @@ public class PluginsTab extends SettingTab {
         scrollPane.setPreferredSize(new Dimension(400, 150));
         scrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
         scrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
+        SmoothScroll.enable(scrollPane);
 
         CONTENT.add(Box.createVerticalStrut(5));
         CONTENT.add(scrollPane);

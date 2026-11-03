@@ -3,6 +3,7 @@ package com.mas6y6.musmeta.ui.dialogs;
 import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.musicplayer.MusicPlayer;
 import com.mas6y6.musmeta.ui.components.PlayerQueueTableModel;
+import com.mas6y6.musmeta.utils.SmoothScroll;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -145,7 +146,10 @@ public class MusicQueueDialog extends JDialog {
         });
 
         JPanel panel = new JPanel(new BorderLayout(8, 8));
-        panel.add(new JScrollPane(table), BorderLayout.CENTER);
+
+        JScrollPane tableScroll = new JScrollPane(table);
+        SmoothScroll.enable(tableScroll);
+        panel.add(tableScroll, BorderLayout.CENTER);
         panel.add(listButtons(), BorderLayout.SOUTH);
         return panel;
     }

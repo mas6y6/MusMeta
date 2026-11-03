@@ -1,5 +1,6 @@
 package com.mas6y6.musmeta;
 
+import com.mas6y6.musmeta.utils.SmoothScroll;
 import org.jspecify.annotations.NonNull;
 
 import javax.swing.*;
@@ -150,6 +151,7 @@ public final class CrashHandler {
 
             JScrollPane scrollPane = new JScrollPane(crashText);
             scrollPane.setPreferredSize(new Dimension(700, 400));
+            SmoothScroll.enable(scrollPane);
             javax.swing.SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(0));
 
             JPanel panel = new JPanel(new BorderLayout(0, 10));

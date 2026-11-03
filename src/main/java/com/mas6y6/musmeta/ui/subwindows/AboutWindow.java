@@ -1,5 +1,6 @@
 package com.mas6y6.musmeta.ui.subwindows;
 
+import com.mas6y6.musmeta.utils.SmoothScroll;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
@@ -56,6 +57,7 @@ public class AboutWindow extends JDialog {
 
         banner.setIcon(new ImageIcon(scaledImage));
         banner.setHorizontalAlignment(SwingConstants.CENTER);
+        banner.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
 
         content.add(banner, BorderLayout.NORTH);
 
@@ -70,6 +72,8 @@ public class AboutWindow extends JDialog {
         scrollPane.setBorder(null);
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
+        SmoothScroll.enable(scrollPane);
+
         javax.swing.SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(0));
 
         content.add(scrollPane, BorderLayout.CENTER);
@@ -77,7 +81,7 @@ public class AboutWindow extends JDialog {
         // Buttons
 
         JPanel buttons = new JPanel(new BorderLayout(10, 0));
-        buttons.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+        buttons.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
 
         JButton okButton = new JButton("OK");
         okButton.addActionListener(e -> dispose());
@@ -101,7 +105,7 @@ public class AboutWindow extends JDialog {
 
         setContentPane(content);
 
-        setSize(500, 500);
+        setSize(550, 550);
         setLocationRelativeTo(parent);
 
         getRootPane().setDefaultButton(okButton);

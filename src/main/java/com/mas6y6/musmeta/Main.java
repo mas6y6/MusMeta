@@ -187,13 +187,12 @@ public class Main {
     }
 
     private static void configureDockIcon() {
-        if (!SystemInfo.isMacOS || !Taskbar.isTaskbarSupported()) {
-            return;
-        }
         try {
             Taskbar taskbar = Taskbar.getTaskbar();
             if (taskbar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
-                taskbar.setIconImage(Constants.APP_ICON);
+                if (!SystemInfo.isMacOS && Taskbar.isTaskbarSupported()) {
+                    taskbar.setIconImage(Constants.APP_ICON);
+                }
             }
         } catch (Exception e) {
             LOGGER.warn("Failed to set dock icon", e);

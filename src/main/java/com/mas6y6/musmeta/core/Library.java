@@ -192,7 +192,7 @@ public class Library {
         if (loaded != null && loaded != INSTANCE) {
             INSTANCE.replaceWith(loaded);
         }
-        Registries.EVENT_BUS.post("library.loaded", INSTANCE);
+
         return INSTANCE;
     }
 

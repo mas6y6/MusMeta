@@ -117,7 +117,7 @@ public class MainWindow extends MainAppFrame {
             detail.setSelectionListener(this::setSelectedSongs);
             tabs.addTab(album.getTitle(), detail);
             tabs.setSelectedIndex(tabs.getTabCount() - 1);
-            Registries.EVENT_BUS.post("album.opened", album);
+
         });
     }
 

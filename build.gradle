@@ -209,8 +209,6 @@ sourceSets {
 // ============================================================
 
 dependencies {
-    implementation project(':framework')
-
     implementation("com.google.guava:guava:$guava")
 
     implementation("com.formdev:flatlaf:$flatlaf")
@@ -237,6 +235,15 @@ dependencies {
     implementation("com.squareup.okio:okio:$okio")
     implementation("org.assertj:assertj-core:$assertj")
     implementation("org.json:json:$orgjson")
+
+    // plugins
+    implementation("net.fabricmc:sponge-mixin:$mixin")
+    implementation("org.ow2.asm:asm:$asm")
+    implementation("org.ow2.asm:asm-tree:$asm")
+    implementation("org.ow2.asm:asm-analysis:$asm")
+    implementation("org.ow2.asm:asm-commons:$asm")
+    implementation("org.ow2.asm:asm-util:$asm")
+    implementation("com.google.guava:guava:$guava")
 }
 
 // ============================================================

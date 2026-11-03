@@ -1,6 +1,7 @@
 package com.mas6y6.musmeta;
 
 import com.mas6y6.musmeta.config.ConfigManager;
+import com.mas6y6.musmeta.event.core.EventBus;
 import com.mas6y6.musmeta.logging.LogSystem;
 import com.mas6y6.musmeta.musicplayer.MusicPlayer;
 import com.mas6y6.musmeta.plugin.PluginManager;
@@ -103,7 +104,7 @@ public class Bootstrap implements Runnable {
             LOGGER.info("MusMeta shutdown in progress...");
 
             MusicPlayer.getInstance().stop();
-            Registries.EVENT_BUS.shutdown();
+            EventBus.MAIN_BUS.close();
             pluginManager.shutdown();
 
             if (Settings.SETUP_COMPLETED.get()) {

@@ -1,9 +1,7 @@
 package com.mas6y6.musmeta.registry;
 
-import com.mas6y6.musmeta.event.EventBus;
 import com.mas6y6.musmeta.registry.items.AudioConversionFormatRegistryItem;
 import com.mas6y6.musmeta.registry.items.AudioExtensionRegistryItem;
-import com.mas6y6.musmeta.registry.items.ComponentBuilder;
 import com.mas6y6.musmeta.registry.items.DialogRegistryItem;
 import com.mas6y6.musmeta.registry.items.MainTabRegistryItem;
 import com.mas6y6.musmeta.registry.items.SettingTabRegistryItem;
@@ -26,10 +24,6 @@ public final class Registries {
     public static final Registry<String, DialogRegistryItem> DIALOGS = new Registry<>("DIALOGS");
     public static final Registry<String, AudioExtensionRegistryItem> AUDIO_EXTENSIONS = new Registry<>("AUDIO_EXTENSIONS");
     public static final Registry<String, AudioConversionFormatRegistryItem> AUDIO_CONVERSION_FORMATS = new Registry<>("AUDIO_CONVERSION_FORMATS");
-    public static final Registry<String, ComponentBuilder> COMPONENT_BUILDERS = new Registry<>("COMPONENT_BUILDERS");
-
-    public static final EventBus EVENT_BUS = new EventBus();
-    public static final EventBus EVENTS = EVENT_BUS;
 
     // Convenience aliases for common extension points.
     public static final Registry<String, JComponent> TOOLBARS = TOOLBAR_ITEMS;

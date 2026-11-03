@@ -9,15 +9,17 @@ import com.jthemedetecor.OsThemeDetector;
 import com.mas6y6.musmeta.config.ConfigManager;
 import com.mas6y6.musmeta.config.SubConfig;
 import com.mas6y6.musmeta.core.Library;
+import com.mas6y6.musmeta.event.application.ApplicationStartedEvent;
+import com.mas6y6.musmeta.event.core.EventBus;
 import com.mas6y6.musmeta.settings.ConfigCodecs;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.launch.LaunchScreen;
-import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.ui.dialogs.MissingSongsDialog;
 import com.mas6y6.musmeta.ui.dialogs.PostInstallationDialog;
 import com.mas6y6.musmeta.utils.PlatformSetup;
+import com.mas6y6.musmeta.utils.VersionSource;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 
@@ -173,7 +175,11 @@ public class Main {
                 LaunchScreen.closeIfOpen();
                 configureDockIcon();
                 new PostInstallationDialog();
-                Registries.EVENT_BUS.post("app.started", null);
+                EventBus.MAIN_BUS.post(new ApplicationStartedEvent(){
+                    protected VersionSource.Version version() {
+                        return VersionSource.getVersion();
+                    }
+                });
             });
         } else {
             SwingUtilities.invokeLater(() -> {
@@ -181,7 +187,11 @@ public class Main {
                 configureDockIcon();
                 MainWindow.INSTANCE.setVisible(true);
                 showMissingSongsPromptIfAny();
-                Registries.EVENT_BUS.post("app.started", null);
+                EventBus.MAIN_BUS.post(new ApplicationStartedEvent(){
+                    protected VersionSource.Version version() {
+                        return VersionSource.getVersion();
+                    }
+                });
             });
         }
 

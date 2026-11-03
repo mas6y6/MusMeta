@@ -21,6 +21,7 @@ repositories {
 }
 
 dependencies {
+    implementation project(":")
     implementation("org.jetbrains:annotations:$annotations")
     implementation("net.fabricmc:sponge-mixin:$mixin")
     implementation("org.ow2.asm:asm:$asm")

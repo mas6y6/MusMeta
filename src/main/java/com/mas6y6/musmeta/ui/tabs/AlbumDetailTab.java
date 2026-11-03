@@ -16,6 +16,7 @@ import com.mas6y6.musmeta.ui.dialogs.processing.ProcessTagsProcessingDialog;
 import com.mas6y6.musmeta.ui.dialogs.processing.ReformatMusicProcessingDialog;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
+import com.mas6y6.musmeta.utils.SmoothScroll;
 import org.jaudiotagger.tag.FieldKey;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -322,6 +323,7 @@ public class AlbumDetailTab extends JPanel {
         JScrollPane scrollPane = new JScrollPane(content);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.getVerticalScrollBar().setUnitIncrement(18);
+        SmoothScroll.enable(scrollPane);
         return scrollPane;
     }
 

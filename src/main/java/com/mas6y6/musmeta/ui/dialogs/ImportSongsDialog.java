@@ -12,6 +12,7 @@ import com.mas6y6.musmeta.ui.dialogs.base.MPromptDialog;
 import com.mas6y6.musmeta.ui.dialogs.processing.ConvertImportedSongsProcessingDialog;
 import com.mas6y6.musmeta.ui.dialogs.processing.ProcessTagsProcessingDialog;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
+import com.mas6y6.musmeta.utils.SmoothScroll;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.FieldKey;
 import org.jspecify.annotations.NonNull;
@@ -164,7 +165,10 @@ public class ImportSongsDialog extends JDialog {
         });
 
         JPanel panel = new JPanel(new BorderLayout(8, 8));
-        panel.add(new JScrollPane(table), BorderLayout.CENTER);
+
+        JScrollPane tableScroll = new JScrollPane(table);
+        SmoothScroll.enable(tableScroll);
+        panel.add(tableScroll, BorderLayout.CENTER);
         panel.add(listButtons(), BorderLayout.SOUTH);
         return panel;
     }

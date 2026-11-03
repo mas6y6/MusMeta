@@ -1,14 +1,6 @@
-**An all-in-one music metadata editor.**
-
-**Features:**
-- Edit music file metadata
-- Full Library support
-- Support for various music file formats
-- User-friendly interface
-- Easy to use
+# MusMeta
 
 Version: ${version}
-
 
 ## Libraries Used
 
@@ -42,6 +34,6 @@ Version: ${version}
 
 [flexmark-java](https://github.com/vsch/flexmark-java)
 
-## Executeables
+## Executables
 
 [FFmpeg](https://www.ffmpeg.org/)

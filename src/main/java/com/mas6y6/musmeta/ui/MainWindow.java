@@ -415,6 +415,14 @@ public class MainWindow extends MainAppFrame {
             toolbar.setBackground(getBackground().darker());
 
             toolbar.add(Box.createHorizontalStrut(80));
+            toolbar.add(Box.createHorizontalGlue());
+
+            JLabel titleLabel = new JLabel("MusMeta");
+            titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 14f));
+            toolbar.add(titleLabel);
+
+            toolbar.add(Box.createHorizontalGlue());
+            toolbar.add(Box.createHorizontalStrut(80));
 
             add(toolbar, BorderLayout.NORTH);
         } else {

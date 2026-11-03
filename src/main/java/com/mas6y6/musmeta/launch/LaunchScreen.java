@@ -81,7 +81,7 @@ public final class LaunchScreen extends JWindow {
         pack();
         setLocationRelativeTo(null);
         setShape(new RoundRectangle2D.Double(
-                0, 0, getWidth(), getHeight(), 56, 56
+                0, 0, getWidth(), getHeight(), 35, 35
         ));
     }
 
@@ -169,6 +169,10 @@ public final class LaunchScreen extends JWindow {
     public static void closeIfOpen() {
         LaunchScreen current = instance;
         if (current != null) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ignored) {
+            }
             current.dispose();
         }
     }

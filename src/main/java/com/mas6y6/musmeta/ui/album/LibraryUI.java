@@ -3,6 +3,7 @@ package com.mas6y6.musmeta.ui.album;
 import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.Core;
 import com.mas6y6.musmeta.core.Library;
+import com.mas6y6.musmeta.utils.SmoothScroll;
 import org.jspecify.annotations.NonNull;
 
 import javax.swing.*;
@@ -19,6 +20,7 @@ public class LibraryUI extends JScrollPane {
                 VERTICAL_SCROLLBAR_AS_NEEDED,
                 HORIZONTAL_SCROLLBAR_NEVER
         );
+        SmoothScroll.enable(this) ;
 
         WrapLayout wrapLayout = new WrapLayout();
 

@@ -1,5 +1,6 @@
 package com.mas6y6.musmeta.ui.components;
 
+import com.formdev.flatlaf.util.SystemInfo;
 import com.mas6y6.musmeta.settings.Settings;
 
 import javax.swing.*;
@@ -15,7 +16,7 @@ public abstract class MainAppFrame extends JFrame {
         super("MusMeta");
 
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        setIconImage(APP_ICON);
+        if (!SystemInfo.isMacOS) setIconImage(APP_ICON);
 
         setMinimumSize(new Dimension(1000, 600));
         setSize(Settings.MUSMETA_SIZE.get());

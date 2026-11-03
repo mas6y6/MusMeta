@@ -5,6 +5,7 @@ import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.components.PathField;
 import com.mas6y6.musmeta.ui.subwindows.settings.base.SettingTab;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
+import com.mas6y6.musmeta.utils.SmoothScroll;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -175,6 +176,7 @@ public class MusicTab extends SettingTab {
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setPreferredSize(new Dimension(400, 150));
+        SmoothScroll.enable(scrollPane);
 
         ignoredPathsPanel.add(scrollPane, BorderLayout.CENTER);
         ignoredPathsPanel.add(buttons, BorderLayout.SOUTH);

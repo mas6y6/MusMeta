@@ -2,6 +2,7 @@ package com.mas6y6.musmeta.core;
 
 import com.mas6y6.musmeta.Constants;
 import com.mas6y6.musmeta.Main;
+import com.mas6y6.musmeta.registry.Registries;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
@@ -107,7 +108,8 @@ public class Core {
                     }
 
                     String extension = com.google.common.io.Files.getFileExtension(file.toString()).toLowerCase(Locale.ROOT);
-                    if (Constants.MUSIC_EXTENSIONS.contains(extension)) {
+                    if (Constants.MUSIC_EXTENSIONS.contains(extension)
+                            || Registries.AUDIO_EXTENSIONS.get(extension) != null) {
                         try {
                             AudioFile audioFile = AudioFileIO.read(file.toFile());
                             Song song = new Song(audioFile);

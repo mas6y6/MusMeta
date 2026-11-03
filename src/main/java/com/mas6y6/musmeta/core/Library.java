@@ -3,6 +3,7 @@ package com.mas6y6.musmeta.core;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.mas6y6.musmeta.config.*;
+import com.mas6y6.musmeta.registry.Registries;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -191,6 +192,7 @@ public class Library {
         if (loaded != null && loaded != INSTANCE) {
             INSTANCE.replaceWith(loaded);
         }
+
         return INSTANCE;
     }
 

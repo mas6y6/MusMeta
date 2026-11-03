@@ -13,6 +13,7 @@
             <option value="$PROJECT_DIR$/plugins/framework" />
           </set>
         </option>
+        <option name="myGradleHome" value="C:\ProgramData\chocolatey\lib\gradle\tools\gradle-9.8.0" />
       </GradleProjectSettings>
     </option>
   </component>

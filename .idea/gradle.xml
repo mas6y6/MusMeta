@@ -9,8 +9,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/plugins" />
-            <option value="$PROJECT_DIR$/plugins/framework" />
+            <option value="$PROJECT_DIR$/framework" />
           </set>
         </option>
         <option name="myGradleHome" value="C:\ProgramData\chocolatey\lib\gradle\tools\gradle-9.8.0" />

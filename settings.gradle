@@ -10,4 +10,4 @@ pluginManagement {
 
 rootProject.name = 'musmeta'
 
-include 'plugins:framework'
+include ':framework'

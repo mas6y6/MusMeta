@@ -9,6 +9,8 @@ import com.jthemedetecor.OsThemeDetector;
 import com.mas6y6.musmeta.config.ConfigManager;
 import com.mas6y6.musmeta.config.SubConfig;
 import com.mas6y6.musmeta.core.Library;
+import com.mas6y6.musmeta.event.application.ApplicationStartedEvent;
+import com.mas6y6.musmeta.event.core.EventBus;
 import com.mas6y6.musmeta.settings.ConfigCodecs;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
@@ -17,6 +19,7 @@ import com.mas6y6.musmeta.launch.LaunchScreen;
 import com.mas6y6.musmeta.ui.dialogs.MissingSongsDialog;
 import com.mas6y6.musmeta.ui.dialogs.PostInstallationDialog;
 import com.mas6y6.musmeta.utils.PlatformSetup;
+import com.mas6y6.musmeta.utils.VersionSource;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 
@@ -49,7 +52,6 @@ public class Main {
 
     public static final Path appDir = getAppDir();
     public static final Path musMetaDirectory = appDir.resolve("MusMeta");
-    public static Font outfitMedium;
     public static Font outfitExtraBold;
 
     public static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Main.class);
@@ -124,13 +126,13 @@ public class Main {
                 try {
                     UIManager.setLookAndFeel(new FlatDarkLaf());
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.error("Failed to set dark theme", e);
                 }
             } else {
                 try {
                     UIManager.setLookAndFeel(new FlatLightLaf());
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.error("Failed to set light theme", e);
                 }
             }
 
@@ -155,7 +157,7 @@ public class Main {
                         }
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.error("Failed to set theme", e);
                 }
             });
         } else {
@@ -173,6 +175,11 @@ public class Main {
                 LaunchScreen.closeIfOpen();
                 configureDockIcon();
                 new PostInstallationDialog();
+                EventBus.MAIN_BUS.post(new ApplicationStartedEvent(){
+                    protected VersionSource.Version version() {
+                        return VersionSource.getVersion();
+                    }
+                });
             });
         } else {
             SwingUtilities.invokeLater(() -> {
@@ -180,6 +187,11 @@ public class Main {
                 configureDockIcon();
                 MainWindow.INSTANCE.setVisible(true);
                 showMissingSongsPromptIfAny();
+                EventBus.MAIN_BUS.post(new ApplicationStartedEvent(){
+                    protected VersionSource.Version version() {
+                        return VersionSource.getVersion();
+                    }
+                });
             });
         }
 

@@ -388,14 +388,18 @@ public class MainWindow extends MainAppFrame {
         Registries.VIEW_MENU_ITEMS.getAll().forEach(e -> viewMenu.add(e.getValue()));
 
         JMenu toolsMenu = new JMenu("Tools");
-        Registries.DIALOGS.getAll().forEach(entry -> {
+        Registries.TOOLS_MENU_ITEMS.getAll().forEach(e -> toolsMenu.add(e.getValue()));
+        if (toolsMenu.getItemCount() > 0) {
+            menuBar.add(toolsMenu);
+        }
+        if (Registries.TOOLS_MENU_DIALOGS.getSize() > 0 && Registries.TOOLS_MENU_ITEMS.getSize() > 0) {
+            menuBar.add(new JSeparator());
+        }
+        Registries.TOOLS_MENU_DIALOGS.getAll().forEach(entry -> {
             JMenuItem item = new JMenuItem(entry.getValue().title());
             item.addActionListener(e -> entry.getValue().dialogBuilder().build(this).setVisible(true));
             toolsMenu.add(item);
         });
-        if (toolsMenu.getItemCount() > 0) {
-            menuBar.add(toolsMenu);
-        }
 
         menuBar.add(fileMenu);
         menuBar.add(editMenu);

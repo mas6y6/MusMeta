@@ -21,9 +21,10 @@ public final class Registries {
     public static final Registry<String, MainTabRegistryItem> MAIN_TABS = new Registry<>("MAIN_TABS");
     public static final Registry<String, JMenuItem> CONTEXT_MENU_ITEMS = new Registry<>("CONTEXT_MENU_ITEMS");
     public static final Registry<String, JComponent> STATUS_BAR_ITEMS = new Registry<>("STATUS_BAR_ITEMS");
-    public static final Registry<String, DialogRegistryItem> DIALOGS = new Registry<>("DIALOGS");
+    public static final Registry<String, DialogRegistryItem> TOOLS_MENU_DIALOGS = new Registry<>("TOOLS_MENU_DIALOGS");
+    public static final Registry<String, JMenuItem> TOOLS_MENU_ITEMS = new Registry<>("TOOLS_MENU_ITEMS");
     public static final Registry<String, AudioExtensionRegistryItem> AUDIO_EXTENSIONS = new Registry<>("AUDIO_EXTENSIONS");
-    public static final Registry<String, AudioConversionFormatRegistryItem> AUDIO_CONVERSION_FORMATS = new Registry<>("AUDIO_CONVERSION_FORMATS");
+    // public static final Registry<String, AudioConversionFormatRegistryItem> AUDIO_CONVERSION_FORMATS = new Registry<>("AUDIO_CONVERSION_FORMATS");
 
     // Convenience aliases for common extension points.
     public static final Registry<String, JComponent> TOOLBARS = TOOLBAR_ITEMS;

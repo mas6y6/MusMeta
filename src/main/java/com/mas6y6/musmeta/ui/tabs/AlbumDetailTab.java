@@ -8,6 +8,7 @@ import com.mas6y6.musmeta.musicplayer.MusicPlayer;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.ui.MainWindow;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
+import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.ui.dialogs.*;
 import com.mas6y6.musmeta.ui.dialogs.base.MPromptDialog;
 import com.mas6y6.musmeta.ui.dialogs.export.ExportMusicProcessingDialog;
@@ -15,6 +16,7 @@ import com.mas6y6.musmeta.ui.dialogs.processing.ProcessTagsProcessingDialog;
 import com.mas6y6.musmeta.ui.dialogs.processing.ReformatMusicProcessingDialog;
 import com.mas6y6.musmeta.utils.AlbumFormatNormalizer;
 import com.mas6y6.musmeta.utils.FFmpegUtils;
+import com.mas6y6.musmeta.utils.SmoothScroll;
 import org.jaudiotagger.tag.FieldKey;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -321,6 +323,7 @@ public class AlbumDetailTab extends JPanel {
         JScrollPane scrollPane = new JScrollPane(content);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.getVerticalScrollBar().setUnitIncrement(18);
+        SmoothScroll.enable(scrollPane);
         return scrollPane;
     }
 
@@ -723,6 +726,8 @@ public class AlbumDetailTab extends JPanel {
             JMenuItem delete = createDelete(songsToEdit);
             popupMenu.add(delete);
         }
+
+        Registries.CONTEXT_MENU_ITEMS.getAll().forEach(entry -> popupMenu.add(entry.getValue()));
 
         if (mouseEvent.getComponent() instanceof JTable table) {
             popupMenu.show(table, mouseEvent.getX(), mouseEvent.getY());

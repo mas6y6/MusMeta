@@ -1,5 +1,6 @@
 package com.mas6y6.musmeta;
 
+import com.mas6y6.musmeta.utils.SmoothScroll;
 import org.jspecify.annotations.NonNull;
 
 import javax.swing.*;
@@ -11,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -77,14 +79,16 @@ public final class CrashHandler {
                 writer.println();
                 writer.println("Time: " + LocalDateTime.now());
                 writer.println("Thread: " + thread.getName());
-                writer.println("Java: " + System.getProperty("java.version"));
+                writer.println("Java: " + System.getProperty("java.version") + " (" + System.getProperty("java.vendor") + ")");
                 writer.println("OS: " + System.getProperty("os.name"));
                 writer.println("OS Version: " + System.getProperty("os.version"));
                 writer.println("Architecture: " + System.getProperty("os.arch"));
                 writer.println();
-
-                writer.println("Exception:");
+                writer.println("Error: "+throwable.getCause());
+                writer.println();
                 throwable.printStackTrace(writer);
+                writer.println();
+                System.getProperties().forEach((key, value) -> writer.println(key + "  :  " + value));
             }
 
             System.err.println(
@@ -114,7 +118,9 @@ public final class CrashHandler {
                 %s
 
                 Please include this file when reporting the issue.
-                """.formatted(finalCrashFile.toAbsolutePath());
+               
+                %s
+                """.formatted(finalCrashFile.toAbsolutePath(), throwable.getCause());
             } else {
                 message = """
                 MusMeta has encountered an unexpected error and needs to close.
@@ -145,6 +151,8 @@ public final class CrashHandler {
 
             JScrollPane scrollPane = new JScrollPane(crashText);
             scrollPane.setPreferredSize(new Dimension(700, 400));
+            SmoothScroll.enable(scrollPane);
+            javax.swing.SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(0));
 
             JPanel panel = new JPanel(new BorderLayout(0, 10));
 
@@ -164,7 +172,6 @@ public final class CrashHandler {
         };
 
         try {
-
             if (SwingUtilities.isEventDispatchThread()) {
                 showDialog.run();
             } else {

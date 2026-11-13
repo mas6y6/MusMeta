@@ -6,6 +6,7 @@ import com.formdev.flatlaf.util.SystemInfo;
 import com.jthemedetecor.OsThemeDetector;
 import com.mas6y6.musmeta.Constants;
 import com.mas6y6.musmeta.registry.Registries;
+import com.mas6y6.musmeta.registry.items.MainTabRegistryItem;
 import com.mas6y6.musmeta.settings.Settings;
 import com.mas6y6.musmeta.settings.Theme;
 import com.mas6y6.musmeta.ui.components.MainAppFrame;
@@ -116,6 +117,7 @@ public class MainWindow extends MainAppFrame {
             detail.setSelectionListener(this::setSelectedSongs);
             tabs.addTab(album.getTitle(), detail);
             tabs.setSelectedIndex(tabs.getTabCount() - 1);
+
         });
     }
 
@@ -380,6 +382,21 @@ public class MainWindow extends MainAppFrame {
 
         libraryMenu.add(musicScanMenuItem);
 
+        Registries.FILE_MENU_ITEMS.getAll().forEach(e -> fileMenu.add(e.getValue()));
+        Registries.EDIT_MENU_ITEMS.getAll().forEach(e -> editMenu.add(e.getValue()));
+        Registries.LIBRARY_MENU_ITEMS.getAll().forEach(e -> libraryMenu.add(e.getValue()));
+        Registries.VIEW_MENU_ITEMS.getAll().forEach(e -> viewMenu.add(e.getValue()));
+
+        JMenu toolsMenu = new JMenu("Tools");
+        Registries.DIALOGS.getAll().forEach(entry -> {
+            JMenuItem item = new JMenuItem(entry.getValue().title());
+            item.addActionListener(e -> entry.getValue().dialogBuilder().build(this).setVisible(true));
+            toolsMenu.add(item);
+        });
+        if (toolsMenu.getItemCount() > 0) {
+            menuBar.add(toolsMenu);
+        }
+
         menuBar.add(fileMenu);
         menuBar.add(editMenu);
         menuBar.add(libraryMenu);
@@ -400,6 +417,8 @@ public class MainWindow extends MainAppFrame {
 
         //region Title Bar / Toolbar
 
+        Registries.TOOLBAR_ITEMS.getAll().forEach(entry -> toolbar.add(entry.getValue()));
+
         if (SystemInfo.isMacOS) {
             toolbar.setFloatable(false);
             toolbar.setOpaque(true);
@@ -414,6 +433,14 @@ public class MainWindow extends MainAppFrame {
 
             toolbar.setBackground(getBackground().darker());
 
+            toolbar.add(Box.createHorizontalStrut(80));
+            toolbar.add(Box.createHorizontalGlue());
+
+            JLabel titleLabel = new JLabel("MusMeta");
+            titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 14f));
+            toolbar.add(titleLabel);
+
+            toolbar.add(Box.createHorizontalGlue());
             toolbar.add(Box.createHorizontalStrut(80));
 
             add(toolbar, BorderLayout.NORTH);
@@ -468,13 +495,30 @@ public class MainWindow extends MainAppFrame {
                 libraryUI
         );
 
+        Registries.MAIN_TABS.getAll().forEach(entry -> {
+            MainTabRegistryItem tab = entry.getValue();
+            JComponent component = tab.tabBuilder().build();
+            if (tab.icon() != null) {
+                tabs.addTab(tab.title(), tab.icon(), component);
+            } else {
+                tabs.addTab(tab.title(), component);
+            }
+        });
+
         add(
                 tabs,
                 BorderLayout.CENTER
         );
 
+        JPanel southPanel = new JPanel(new BorderLayout());
+        JPanel statusBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
+        Registries.STATUS_BAR_ITEMS.getAll().forEach(entry -> statusBar.add(entry.getValue()));
+        if (statusBar.getComponentCount() > 0) {
+            southPanel.add(statusBar, BorderLayout.NORTH);
+        }
+        southPanel.add(musicPlayer, BorderLayout.CENTER);
         add(
-                musicPlayer,
+                southPanel,
                 BorderLayout.SOUTH
         );
 

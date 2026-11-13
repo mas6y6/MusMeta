@@ -6,6 +6,7 @@ import com.mas6y6.musmeta.core.Song;
 import com.mas6y6.musmeta.ui.album.AlbumUI;
 import com.mas6y6.musmeta.ui.components.album.AlbumArtwork;
 import com.mas6y6.musmeta.ui.dialogs.processing.ProcessTagsProcessingDialog;
+import com.mas6y6.musmeta.utils.SmoothScroll;
 import org.jaudiotagger.tag.FieldKey;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -193,6 +194,7 @@ public class EditAlbumDialog extends JDialog {
         JScrollPane formScroll = new JScrollPane(createFormPanel());
         formScroll.setBorder(BorderFactory.createEmptyBorder());
         formScroll.getVerticalScrollBar().setUnitIncrement(16);
+        SmoothScroll.enable(formScroll);
         contentPane.add(formScroll, BorderLayout.CENTER);
 
         contentPane.add(createButtonPanel(), BorderLayout.SOUTH);

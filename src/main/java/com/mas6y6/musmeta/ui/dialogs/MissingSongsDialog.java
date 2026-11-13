@@ -1,6 +1,7 @@
 package com.mas6y6.musmeta.ui.dialogs;
 
 import com.mas6y6.musmeta.core.Library.MissingSong;
+import com.mas6y6.musmeta.utils.SmoothScroll;
 import org.jspecify.annotations.NonNull;
 
 import javax.swing.*;
@@ -60,6 +61,7 @@ public class MissingSongsDialog extends JDialog {
         listArea.setCaretPosition(0);
 
         JScrollPane scrollPane = new JScrollPane(listArea);
+        SmoothScroll.enable(scrollPane);
         page.add(scrollPane, BorderLayout.CENTER);
 
         JButton closeButton = new JButton("Close");

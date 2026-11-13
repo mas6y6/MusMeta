@@ -1,5 +1,6 @@
 package com.mas6y6.musmeta.ui.components;
 
+import com.formdev.flatlaf.util.SystemInfo;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -11,7 +12,7 @@ import static com.mas6y6.musmeta.Constants.APP_NAME;
 public class MusMetaFrame extends JFrame {
     public MusMetaFrame() {
         super("MusMeta");
-        setIconImage(APP_ICON);
+        if (!SystemInfo.isMacOS) setIconImage(APP_ICON);
     }
 
     public void setSubTitle(@Nullable String title) {

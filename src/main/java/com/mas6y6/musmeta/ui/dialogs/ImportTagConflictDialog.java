@@ -3,6 +3,7 @@ package com.mas6y6.musmeta.ui.dialogs;
 import com.mas6y6.musmeta.core.Album;
 import com.mas6y6.musmeta.core.AlbumTags;
 import com.mas6y6.musmeta.core.Song;
+import com.mas6y6.musmeta.utils.SmoothScroll;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -110,6 +111,7 @@ public class ImportTagConflictDialog extends JDialog {
         JScrollPane scroll = new JScrollPane(list);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getVerticalScrollBar().setUnitIncrement(16);
+        SmoothScroll.enable(scroll);
         return scroll;
     }
 

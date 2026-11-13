@@ -2,6 +2,7 @@ package com.mas6y6.musmeta.ui.dialogs;
 
 import com.mas6y6.musmeta.core.Duplicates;
 import com.mas6y6.musmeta.core.Song;
+import com.mas6y6.musmeta.utils.SmoothScroll;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -122,7 +123,9 @@ public class DuplicateImportDialog extends JDialog {
             list.add(Box.createVerticalStrut(10));
         }
 
-        return new JScrollPane(list);
+        JScrollPane scroll = new JScrollPane(list);
+        SmoothScroll.enable(scroll);
+        return scroll;
     }
 
     private @NonNull JComponent groupPanel(Duplicates.@NonNull Group group) {

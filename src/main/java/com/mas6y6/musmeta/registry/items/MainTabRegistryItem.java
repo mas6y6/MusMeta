@@ -3,8 +3,9 @@ package com.mas6y6.musmeta.registry.items;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.function.Supplier;
 
-public record MainTabRegistryItem(String title, @Nullable Icon icon, ComponentBuilder tabBuilder, boolean closable) {
+public record MainTabRegistryItem(String title, @Nullable Icon icon, Supplier<ComponentBuilder> tabBuilder, boolean closable) {
     public MainTabRegistryItem {
         if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("Main tab title is required");
@@ -14,7 +15,7 @@ public record MainTabRegistryItem(String title, @Nullable Icon icon, ComponentBu
         }
     }
 
-    public MainTabRegistryItem(String title, @Nullable Icon icon, ComponentBuilder tabBuilder) {
+    public MainTabRegistryItem(String title, @Nullable Icon icon, Supplier<ComponentBuilder> tabBuilder) {
         this(title, icon, tabBuilder, true);
     }
 }

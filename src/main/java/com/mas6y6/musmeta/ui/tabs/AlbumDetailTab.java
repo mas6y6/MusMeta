@@ -727,7 +727,7 @@ public class AlbumDetailTab extends JPanel {
             popupMenu.add(delete);
         }
 
-        Registries.CONTEXT_MENU_ITEMS.getAll().forEach(entry -> popupMenu.add(entry.getValue()));
+        Registries.CONTEXT_MENU_ITEMS.getAll().forEach(entry -> popupMenu.add(entry.getValue().get()));
 
         if (mouseEvent.getComponent() instanceof JTable table) {
             popupMenu.show(table, mouseEvent.getX(), mouseEvent.getY());

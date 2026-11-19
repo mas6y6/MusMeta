@@ -29,6 +29,8 @@ public final class Registry<K,T> {
 
     public Stream<Map.Entry<K,T>> getAll() { return entries.entrySet().stream(); }
 
+    public int getSize() { return entries.size(); }
+
     void freeze() {
         if (frozen) return;
         frozen = true;

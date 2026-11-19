@@ -1,6 +1,5 @@
 package com.mas6y6.musmeta.ui.subwindows;
 
-import com.formdev.flatlaf.util.SystemInfo;
 import com.mas6y6.musmeta.registry.Registries;
 import com.mas6y6.musmeta.ui.subwindows.settings.AppearanceTab;
 import com.mas6y6.musmeta.ui.subwindows.settings.FFmpegSettingsTab;

@@ -5,6 +5,8 @@
 
 <img width="100%" alt="banner" src="https://github.com/user-attachments/assets/d7640317-2e9e-4b92-af78-09eed93b6595" />
 
+[![Build](https://github.com/mas6y6/MusMeta/actions/workflows/build.yml/badge.svg)](https://github.com/mas6y6/MusMeta/actions/workflows/build.yml)
+
 **An all-in-one music metadata editor.**
 
 **Features:**

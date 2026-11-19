@@ -1,8 +1,10 @@
 package com.mas6y6.musmeta.ui.subwindows.settings;
 
 import com.mas6y6.musmeta.Bootstrap;
+import com.mas6y6.musmeta.launch.Launcher;
 import com.mas6y6.musmeta.plugin.PluginManager;
 import com.mas6y6.musmeta.settings.Settings;
+import com.mas6y6.musmeta.ui.dialogs.base.MPromptDialog;
 import com.mas6y6.musmeta.ui.subwindows.settings.base.SettingTab;
 import com.mas6y6.musmeta.utils.SmoothScroll;
 import org.jspecify.annotations.NonNull;
@@ -138,12 +140,20 @@ To fix this please check your startup parameters!
             @Override
             public void windowClosing(WindowEvent e) {
                 if (edited) {
-                    JOptionPane.showMessageDialog(
+                    int option = MPromptDialog.showOptionDialog(
                             window,
-                            "Plugin changes will only take effect after you restart MusMeta.",
+                            "Plugin changes will only take effect after you restart MusMeta.\nWould you like to restart now?",
                             "Plugins changed",
-                            JOptionPane.INFORMATION_MESSAGE
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE,
+                            null,
+                            new String[]{"Restart", "Later"},
+                            "Restart"
                     );
+
+                    if (option == JOptionPane.YES_OPTION) {
+                        Launcher.restart(null);
+                    }
                 }
             }
         });

@@ -30,7 +30,7 @@ public final class Launcher {
     private Launcher() {
     }
 
-    static void main(String @Nullable [] args) {
+    public static void main(String @Nullable [] args) {
         if (args != null) {
             launchArgs = args.clone();
         }
@@ -154,5 +154,9 @@ public final class Launcher {
                 "bin",
                 osName.contains("win") ? "java.exe" : "java"
         ).toString();
+    }
+
+    public static String[] getLaunchArgs() {
+        return launchArgs;
     }
 }

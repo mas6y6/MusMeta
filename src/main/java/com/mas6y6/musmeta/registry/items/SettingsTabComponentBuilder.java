@@ -1,4 +1,4 @@
-package com.mas6y6.musmeta.registry.objects;
+package com.mas6y6.musmeta.registry.items;
 
 import javax.swing.*;
 

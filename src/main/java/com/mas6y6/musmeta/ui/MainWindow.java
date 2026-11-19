@@ -382,13 +382,13 @@ public class MainWindow extends MainAppFrame {
 
         libraryMenu.add(musicScanMenuItem);
 
-        Registries.FILE_MENU_ITEMS.getAll().forEach(e -> fileMenu.add(e.getValue()));
-        Registries.EDIT_MENU_ITEMS.getAll().forEach(e -> editMenu.add(e.getValue()));
-        Registries.LIBRARY_MENU_ITEMS.getAll().forEach(e -> libraryMenu.add(e.getValue()));
-        Registries.VIEW_MENU_ITEMS.getAll().forEach(e -> viewMenu.add(e.getValue()));
+        Registries.FILE_MENU_ITEMS.getAll().forEach(e -> fileMenu.add(e.getValue().get()));
+        Registries.EDIT_MENU_ITEMS.getAll().forEach(e -> editMenu.add(e.getValue().get()));
+        Registries.LIBRARY_MENU_ITEMS.getAll().forEach(e -> libraryMenu.add(e.getValue().get()));
+        Registries.VIEW_MENU_ITEMS.getAll().forEach(e -> viewMenu.add(e.getValue().get()));
 
         JMenu toolsMenu = new JMenu("Tools");
-        Registries.TOOLS_MENU_ITEMS.getAll().forEach(e -> toolsMenu.add(e.getValue()));
+        Registries.TOOLS_MENU_ITEMS.getAll().forEach(e -> toolsMenu.add(e.getValue().get()));
         if (toolsMenu.getItemCount() > 0) {
             menuBar.add(toolsMenu);
         }
@@ -397,7 +397,7 @@ public class MainWindow extends MainAppFrame {
         }
         Registries.TOOLS_MENU_DIALOGS.getAll().forEach(entry -> {
             JMenuItem item = new JMenuItem(entry.getValue().title());
-            item.addActionListener(e -> entry.getValue().dialogBuilder().build(this).setVisible(true));
+            item.addActionListener(e -> entry.getValue().dialogBuilder().get().build(this).setVisible(true));
             toolsMenu.add(item);
         });
 
@@ -406,7 +406,7 @@ public class MainWindow extends MainAppFrame {
         menuBar.add(libraryMenu);
         menuBar.add(viewMenu);
 
-        Registries.MENU_ITEMS.getAll().forEach(e -> menuBar.add(e.getValue()));
+        Registries.MENU_ITEMS.getAll().forEach(e -> menuBar.add(e.getValue().get()));
 
         /*
          * This is what tells Swing/FlatLaf that this is
@@ -421,7 +421,7 @@ public class MainWindow extends MainAppFrame {
 
         //region Title Bar / Toolbar
 
-        Registries.TOOLBAR_ITEMS.getAll().forEach(entry -> toolbar.add(entry.getValue()));
+        Registries.TOOLBAR_ITEMS.getAll().forEach(entry -> toolbar.add(entry.getValue().get()));
 
         if (SystemInfo.isMacOS) {
             toolbar.setFloatable(false);
@@ -501,7 +501,7 @@ public class MainWindow extends MainAppFrame {
 
         Registries.MAIN_TABS.getAll().forEach(entry -> {
             MainTabRegistryItem tab = entry.getValue();
-            JComponent component = tab.tabBuilder().build();
+            JComponent component = tab.tabBuilder().get().build();
             if (tab.icon() != null) {
                 tabs.addTab(tab.title(), tab.icon(), component);
             } else {
@@ -516,7 +516,7 @@ public class MainWindow extends MainAppFrame {
 
         JPanel southPanel = new JPanel(new BorderLayout());
         JPanel statusBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
-        Registries.STATUS_BAR_ITEMS.getAll().forEach(entry -> statusBar.add(entry.getValue()));
+        Registries.STATUS_BAR_ITEMS.getAll().forEach(entry -> statusBar.add(entry.getValue().get()));
         if (statusBar.getComponentCount() > 0) {
             southPanel.add(statusBar, BorderLayout.NORTH);
         }

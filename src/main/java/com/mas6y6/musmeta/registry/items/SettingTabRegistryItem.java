@@ -3,7 +3,8 @@ package com.mas6y6.musmeta.registry.items;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.function.Supplier;
 
-public record SettingTabRegistryItem(String name, @Nullable Icon icon, SettingsTabComponentBuilder settingsTabBuilder) {
+public record SettingTabRegistryItem(String name, @Nullable Icon icon, Supplier<SettingsTabComponentBuilder> settingsTabBuilder) {
 }
 

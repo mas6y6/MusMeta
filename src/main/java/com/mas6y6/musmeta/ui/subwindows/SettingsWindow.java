@@ -36,9 +36,9 @@ public class SettingsWindow extends JDialog {
 
         Registries.SETTING_TABS.getAll().forEach(tab -> {
             if (tab.getValue().icon() != null) {
-                tabs.addTab(tab.getKey(), tab.getValue().icon(), tab.getValue().settingsTabBuilder().build());
+                tabs.addTab(tab.getKey(), tab.getValue().icon(), tab.getValue().settingsTabBuilder().get().build());
             } else {
-                tabs.addTab(tab.getKey(), tab.getValue().settingsTabBuilder().build());
+                tabs.addTab(tab.getKey(), tab.getValue().settingsTabBuilder().get().build());
             }
         });
 

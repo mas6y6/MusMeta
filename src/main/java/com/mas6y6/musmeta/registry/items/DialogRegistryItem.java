@@ -3,8 +3,9 @@ package com.mas6y6.musmeta.registry.items;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.function.Supplier;
 
-public record DialogRegistryItem(String title, @Nullable Icon icon, DialogBuilder dialogBuilder) {
+public record DialogRegistryItem(String title, @Nullable Icon icon, Supplier<DialogBuilder> dialogBuilder) {
     public DialogRegistryItem {
         if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("Dialog title is required");
